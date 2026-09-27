@@ -273,7 +273,6 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        {/* Le bouton menu est maintenant visible sur tous les écrans */}
                         <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
@@ -305,21 +304,18 @@
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
-          // --- AUTOMATISATION DES DATES ---
           useEffect(() => {
               const today = new Date();
               let targetDate = new Date(today);
 
               if (formData.pieces.length > 0) {
-                  // Si au moins une pièce est cochée
-                  if (today.getDay() === 6) { // 6 = Samedi
-                      targetDate.setDate(today.getDate() + 3); // On passe au Mardi
+                  if (today.getDay() === 6) { 
+                      targetDate.setDate(today.getDate() + 3); 
                   } else {
-                      targetDate.setDate(today.getDate() + 1); // On passe au lendemain
+                      targetDate.setDate(today.getDate() + 1); 
                   }
               } else {
-                  // Aucune pièce cochée
-                  targetDate = today; // Jour même
+                  targetDate = today; 
               }
 
               const newDateISO = getLocalISO(targetDate);
@@ -380,7 +376,6 @@
             if (!formData.client || !formData.phone || !formData.repair) return;
             let submitDate = formData.date;
             const dCheck = new Date(submitDate);
-            // Si la date tombe un dimanche, on pousse au lundi
             if (dCheck.getDay() === 0) {
                 dCheck.setDate(dCheck.getDate() + 1); 
                 submitDate = getLocalISO(dCheck);
@@ -415,8 +410,8 @@
                 piece: pieceString, 
                 supplier: '', 
                 status: 'pending',
-                order: Date.now(), // Ajout d'un ordre par défaut
-                isPriority: false  // Statut de priorité par défaut
+                order: Date.now(), 
+                isPriority: false  
             };
 
             const { collection, addDoc } = window.FB_SDK;
@@ -450,7 +445,6 @@
             await updateDoc(doc(window.db, "repairs", id), { isPriority: !currentVal });
           };
 
-          // --- GESTION DU RE-ORDONNANCEMENT LIBRE ET CHANGEMENT DE DATE ---
           const handleDrop = async (e, targetDateStr, targetRepairId = null) => {
             e.preventDefault();
             e.stopPropagation();
@@ -460,18 +454,15 @@
             const draggedRepair = repairs.find(r => r.id === draggedId);
             if (!draggedRepair) return;
 
-            // On récupère les réparations du jour cible, triées (Priorité d'abord, puis ordre)
             let targetDayRepairs = repairs.filter(r => r.date === targetDateStr).sort((a, b) => {
                 if (a.isPriority && !b.isPriority) return -1;
                 if (!a.isPriority && b.isPriority) return 1;
                 return (a.order || 0) - (b.order || 0);
             });
 
-            // On retire l'élément glissé de sa place actuelle s'il était déjà dans ce jour
             targetDayRepairs = targetDayRepairs.filter(r => r.id !== draggedId);
 
             if (targetRepairId) {
-                // On l'insère avant l'élément sur lequel on l'a lâché
                 const targetIndex = targetDayRepairs.findIndex(r => r.id === targetRepairId);
                 if (targetIndex !== -1) {
                     targetDayRepairs.splice(targetIndex, 0, draggedRepair);
@@ -479,11 +470,9 @@
                     targetDayRepairs.push(draggedRepair);
                 }
             } else {
-                // On l'ajoute à la fin
                 targetDayRepairs.push(draggedRepair);
             }
 
-            // Mise à jour de Firestore avec les nouveaux index (sans casser l'état de priorité)
             const { doc, updateDoc } = window.FB_SDK;
             targetDayRepairs.forEach((rep, index) => {
                 const newOrder = index * 10;
@@ -499,7 +488,6 @@
               setExpandedPieces(prev => ({ ...prev, [id]: !prev[id] }));
           };
 
-          // --- NOUVELLES COULEURS AVEC GESTION DE LA PRIORITÉ ---
           const getStatusColors = (repair) => {
             if(repair.status === 'done') return 'bg-green-100 dark:bg-green-900/40 border-green-500 text-green-900 dark:text-green-100';
             if(repair.status === 'waiting') return 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-500 text-yellow-900 dark:text-yellow-100';
@@ -509,7 +497,6 @@
 
           return (
             <div className="flex w-full min-h-screen">
-              {/* === MENU LATÉRAL DE NAVIGATION (TIROIR) === */}
               {isNavOpen && (
                 <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden" onClick={() => setIsNavOpen(false)}></div>
               )}
@@ -540,7 +527,6 @@
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            {/* BOUTON MENU TOUJOURS VISIBLE ICI */}
                             <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
@@ -674,7 +660,6 @@
                           const dateStr = getLocalISO(date);
                           const isToday = dateStr === getLocalISO(new Date());
                           
-                          // Tri initial des réparations du jour : Priorité en premier, puis l'ordre manuel
                           const dayRepairs = repairs.filter(r => r.date === dateStr).sort((a, b) => {
                               if (a.isPriority && !b.isPriority) return -1;
                               if (!a.isPriority && b.isPriority) return 1;
@@ -705,7 +690,6 @@
                                     <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
                                       <span className="text-xs sm:text-sm truncate pr-2">{repair.client}</span>
                                       <div className="flex space-x-1 flex-shrink-0">
-                                          {/* BOUTON PRIORITÉ */}
                                           {repair.status !== 'done' && (
                                               <button 
                                                   onClick={() => togglePriority(repair.id, repair.isPriority)}
@@ -749,22 +733,44 @@
                                       {repair.status !== 'done' && (
                                         <button onClick={() => updateRepairStatus(repair.id, 'done')} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
                                       )}
+                                      
+                                      {/* BOUTON ANNULER L'ATTENTE */}
+                                      {repair.status === 'waiting' && (
+                                        <button onClick={async () => {
+                                            const { doc, updateDoc } = window.FB_SDK;
+                                            const revertDate = repair.previousDate || dateStr;
+                                            await updateDoc(doc(window.db, "repairs", repair.id), { status: 'pending', date: revertDate });
+                                        }} className="w-full lg:flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">
+                                            ↩ Annuler
+                                        </button>
+                                      )}
+
                                       {repair.status !== 'waiting' && repair.status !== 'done' && (
-                                        <button onClick={() => { 
+                                        <button onClick={async () => { 
                                             const tm = new Date(date); 
                                             tm.setDate(tm.getDate() + 1); 
                                             if (tm.getDay() === 0) tm.setDate(tm.getDate() + 1); 
-                                            updateRepairDate(repair.id, getLocalISO(tm)); 
-                                            updateRepairStatus(repair.id, 'waiting');
+                                            
+                                            const { doc, updateDoc } = window.FB_SDK;
+                                            await updateDoc(doc(window.db, "repairs", repair.id), { 
+                                                status: 'waiting', 
+                                                date: getLocalISO(tm),
+                                                previousDate: dateStr
+                                            });
                                         }} className="w-full lg:flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Attente</button>
                                       )}
                                     </div>
                                     
-                                    {/* NOUVEAU COMPORTEMENT: SUPPRESSION DIRECTE AU CLIC SUR APPELÉ */}
+                                    {/* BOUTONS SUPPRESSION ET ANNULATION DE TERMINÉ */}
                                     {repair.status === 'done' ? (
-                                        <button onClick={() => deleteRepair(repair.id)} className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
-                                            📞 Appelé (Supprimer)
-                                        </button>
+                                        <div className="flex gap-2 mt-2">
+                                            <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
+                                                ↩
+                                            </button>
+                                            <button onClick={() => deleteRepair(repair.id)} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
+                                                📞 Appelé (Suppr.)
+                                            </button>
+                                        </div>
                                     ) : (
                                         <button onClick={() => deleteRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
                                             Récupéré (Sup)
