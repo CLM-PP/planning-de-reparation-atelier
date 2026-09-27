@@ -295,11 +295,14 @@
           const [view, setView] = useState('planning');
           const [activeIntake, setActiveIntake] = useState(null);
           const [isNavOpen, setIsNavOpen] = useState(false);
-          const [expandedPieces, setExpandedPieces] = useState({}); // Gère l'ouverture/fermeture des pièces
+          const [expandedPieces, setExpandedPieces] = useState({});
           
+          // Mise à jour de formData pour gérer la nouvelle structure fournisseur par pièce
           const [formData, setFormData] = useState({ 
               client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
-              pieces: [], customPiece: '', supplier: '', customSupplier: '' 
+              pieces: [], customPiece: '', 
+              pieceSuppliers: {},        // Ex: { 'Écran': 'Utopya' }
+              customPieceSuppliers: {}   // Ex: { 'Écran': 'MonFournisseur' } si 'Autre' est sélectionné dans la liste
           });
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -358,25 +361,45 @@
                 submitDate = getLocalISO(dCheck);
             }
             
-            let finalPieces = formData.pieces.filter(p => p !== 'Autre');
-            if (formData.pieces.includes('Autre') && formData.customPiece) {
-                finalPieces.push(formData.customPiece);
-            }
-            const pieceString = finalPieces.length > 0 ? finalPieces.join(' + ') : 'Aucune / En stock';
-            const finalSupplier = finalPieces.length === 0 ? '' : (formData.supplier === 'Autre (préciser)...' ? formData.customSupplier : formData.supplier);
+            // Construction de la chaîne des pièces et fournisseurs
+            let finalPieceStrings = [];
+            formData.pieces.forEach(p => {
+                let pName = p;
+                if (p === 'Autre' && formData.customPiece) {
+                    pName = formData.customPiece;
+                } else if (p === 'Autre') {
+                    return; // Si on a coché 'Autre' sans rien écrire
+                }
+
+                let sup = formData.pieceSuppliers[p] || '';
+                if (sup === 'Autre') {
+                    sup = formData.customPieceSuppliers[p] || '';
+                }
+
+                if (sup) {
+                    finalPieceStrings.push(`${pName} (${sup})`);
+                } else {
+                    finalPieceStrings.push(pName);
+                }
+            });
+
+            const pieceString = finalPieceStrings.length > 0 ? finalPieceStrings.join(' + ') : 'Aucune / En stock';
             
             const newRepair = { 
                 client: formData.client, clientPhone: formData.clientPhone, phone: formData.phone, repair: formData.repair,
                 date: submitDate, 
                 piece: pieceString, 
-                supplier: finalSupplier || '',
+                supplier: '', // Vidé car géré dans pieceString maintenant, laissé pour compatibilité
                 status: 'pending' 
             };
 
             const { collection, addDoc } = window.FB_SDK;
             const docRef = await addDoc(collection(window.db, "repairs"), newRepair);
 
-            setFormData({ client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), pieces: [], customPiece: '', supplier: '', customSupplier: '' });
+            setFormData({ 
+                client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
+                pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {} 
+            });
             setActiveIntake({ id: docRef.id, ...newRepair });
             setView('intake');
           };
@@ -417,6 +440,7 @@
 
           return (
             <div className="flex w-full min-h-screen">
+              {/* === MENU LATÉRAL DE NAVIGATION (TIROIR) === */}
               {isNavOpen && (
                 <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden" onClick={() => setIsNavOpen(false)}></div>
               )}
@@ -447,7 +471,6 @@
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            {/* BOUTON MENU MAINTENANT VISIBLE PARTOUT */}
                             <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
@@ -513,29 +536,51 @@
                       </div>
 
                       {formData.pieces.includes('Autre') && (
-                          <div>
+                          <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez la pièce</label>
                             <input type="text" required value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                           </div>
                       )}
                       
+                      {/* === NOUVELLE SECTION POUR LES FOURNISSEURS INDIVIDUELS === */}
                       {formData.pieces.length > 0 && (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Fournisseur</label>
-                            <select value={formData.supplier} onChange={e => setFormData({...formData, supplier: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white">
-                              <option value="">-- Aucun / Non applicable --</option>
-                              <option value="Utopya">Utopya</option>
-                              <option value="Mobilax">Mobilax</option>
-                              <option value="Amazon">Amazon</option>
-                              <option value="Autre (préciser)...">Autre (préciser)...</option>
-                            </select>
-                          </div>
-                          {formData.supplier === 'Autre (préciser)...' && <div><label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez le fournisseur</label><input type="text" required value={formData.customSupplier} onChange={e => setFormData({...formData, customSupplier: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" /></div>}
-                        </>
+                        <div className="space-y-3 mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <label className="block text-sm font-bold text-gray-800 dark:text-gray-200">Fournisseur(s) optionnel(s)</label>
+                            {formData.pieces.map(p => {
+                                const displayName = p === 'Autre' ? (formData.customPiece || 'Autre pièce') : p;
+                                return (
+                                    <div key={p} className="flex flex-col bg-gray-50 dark:bg-gray-700/30 p-2 rounded border border-gray-200 dark:border-gray-600">
+                                        <span className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">{displayName}</span>
+                                        <select 
+                                            value={formData.pieceSuppliers[p] || ''} 
+                                            onChange={e => setFormData({...formData, pieceSuppliers: { ...formData.pieceSuppliers, [p]: e.target.value }})}
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm"
+                                        >
+                                            <option value="">-- Aucun --</option>
+                                            <option value="Utopya">Utopya</option>
+                                            <option value="Mobilax">Mobilax</option>
+                                            <option value="Amazon">Amazon</option>
+                                            <option value="Autre">Autre (préciser)...</option>
+                                        </select>
+                                        
+                                        {formData.pieceSuppliers[p] === 'Autre' && (
+                                            <input 
+                                                type="text" 
+                                                placeholder="Nom du fournisseur..." 
+                                                required 
+                                                value={formData.customPieceSuppliers[p] || ''} 
+                                                onChange={e => setFormData({...formData, customPieceSuppliers: { ...formData.customPieceSuppliers, [p]: e.target.value }})}
+                                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm mt-2" 
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                       )}
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Date prévue</label>
+                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Date prévue</label>
                         <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">+ Ajouter au planning</button>
@@ -593,14 +638,14 @@
                                     <div className="text-gray-900 dark:text-gray-200 font-medium mb-1 text-xs sm:text-sm truncate">{repair.phone}</div>
                                     <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">{repair.repair}</div>
                                     
-                                    {/* NOUVEAU: CLIQUEZ POUR AGRANDIR LA LISTE DES PIÈCES */}
                                     {repair.piece !== 'Aucune / En stock' && (
                                         <div 
                                             onClick={(e) => { e.stopPropagation(); togglePieces(repair.id); }}
                                             className={`inline-block bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold w-full cursor-pointer transition-all ${expandedPieces[repair.id] ? 'whitespace-normal' : 'truncate'}`}
                                             title="Cliquez pour afficher/masquer toutes les pièces"
                                         >
-                                            🛒 {repair.piece} {repair.supplier && `(${repair.supplier})`}
+                                            {/* Rétrocompatibilité avec les vieilles réparations qui avaient repair.supplier */}
+                                            🛒 {repair.piece} {(repair.supplier && !repair.piece.includes(repair.supplier)) ? `(${repair.supplier})` : ''}
                                         </div>
                                     )}
                                     
