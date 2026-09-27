@@ -335,7 +335,7 @@
                                         </button>
                                         <button onClick={async () => {
                                             const pwd = prompt("Mot de passe administrateur pour supprimer définitivement cette fiche :");
-                                            if (pwd === "MagretFrite") {
+                                            if (pwd === "magretfrite") {
                                                 const { doc, deleteDoc } = window.FB_SDK;
                                                 await deleteDoc(doc(window.db, "repairs", repair.id));
                                             } else if(pwd !== null) {
@@ -593,6 +593,7 @@
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    {/* Header */}
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
                         <div className="flex items-center">
                             <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
@@ -603,6 +604,7 @@
                             </h1>
                         </div>
                         
+                        {/* Bouton de retour affiché seulement si un modèle est sélectionné */}
                         {selectedModel && (
                             <button onClick={() => setSelectedModel(null)} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-xs sm:text-sm flex items-center">
                                 <span className="mr-1">&larr;</span> Retour aux modèles
@@ -612,7 +614,9 @@
                     
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-5xl mx-auto flex flex-col h-full">
+                            
                             <div className="flex-1">
+                                {/* AFFICHAGE CONDITIONNEL : Grille ou Détail */}
                                 {!selectedModel ? (
                                     <>
                                         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
@@ -637,6 +641,7 @@
                                                 </div>
                                             </div>
 
+                                            {/* ENCADRÉ : OUTILS AUTOMATIQUES AVEC LIEN DIRECT */}
                                             <div className="bg-gray-100 dark:bg-gray-700/50 border-l-4 border-gray-400 dark:border-gray-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200">
                                                 <p className="mb-2 leading-relaxed">
                                                     <strong>Outils d'analyse automatiques :</strong> Vous pouvez également utiliser un outil comme <a href="https://github.com/waynebonc/iDeviceLogAnalyzer-public/archive/refs/heads/master.zip" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">iDevice Panic Log Analyzer</a>, qui téléchargera les journaux d'erreurs de l'appareil, les affichera sur votre ordinateur et vous proposera des solutions. Il facilite ainsi la consultation du fichier journal.
@@ -673,9 +678,11 @@
                                 )}
                             </div>
 
+                            {/* CITATION DE LA SOURCE EN BAS DE PAGE */}
                             <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500 dark:text-gray-400 pb-4">
                                 Diagnostics et codes d'erreur basés sur la documentation communautaire de : <a href="https://repair.wiki/w/How_to_Troubleshoot_And_Fix_iPhone_Random_Restarts_Using_Panic_Logs" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-medium">repair.wiki (Troubleshoot iPhone Random Restarts)</a>.
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -717,24 +724,28 @@
                                             <strong>Diagnostic :</strong> Connecteur de charge HS, Nappe Flex coupée, OVP grillée, Court-circuit VPH_PWR / VBAT.
                                         </div>
                                     </div>
+                                    
                                     <div className="p-3 rounded-md border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-sm">
                                         <div className="font-bold text-orange-700 dark:text-orange-400 mb-1">🟠 0.08A à 0.15A : Activation PMIC principal</div>
                                         <div className="text-gray-800 dark:text-gray-200">
                                             <strong>Diagnostic :</strong> Billage CPU/RAM, UFS illisible, Boucle CPU (oscillation 0.08A - 0.12A).
                                         </div>
                                     </div>
+                                    
                                     <div className="p-3 rounded-md border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-sm">
                                         <div className="font-bold text-yellow-700 dark:text-yellow-400 mb-1">🟡 0.20A à 0.40A : Lecture du Bootloader</div>
                                         <div className="text-gray-800 dark:text-gray-200">
                                             <strong>Diagnostic :</strong> Défaut ligne secondaire PMIC, Corruption logicielle sévère.
                                         </div>
                                     </div>
+                                    
                                     <div className="p-3 rounded-md border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20 text-sm">
                                         <div className="font-bold text-green-700 dark:text-green-400 mb-1">🟢 0.40A à 0.60A : Initialisation de l'affichage</div>
                                         <div className="text-gray-800 dark:text-gray-200">
                                             <strong>Diagnostic :</strong> Problème FPC écran, Filtres EMI MIPI (L'écran s'apprête).
                                         </div>
                                     </div>
+                                    
                                     <div className="p-3 rounded-md border-l-4 border-green-600 bg-green-100 dark:bg-green-900/30 text-sm">
                                         <div className="font-bold text-green-800 dark:text-green-300 mb-1">🟩 0.60A à 1.50A+ : Chargement de l'OS</div>
                                         <div className="text-gray-800 dark:text-gray-200">
@@ -780,7 +791,7 @@
 
             const handleDelete = async (id, action) => {
                 const pwd = prompt(`Mot de passe administrateur requis pour marquer cette proposition comme "${action}" :`);
-                if (pwd !== "MagretFrite") {
+                if (pwd !== "magretfrite") {
                     if (pwd !== null) alert("Mot de passe incorrect.");
                     return;
                 }
@@ -1127,6 +1138,9 @@
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
                         </div>
+                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Changer de thème">
+                            {isDarkMode ? '☀️' : '🌙'}
+                        </button>
                     </div>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
@@ -1412,7 +1426,7 @@
                                           )}
                                         </div>
                                         
-                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT */}
+                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
