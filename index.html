@@ -300,7 +300,7 @@
           const [formData, setFormData] = useState({ 
               client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
               pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {},
-              isSAV: false // <-- NOUVEAU CHAMP SAV
+              isSAV: false
           });
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -413,7 +413,7 @@
                 status: 'pending',
                 order: Date.now(), 
                 isPriority: false,
-                isSAV: formData.isSAV // <-- ENVOI DU STATUT SAV
+                isSAV: formData.isSAV 
             };
 
             const { collection, addDoc } = window.FB_SDK;
@@ -557,7 +557,7 @@
                         <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       
-                      {/* === NOUVELLE CASE SAV === */}
+                      {/* === CASE SAV MODIFIÉE ICI === */}
                       <div className="pt-1">
                           <label className="flex items-center space-x-2 text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer bg-red-50 dark:bg-red-900/20 p-2.5 rounded-md border border-red-200 dark:border-red-800 transition hover:bg-red-100 dark:hover:bg-red-900/40">
                               <input 
@@ -566,7 +566,7 @@
                                   onChange={(e) => setFormData({...formData, isSAV: e.target.checked})}
                                   className="rounded border-red-300 text-red-600 w-5 h-5 cursor-pointer focus:ring-red-500"
                               />
-                              <span className="text-red-700 dark:text-red-400 font-bold tracking-wide">⚠️ RETOUR SAV (GARANTIE)</span>
+                              <span className="text-red-700 dark:text-red-400 font-bold tracking-wide">⚠️ SAV (Garantie)</span>
                           </label>
                       </div>
 
@@ -723,7 +723,6 @@
                                     <div className="text-gray-900 dark:text-gray-200 font-medium mb-1 text-xs sm:text-sm truncate">{repair.phone}</div>
                                     
                                     <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">
-                                        {/* AFFICHAGE DU BADGE SAV */}
                                         {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-1 font-bold text-[9px] uppercase shadow-sm">SAV</span>}
                                         {repair.repair}
                                     </div>
