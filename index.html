@@ -273,7 +273,7 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Autre page</h1>
@@ -303,6 +303,33 @@
           });
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+
+          // --- NOUVELLE AUTOMATISATION DES DATES ---
+          useEffect(() => {
+              const today = new Date();
+              let targetDate = new Date(today);
+
+              if (formData.pieces.length > 0) {
+                  // Si au moins une pièce est cochée
+                  if (today.getDay() === 6) { // 6 = Samedi
+                      targetDate.setDate(today.getDate() + 3); // On passe au Mardi
+                  } else {
+                      targetDate.setDate(today.getDate() + 1); // On passe au lendemain
+                  }
+              } else {
+                  // Aucune pièce cochée
+                  targetDate = today; // Jour même
+              }
+
+              const newDateISO = getLocalISO(targetDate);
+              // On évite les boucles infinies en vérifiant si la date a vraiment besoin d'être changée
+              setFormData(prev => {
+                  if (prev.date !== newDateISO) {
+                      return { ...prev, date: newDateISO };
+                  }
+                  return prev;
+              });
+          }, [formData.pieces]); // Déclenché uniquement quand on coche/décoche une pièce
 
           useEffect(() => {
             const handleFirebaseReady = () => {
@@ -353,6 +380,7 @@
             if (!formData.client || !formData.phone || !formData.repair) return;
             let submitDate = formData.date;
             const dCheck = new Date(submitDate);
+            // Si la date tombe un dimanche, on pousse au lundi
             if (dCheck.getDay() === 0) {
                 dCheck.setDate(dCheck.getDate() + 1); 
                 submitDate = getLocalISO(dCheck);
