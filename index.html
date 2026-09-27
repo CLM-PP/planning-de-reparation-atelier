@@ -12,6 +12,30 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- SDK FIREBASE (Firestore) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAxzefDnbYT4KTTiDm4S_okltTehCwM6SM",
+        authDomain: "planning-reparation.firebaseapp.com",
+        projectId: "planning-reparation",
+        storageBucket: "planning-reparation.firebasestorage.app",
+        messagingSenderId: "90928624441",
+        appId: "1:90928624441:web:97b3abd153c16e40486ee8",
+        measurementId: "G-H3L7RTXSZK"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      window.db = db;
+      window.FB_SDK = { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc };
+      window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+
     <style>
         @media print {
             @page { size: A4 landscape; margin: 6mm; }
@@ -40,15 +64,15 @@
         const { useState, useEffect } = React;
 
         /* ==============================================================================
-           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE
+           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE (AVEC VISIBILITÉ)
            ============================================================================== */
         function ProtectedApp() {
             const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('auth') === 'true');
             const [passwordInput, setPasswordInput] = useState('');
+            const [showPassword, setShowPassword] = useState(false);
             const [error, setError] = useState(false);
 
-            // 🔑 CHANGEZ "atelier81" ICI PAR LE MOT DE PASSE DE VOTRE CHOIX
-            const SECRET_PASSWORD = "atelier81"; 
+            const SECRET_PASSWORD = "tech en carton"; 
 
             const handleLogin = (e) => {
                 e.preventDefault();
@@ -67,13 +91,26 @@
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">🔒 Accès Sécurisé</h2>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center">Entrez le mot de passe de l'atelier pour accéder au planning.</p>
                             <input 
-                                type="password" 
+                                type={showPassword ? "text" : "password"} 
                                 placeholder="Mot de passe..." 
                                 value={passwordInput} 
                                 onChange={(e) => { setPasswordInput(e.target.value); setError(false); }} 
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-3 mb-3 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-center font-bold"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-3 mb-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-center font-bold"
                                 autoFocus
                             />
+                            
+                            {/* CASE À COCHER POUR VOIR LE MOT DE PASSE */}
+                            <div className="flex items-center justify-center mb-4 text-sm text-gray-600 dark:text-gray-300">
+                                <input 
+                                    type="checkbox" 
+                                    id="showPass" 
+                                    checked={showPassword} 
+                                    onChange={() => setShowPassword(!showPassword)} 
+                                    className="mr-2 cursor-pointer"
+                                />
+                                <label htmlFor="showPass" className="cursor-pointer select-none">Afficher le mot de passe</label>
+                            </div>
+
                             {error && <p className="text-red-500 text-xs mb-3 text-center font-bold">Mot de passe incorrect</p>}
                             <button type="submit" className="w-full bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">Se connecter</button>
                         </form>
@@ -84,11 +121,6 @@
             return <AppContent />;
         }
 
-        /* ==============================================================================
-           APPLICATION PRINCIPALE
-           ============================================================================== */
-        const generateId = () => Math.random().toString(36).substr(2, 9);
-        
         const getLocalISO = (d) => {
           const y = d.getFullYear();
           const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -272,8 +304,25 @@
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
-          useEffect(() => { const saved = localStorage.getItem('repairs'); if (saved) setRepairs(JSON.parse(saved)); }, []);
-          useEffect(() => { localStorage.setItem('repairs', JSON.stringify(repairs)); }, [repairs]);
+          useEffect(() => {
+            const handleFirebaseReady = () => {
+              const { collection, onSnapshot } = window.FB_SDK;
+              const unsubscribe = onSnapshot(collection(window.db, "repairs"), (snapshot) => {
+                const loadedRepairs = snapshot.docs.map(doc => ({
+                  id: doc.id,
+                  ...doc.data()
+                }));
+                setRepairs(loadedRepairs);
+              });
+              return unsubscribe;
+            };
+
+            if (window.FB_SDK) {
+              handleFirebaseReady();
+            } else {
+              window.addEventListener('firebase-ready', handleFirebaseReady);
+            }
+          }, []);
 
           useEffect(() => {
             if (isDarkMode) {
@@ -299,7 +348,7 @@
             return days;
           })();
 
-          const handleSubmit = (e) => {
+          const handleSubmit = async (e) => {
             e.preventDefault();
             if (!formData.client || !formData.phone || !formData.repair) return;
             let submitDate = formData.date;
@@ -310,44 +359,43 @@
             }
             const piece = formData.pieceCategory === 'Autre (préciser)...' ? formData.customPiece : formData.pieceCategory;
             const finalSupplier = formData.pieceCategory === '' ? '' : (formData.supplier === 'Autre (préciser)...' ? formData.customSupplier : formData.supplier);
+            
             const newRepair = { 
-                id: generateId(), ...formData, date: submitDate, 
+                ...formData, date: submitDate, 
                 piece: piece || 'Aucune / En stock', 
                 supplier: finalSupplier || '',
                 status: 'pending' 
             };
-            setRepairs([...repairs, newRepair]);
+
+            const { collection, addDoc } = window.FB_SDK;
+            const docRef = await addDoc(collection(window.db, "repairs"), newRepair);
+
             setFormData({ client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), pieceCategory: '', customPiece: '', supplier: '', customSupplier: '' });
-            setActiveIntake(newRepair);
+            setActiveIntake({ id: docRef.id, ...newRepair });
             setView('intake');
           };
 
-          const handleDrop = (e, targetDateStr, targetRepairId = null) => {
+          const updateRepairStatus = async (id, newStatus) => {
+            const { doc, updateDoc } = window.FB_SDK;
+            await updateDoc(doc(window.db, "repairs", id), { status: newStatus });
+          };
+
+          const updateRepairDate = async (id, newDate) => {
+            const { doc, updateDoc } = window.FB_SDK;
+            await updateDoc(doc(window.db, "repairs", id), { date: newDate });
+          };
+
+          const deleteRepair = async (id) => {
+            const { doc, deleteDoc } = window.FB_SDK;
+            await deleteDoc(doc(window.db, "repairs", id));
+          };
+
+          const handleDrop = async (e, targetDateStr, targetRepairId = null) => {
             e.preventDefault();
             e.stopPropagation();
             const draggedId = e.dataTransfer.getData('repairId');
             if (!draggedId || draggedId === targetRepairId) return;
-
-            setRepairs(prevRepairs => {
-                const draggedIndex = prevRepairs.findIndex(r => r.id === draggedId);
-                if (draggedIndex === -1) return prevRepairs;
-                const draggedItem = { ...prevRepairs[draggedIndex], date: targetDateStr };
-                let newRepairs = [...prevRepairs];
-
-                if (targetRepairId) {
-                    const originalTargetIndex = prevRepairs.findIndex(r => r.id === targetRepairId);
-                    newRepairs.splice(draggedIndex, 1);
-                    let insertIndex = newRepairs.findIndex(r => r.id === targetRepairId);
-                    if (draggedItem.date === prevRepairs[originalTargetIndex].date && draggedIndex < originalTargetIndex) {
-                        insertIndex += 1;
-                    }
-                    newRepairs.splice(insertIndex, 0, draggedItem);
-                } else {
-                    newRepairs.splice(draggedIndex, 1);
-                    newRepairs.push(draggedItem);
-                }
-                return newRepairs;
-            });
+            await updateRepairDate(draggedId, targetDateStr);
           };
 
           const getStatusColors = (status) => {
@@ -510,24 +558,25 @@
                                     
                                     <div className="flex flex-col lg:flex-row justify-between items-stretch mt-2 pt-2 border-t border-black/10 dark:border-white/10 gap-2 lg:gap-1">
                                       {repair.status !== 'done' && repair.status !== 'called' && (
-                                        <button onClick={() => setRepairs(repairs.map(r => r.id === repair.id ? { ...r, status: 'done'} : r))} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
+                                        <button onClick={() => updateRepairStatus(repair.id, 'done')} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
                                       )}
                                       {repair.status !== 'waiting' && (
                                         <button onClick={() => { 
                                             const tm = new Date(date); 
                                             tm.setDate(tm.getDate() + 1); 
                                             if (tm.getDay() === 0) tm.setDate(tm.getDate() + 1); 
-                                            setRepairs(repairs.map(r => r.id === repair.id ? { ...r, status: 'waiting', date: getLocalISO(tm)} : r)); 
+                                            updateRepairDate(repair.id, getLocalISO(tm)); 
+                                            updateRepairStatus(repair.id, 'waiting');
                                         }} className="w-full lg:flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Attente</button>
                                       )}
                                     </div>
                                     
                                     {repair.status === 'done' ? (
-                                        <button onClick={() => setRepairs(repairs.map(r => r.id === repair.id ? { ...r, status: 'called'} : r))} className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
+                                        <button onClick={() => updateRepairStatus(repair.id, 'called')} className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
                                             📞 Appelé
                                         </button>
                                     ) : (
-                                        <button onClick={() => setRepairs(repairs.filter(r => r.id !== repair.id))} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
+                                        <button onClick={() => deleteRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
                                             Récupéré (Sup)
                                         </button>
                                     )}
