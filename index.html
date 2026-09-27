@@ -273,7 +273,8 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden">
+                        {/* Le bouton menu est maintenant visible sur tous les écrans (lg:hidden a été retiré) */}
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Autre page</h1>
@@ -304,7 +305,7 @@
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
-          // --- NOUVELLE AUTOMATISATION DES DATES ---
+          // --- AUTOMATISATION DES DATES ---
           useEffect(() => {
               const today = new Date();
               let targetDate = new Date(today);
@@ -322,14 +323,13 @@
               }
 
               const newDateISO = getLocalISO(targetDate);
-              // On évite les boucles infinies en vérifiant si la date a vraiment besoin d'être changée
               setFormData(prev => {
                   if (prev.date !== newDateISO) {
                       return { ...prev, date: newDateISO };
                   }
                   return prev;
               });
-          }, [formData.pieces]); // Déclenché uniquement quand on coche/décoche une pièce
+          }, [formData.pieces]);
 
           useEffect(() => {
             const handleFirebaseReady = () => {
@@ -495,6 +495,7 @@
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
+                            {/* BOUTON MENU TOUJOURS VISIBLE ICI */}
                             <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
