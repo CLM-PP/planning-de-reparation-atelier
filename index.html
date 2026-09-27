@@ -284,7 +284,7 @@
           );
         };
 
-        // --- PAGE PANIC LOGS AVEC EXPLICATIONS LISIBLES ---
+        // --- PAGE PANIC LOGS ---
         const PanicLogsView = ({ setView, onOpenNav }) => {
             const [selectedModel, setSelectedModel] = useState(null);
 
@@ -556,7 +556,6 @@
                                                 Sélectionnez un modèle d'iPhone pour voir la signification de ses codes de redémarrage (kernel panics).
                                             </p>
                                             
-                                            {/* --- INSTRUCTIONS CORRIGÉES --- */}
                                             <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-5 rounded-md text-sm text-gray-800 dark:text-gray-200 mb-5 shadow-sm">
                                                 <h3 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-300 flex items-center">
                                                     <span className="mr-2">📱</span> Comment trouver le journal d'erreur (Panic Log) :
@@ -686,6 +685,104 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NOUVELLE PAGE: PROPOSITIONS D'AMÉLIORATION ---
+        const ProposalsView = ({ setView, onOpenNav }) => {
+            const [proposals, setProposals] = useState([]);
+            const [name, setName] = useState('');
+            const [text, setText] = useState('');
+
+            useEffect(() => {
+                const { collection, onSnapshot } = window.FB_SDK;
+                const unsubscribe = onSnapshot(collection(window.db, "proposals"), (snapshot) => {
+                    const loadedProposals = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })).sort((a, b) => b.createdAt - a.createdAt);
+                    setProposals(loadedProposals);
+                });
+                return unsubscribe;
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!name || !text) return;
+                const { collection, addDoc } = window.FB_SDK;
+                await addDoc(collection(window.db, "proposals"), {
+                    name, text, createdAt: Date.now()
+                });
+                setName('');
+                setText('');
+            };
+
+            const handleDelete = async (id, action) => {
+                const pwd = prompt(`Mot de passe administrateur requis pour marquer cette proposition comme "${action}" :`);
+                if (pwd !== "patron") {
+                    if (pwd !== null) alert("Mot de passe incorrect.");
+                    return;
+                }
+                const { doc, deleteDoc } = window.FB_SDK;
+                await deleteDoc(doc(window.db, "proposals", id));
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    {/* Header */}
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">💡</span> Propositions d'amélioration
+                        </h1>
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
+                        <div className="max-w-4xl mx-auto">
+                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                                <h2 className="text-lg font-bold mb-4">Nouvelle proposition</h2>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium mb-1">Votre Prénom / Nom</label>
+                                    <input required value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Thomas" className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500" />
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium mb-1">Votre idée ou problème rencontré</label>
+                                    <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Décrivez l'amélioration que vous aimeriez voir..." className="w-full h-24 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500"></textarea>
+                                </div>
+                                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition">Envoyer la proposition</button>
+                            </form>
+
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-bold mb-4">Propositions en attente ({proposals.length})</h2>
+                                {proposals.map(p => (
+                                    <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                                        <div>
+                                            <div className="font-bold text-gray-900 dark:text-white mb-1 flex items-center">
+                                                <span className="text-blue-600 mr-2">👤</span> {p.name}
+                                                <span className="text-xs font-normal text-gray-500 ml-3">{new Date(p.createdAt).toLocaleDateString('fr-FR')}</span>
+                                            </div>
+                                            <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">{p.text}</p>
+                                        </div>
+                                        <div className="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                                            <button onClick={() => handleDelete(p.id, 'Fait')} className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition flex items-center justify-center text-sm shadow-sm">
+                                                ✅ Fait
+                                            </button>
+                                            <button onClick={() => handleDelete(p.id, 'Refusé')} className="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition flex items-center justify-center text-sm shadow-sm">
+                                                ❌ Non
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {proposals.length === 0 && (
+                                    <div className="text-center text-gray-500 dark:text-gray-400 py-8 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                                        Aucune proposition pour le moment. L'application est parfaite ! ✨
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -909,12 +1006,12 @@
               )}
               
               <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl z-50 transform transition-transform duration-300 print:hidden ${isNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                  <div className="p-6">
-                      <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-gray-700 pb-4">
+                  <div className="p-6 flex flex-col h-full">
+                      <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 shrink-0">
                           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
                           <button onClick={() => setIsNavOpen(false)} className="text-gray-500 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-3 overflow-y-auto">
                           <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'planning' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">📅</span> Planning
                           </button>
@@ -923,6 +1020,13 @@
                           </button>
                           <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">⚡</span> Diagnostique de démarrage
+                          </button>
+                      </div>
+
+                      {/* NOUVEAU BOUTON PROPOSITION TOUT EN BAS */}
+                      <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0">
+                          <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'proposals' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">💡</span> Proposition d'amélioration
                           </button>
                       </div>
                   </div>
@@ -934,6 +1038,8 @@
                   <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'diagnostic' ? (
                   <DiagnosticView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'proposals' ? (
+                  <ProposalsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : (
                 <div className="flex flex-col lg:flex-row w-full font-sans text-black dark:text-white transition-colors duration-200">
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
@@ -963,7 +1069,6 @@
                         <input type="text" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       <div>
-                        {/* --- CHANGEMENT DU LABEL ICI --- */}
                         <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Réparation ou panne</label>
                         <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
