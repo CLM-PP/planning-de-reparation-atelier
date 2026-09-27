@@ -284,7 +284,7 @@
           );
         };
 
-        // --- PAGE PANIC LOGS AVEC AFFICHAGE INTERNE COMPLET ---
+        // --- PAGE PANIC LOGS AVEC AFFICHAGE INTERNE, SOURCES ET OUTILS ---
         const PanicLogsView = ({ setView, onOpenNav }) => {
             const [selectedModel, setSelectedModel] = useState(null);
 
@@ -556,12 +556,22 @@
                                                 Sélectionnez un modèle d'iPhone pour voir la signification de ses codes de redémarrage (kernel panics).
                                             </p>
                                             
-                                            <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-r-md text-sm text-gray-800 dark:text-gray-200">
+                                            <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200 mb-4">
                                                 <p className="mb-2 leading-relaxed">
                                                     <strong>Pour trouver le journal des incidents critiques sur l'appareil :</strong> accédez à <strong>Paramètres</strong> &rarr; <strong>Confidentialité</strong> &rarr; <strong>Analyses et améliorations</strong> &rarr; <strong>Données d'analyse</strong> &rarr; Ecrivez dans la barre de recherche <strong>"full"</strong> puis défilez vers le bas &rarr; Cliquez puis vous devrez parcourir le texte à la recherche de mots-clés susceptibles de vous orienter vers la cause.
                                                 </p>
                                                 <p>
                                                     Recherchez la mention <strong>« SMC PANIC - ASSERTION FAILED »</strong>… <strong>« Sensor Array »</strong>… <strong>« 0x… »</strong>
+                                                </p>
+                                            </div>
+
+                                            {/* NOUVEL ENCADRÉ : OUTILS AUTOMATIQUES */}
+                                            <div className="bg-gray-100 dark:bg-gray-700/50 border-l-4 border-gray-400 dark:border-gray-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200">
+                                                <p className="mb-2 leading-relaxed">
+                                                    <strong>Outils d'analyse automatiques :</strong> Vous pouvez également utiliser un outil comme <strong>iDevice Panic Log Analyzer</strong>, qui téléchargera les journaux d'erreurs de l'appareil, les affichera sur votre ordinateur et vous proposera des solutions. Il facilite ainsi la consultation du fichier journal.
+                                                </p>
+                                                <p>
+                                                    Consultez également le site <a href="https://www.panicfull.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">www.PanicFull.com</a> qui vous permet de télécharger le fichier journal de panique et de le faire analyser gratuitement.
                                                 </p>
                                             </div>
                                         </div>
