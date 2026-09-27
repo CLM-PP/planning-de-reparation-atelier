@@ -558,6 +558,79 @@
                     </div>
                 </div>
             );
+            
+            const iphone16Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">1572864 (ou 524288 / 0x80000)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de charge / Capteur de pression d'air</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Très courant après un remplacement de vitre arrière ou si la nappe a été touchée.</li>
+                            <li>Vérifiez la connexion du module micro inférieur / capteur de pression d'air.</li>
+                            <li>Peut causer des redémarrages toutes les 3 minutes.</li>
+                        </ul>
+                    </div>
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">2097152 (ou 0x200000)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">169 (ou 0xa9)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Ligne de données de la batterie</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">L'iPhone reste bloqué à 1% ou 0%. Tester avec une nouvelle batterie ou vérifier le connecteur FPC sur la carte mère.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">3670016</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Problème de "Sandwich" (Carte mère)</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Peut signifier que les ports de charge et sans fil sont tous les deux inactifs, souvent à cause d'une séparation des cartes.</p>
+                    </div>
+                </div>
+            );
+
+            const iphone16ProContent = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-900/20 rounded-r-md">
+                        <h4 className="font-bold text-teal-700 dark:text-teal-400 text-lg">0x300000 (ou 3145728)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Problème de communication Capteurs / USB-C</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Erreur de communication SMC. Vérifiez la nappe USB-C et ses connexions environnantes.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-r-md">
+                        <h4 className="font-bold text-gray-700 dark:text-gray-300 text-lg">Redémarrage lors de l'ouverture de l'appareil photo</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Module Caméra Avant en court-circuit</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">La caméra avant provoque un arrêt de l'ensemble du système de caméras. Remplacer la caméra avant et effectuer l'appairage via Apple Diagnostics.</p>
+                    </div>
+                </div>
+            );
+
+            const iphone17Content = (
+                <div className="space-y-4">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded text-sm text-yellow-800 dark:text-yellow-300 mb-4">
+                        💡 <strong>Série 17 (Classique, Plus, Pro, Pro Max et Air) :</strong> L'architecture standardise ces codes hexadécimaux. Vérifiez en priorité les nappes de proximité, l'USB-C et la charge sans fil.
+                    </div>
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x200000 (ou 2097152) / 0x80000 (ou 524288)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Capteur de proximité / Nappe frontale</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Code très fréquent sur la série 17 (et particulièrement 17 Pro Max) lors d'un capteur de proximité défectueux ou mal branché.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x300000 (ou 3145728)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Port de charge USB-C</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Lié aux modèles Pro/Max/Air équipés du contrôleur USB-C avancé.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">0x100000 (ou 1048576)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du Bouton Power / Allumage</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x400000 (ou 4194304)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Bobine de chargement sans fil</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0x500000 (ou 5242880)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Problème de communication Batterie</p>
+                    </div>
+                </div>
+            );
 
             const seContent = (
                 <div className="space-y-4">
@@ -588,12 +661,14 @@
                 { id: "14p", model: "iPhone 14 Pro et 14 Pro Max", content: iphone14ProContent },
                 { id: "15", model: "iPhone 15 et 15 Plus", content: iphone15Content },
                 { id: "15p", model: "iPhone 15 Pro et 15 Pro Max", content: iphone15ProContent },
+                { id: "16", model: "iPhone 16 et 16 Plus", content: iphone16Content },
+                { id: "16p", model: "iPhone 16 Pro et 16 Pro Max", content: iphone16ProContent },
+                { id: "17", model: "Série 17 (17, Plus, Pro, Max, Air)", content: iphone17Content },
                 { id: "se", model: "iPhone SE 2020", content: seContent }
             ];
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    {/* Header */}
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
                         <div className="flex items-center">
                             <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
@@ -604,7 +679,6 @@
                             </h1>
                         </div>
                         
-                        {/* Bouton de retour affiché seulement si un modèle est sélectionné */}
                         {selectedModel && (
                             <button onClick={() => setSelectedModel(null)} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-xs sm:text-sm flex items-center">
                                 <span className="mr-1">&larr;</span> Retour aux modèles
@@ -614,9 +688,7 @@
                     
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-5xl mx-auto flex flex-col h-full">
-                            
                             <div className="flex-1">
-                                {/* AFFICHAGE CONDITIONNEL : Grille ou Détail */}
                                 {!selectedModel ? (
                                     <>
                                         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
@@ -641,7 +713,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* ENCADRÉ : OUTILS AUTOMATIQUES AVEC LIEN DIRECT */}
                                             <div className="bg-gray-100 dark:bg-gray-700/50 border-l-4 border-gray-400 dark:border-gray-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200">
                                                 <p className="mb-2 leading-relaxed">
                                                     <strong>Outils d'analyse automatiques :</strong> Vous pouvez également utiliser un outil comme <a href="https://github.com/waynebonc/iDeviceLogAnalyzer-public/archive/refs/heads/master.zip" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">iDevice Panic Log Analyzer</a>, qui téléchargera les journaux d'erreurs de l'appareil, les affichera sur votre ordinateur et vous proposera des solutions. Il facilite ainsi la consultation du fichier journal.
@@ -678,11 +749,9 @@
                                 )}
                             </div>
 
-                            {/* CITATION DE LA SOURCE EN BAS DE PAGE */}
                             <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500 dark:text-gray-400 pb-4">
                                 Diagnostics et codes d'erreur basés sur la documentation communautaire de : <a href="https://repair.wiki/w/How_to_Troubleshoot_And_Fix_iPhone_Random_Restarts_Using_Panic_Logs" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-medium">repair.wiki (Troubleshoot iPhone Random Restarts)</a>.
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -724,28 +793,24 @@
                                             <strong>Diagnostic :</strong> Connecteur de charge HS, Nappe Flex coupée, OVP grillée, Court-circuit VPH_PWR / VBAT.
                                         </div>
                                     </div>
-                                    
                                     <div className="p-3 rounded-md border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-sm">
                                         <div className="font-bold text-orange-700 dark:text-orange-400 mb-1">🟠 0.08A à 0.15A : Activation PMIC principal</div>
                                         <div className="text-gray-800 dark:text-gray-200">
                                             <strong>Diagnostic :</strong> Billage CPU/RAM, UFS illisible, Boucle CPU (oscillation 0.08A - 0.12A).
                                         </div>
                                     </div>
-                                    
                                     <div className="p-3 rounded-md border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-sm">
                                         <div className="font-bold text-yellow-700 dark:text-yellow-400 mb-1">🟡 0.20A à 0.40A : Lecture du Bootloader</div>
                                         <div className="text-gray-800 dark:text-gray-200">
                                             <strong>Diagnostic :</strong> Défaut ligne secondaire PMIC, Corruption logicielle sévère.
                                         </div>
                                     </div>
-                                    
                                     <div className="p-3 rounded-md border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20 text-sm">
                                         <div className="font-bold text-green-700 dark:text-green-400 mb-1">🟢 0.40A à 0.60A : Initialisation de l'affichage</div>
                                         <div className="text-gray-800 dark:text-gray-200">
                                             <strong>Diagnostic :</strong> Problème FPC écran, Filtres EMI MIPI (L'écran s'apprête).
                                         </div>
                                     </div>
-                                    
                                     <div className="p-3 rounded-md border-l-4 border-green-600 bg-green-100 dark:bg-green-900/30 text-sm">
                                         <div className="font-bold text-green-800 dark:text-green-300 mb-1">🟩 0.60A à 1.50A+ : Chargement de l'OS</div>
                                         <div className="text-gray-800 dark:text-gray-200">
@@ -865,7 +930,6 @@
           const [isNavOpen, setIsNavOpen] = useState(false);
           const [expandedPieces, setExpandedPieces] = useState({});
           
-          // RECHERCHE GLOBALE DANS LE PLANNING
           const [searchTerm, setSearchTerm] = useState("");
 
           const [formData, setFormData] = useState({ 
@@ -1003,7 +1067,6 @@
             await updateDoc(doc(window.db, "repairs", id), { status: newStatus });
           };
 
-          // --- NOUVELLE FONCTION ARCHIVAGE (Silencieuse pour l'utilisateur) ---
           const archiveRepair = async (id) => {
             const { doc, updateDoc } = window.FB_SDK;
             await updateDoc(doc(window.db, "repairs", id), { 
@@ -1072,7 +1135,6 @@
             return 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 shadow-sm'; 
           };
 
-          // Filtrer la recherche pour inclure archives et tickets en cours
           const filteredRepairs = searchTerm ? repairs.filter(r => 
               (r.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
               (r.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1081,7 +1143,6 @@
 
           return (
             <div className="flex w-full min-h-screen">
-              {/* === MENU LATÉRAL DE NAVIGATION === */}
               {isNavOpen && (
                 <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden" onClick={() => setIsNavOpen(false)}></div>
               )}
@@ -1097,7 +1158,6 @@
                               <span className="mr-3">📅</span> Planning
                           </button>
                           
-                          {/* BOUTON ARCHIVES RENOMMÉ */}
                           <button onClick={() => { setView('archives'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'archives' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🗄️</span> Archives
                           </button>
@@ -1271,7 +1331,6 @@
                         <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/60 transition text-sm">Auj.</button>
                       </div>
 
-                      {/* BARRE DE RECHERCHE GLOBALE */}
                       <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                           <span className="text-gray-500">🔍</span>
                           <input 
@@ -1290,7 +1349,6 @@
                     </div>
 
                     <div className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
-                      {/* VUE DE RECHERCHE OU VUE GRILLE SEMAINE */}
                       {searchTerm ? (
                           <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                               <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Résultats pour "{searchTerm}"</h2>
@@ -1321,7 +1379,6 @@
                               const dateStr = getLocalISO(date);
                               const isToday = dateStr === getLocalISO(new Date());
                               
-                              // On filtre pour exclure les archives du planning visuel
                               const dayRepairs = repairs.filter(r => r.date === dateStr && r.status !== 'archived').sort((a, b) => {
                                   if (a.isPriority && !b.isPriority) return -1;
                                   if (!a.isPriority && b.isPriority) return 1;
@@ -1426,7 +1483,6 @@
                                           )}
                                         </div>
                                         
-                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
