@@ -64,7 +64,7 @@
         const { useState, useEffect } = React;
 
         /* ==============================================================================
-           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE (AVEC VISIBILITÉ)
+           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE
            ============================================================================== */
         function ProtectedApp() {
             const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('auth') === 'true');
@@ -273,7 +273,7 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Autre page</h1>
@@ -296,9 +296,10 @@
           const [activeIntake, setActiveIntake] = useState(null);
           const [isNavOpen, setIsNavOpen] = useState(false);
           
+          // Mise à jour de formData pour gérer un tableau de pièces (pieces: [])
           const [formData, setFormData] = useState({ 
               client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
-              pieceCategory: '', customPiece: '', supplier: '', customSupplier: '' 
+              pieces: [], customPiece: '', supplier: '', customSupplier: '' 
           });
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -356,12 +357,19 @@
                 dCheck.setDate(dCheck.getDate() + 1); 
                 submitDate = getLocalISO(dCheck);
             }
-            const piece = formData.pieceCategory === 'Autre (préciser)...' ? formData.customPiece : formData.pieceCategory;
-            const finalSupplier = formData.pieceCategory === '' ? '' : (formData.supplier === 'Autre (préciser)...' ? formData.customSupplier : formData.supplier);
+            
+            // On compile les différentes pièces cochées en une seule phrase
+            let finalPieces = formData.pieces.filter(p => p !== 'Autre');
+            if (formData.pieces.includes('Autre') && formData.customPiece) {
+                finalPieces.push(formData.customPiece);
+            }
+            const pieceString = finalPieces.length > 0 ? finalPieces.join(' + ') : 'Aucune / En stock';
+            const finalSupplier = finalPieces.length === 0 ? '' : (formData.supplier === 'Autre (préciser)...' ? formData.customSupplier : formData.supplier);
             
             const newRepair = { 
-                ...formData, date: submitDate, 
-                piece: piece || 'Aucune / En stock', 
+                client: formData.client, clientPhone: formData.clientPhone, phone: formData.phone, repair: formData.repair,
+                date: submitDate, 
+                piece: pieceString, 
                 supplier: finalSupplier || '',
                 status: 'pending' 
             };
@@ -369,7 +377,7 @@
             const { collection, addDoc } = window.FB_SDK;
             const docRef = await addDoc(collection(window.db, "repairs"), newRepair);
 
-            setFormData({ client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), pieceCategory: '', customPiece: '', supplier: '', customSupplier: '' });
+            setFormData({ client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), pieces: [], customPiece: '', supplier: '', customSupplier: '' });
             setActiveIntake({ id: docRef.id, ...newRepair });
             setView('intake');
           };
@@ -437,7 +445,7 @@
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
+                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden" title="Ouvrir le menu">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
@@ -464,15 +472,52 @@
                         <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Réparation</label>
                         <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Pièce Commandé</label>
-                        <select value={formData.pieceCategory} onChange={e => setFormData({...formData, pieceCategory: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white">
-                          <option value="">-- Aucune --</option><option value="Écran">Écran</option><option value="Batterie">Batterie</option><option value="Dock de charge">Dock de charge</option><option value="Nappe CM">Nappe CM</option><option value="Caméra">Caméra</option><option value="Autre (préciser)...">Autre (préciser)...</option>
-                        </select>
-                      </div>
-                      {formData.pieceCategory === 'Autre (préciser)...' && <div><label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez la pièce</label><input type="text" required value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" /></div>}
                       
-                      {formData.pieceCategory !== '' && (
+                      {/* === CASES A COCHER POUR LES PIECES MULTIPLES === */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">Pièce(s) Commandée(s)</label>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra', 'Vitre arr.'].map(p => (
+                                <label key={p} className="flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={formData.pieces.includes(p)} 
+                                        onChange={(e) => {
+                                            const newPieces = e.target.checked 
+                                                ? [...formData.pieces, p] 
+                                                : formData.pieces.filter(x => x !== p);
+                                            setFormData({...formData, pieces: newPieces});
+                                        }}
+                                        className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
+                                    />
+                                    <span className="truncate">{p}</span>
+                                </label>
+                            ))}
+                            <label className="col-span-2 flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                <input 
+                                    type="checkbox" 
+                                    checked={formData.pieces.includes('Autre')} 
+                                    onChange={(e) => {
+                                        const newPieces = e.target.checked 
+                                            ? [...formData.pieces, 'Autre'] 
+                                            : formData.pieces.filter(x => x !== 'Autre');
+                                        setFormData({...formData, pieces: newPieces});
+                                    }}
+                                    className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
+                                />
+                                <span className="truncate">Autre chose (préciser)...</span>
+                            </label>
+                        </div>
+                      </div>
+
+                      {formData.pieces.includes('Autre') && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez la pièce</label>
+                            <input type="text" required value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
+                          </div>
+                      )}
+                      
+                      {formData.pieces.length > 0 && (
                         <>
                           <div>
                             <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Fournisseur</label>
@@ -547,7 +592,7 @@
                                     <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">{repair.repair}</div>
                                     
                                     {repair.piece !== 'Aucune / En stock' && (
-                                        <div className="inline-block bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold w-full truncate">
+                                        <div className="inline-block bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold w-full">
                                             🛒 {repair.piece} {repair.supplier && `(${repair.supplier})`}
                                         </div>
                                     )}
