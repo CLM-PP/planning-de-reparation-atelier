@@ -76,7 +76,7 @@
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         /* ==============================================================================
            SYSTÈME DE SÉCURITÉ
@@ -131,6 +131,16 @@
           const m = String(d.getMonth() + 1).padStart(2, '0');
           const day = String(d.getDate()).padStart(2, '0');
           return `${y}-${m}-${day}`;
+        };
+
+        // Fonction pour récupérer la couleur du vendeur
+        const getVendeurColor = (vendeurName) => {
+            switch(vendeurName) {
+                case 'Clément': return 'bg-blue-500';
+                case 'Bérénys': return 'bg-red-500';
+                case 'Gérard': return 'bg-green-500';
+                default: return 'bg-gray-400';
+            }
         };
 
         const CheckRow = ({ category, label, options, itemName, formSync, updateCategorySync }) => (
@@ -242,19 +252,25 @@
                     <div className="border-r border-black p-1 flex items-center justify-center bg-white"><input type="number" className="w-16 text-center outline-none border-b border-dashed border-gray-400 mr-1 bg-white text-black" value={formSync.prix} onChange={e => updateSync('prix', e.target.value)} /> €</div>
                   </div>
                 </div>
+                
+                {/* --- MENTION RGPD --- */}
+                <div className="mt-2 mb-2 p-2 border border-gray-400 bg-gray-50 text-[9px] text-gray-700 leading-tight">
+                    <p>En signant ce document, le client accepte que ses données personnelles (nom, numéro de téléphone) soient conservées par l'atelier dans le seul but de gérer le suivi de la réparation et l'éventuelle garantie (SAV) de l'appareil, conformément à la réglementation RGPD en vigueur.</p>
+                </div>
+
             </div>
             <div>
                 <div className="border-t border-l border-black mb-4 flex flex-col">
                   <div className="bg-blue-300 font-bold text-center border-r border-b border-black p-1 text-xs text-black">COMMENTAIRE</div>
                   <textarea className="w-full h-12 p-2 text-xs border-r border-b border-black outline-none resize-none bg-white text-black" value={formSync.commentaire} onChange={e => updateSync('commentaire', e.target.value)} />
                 </div>
-                <div className="border border-black h-20 relative bg-white"><div className="bg-blue-200 font-bold text-center border-b border-black p-1 text-xs text-black">SIGNATURE</div></div>
+                <div className="border border-black h-20 relative bg-white"><div className="bg-blue-200 font-bold text-center border-b border-black p-1 text-xs text-black">SIGNATURE (Accord Réparation & Données)</div></div>
             </div>
           </div>
         );
 
         const IntakeView = ({ activeIntake, setView }) => {
-          const [formSync, setFormSync] = useState({ numero: activeIntake.clientPhone || '', accessoire: '', vendeur: '', prix: '', commentaire: '', codeDev: '', codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' });
+          const [formSync, setFormSync] = useState({ numero: activeIntake.clientPhone || '', accessoire: '', vendeur: activeIntake.vendeur || '', prix: '', commentaire: '', codeDev: '', codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' });
           const updateSync = (field, value) => setFormSync(prev => ({ ...prev, [field]: value }));
           const updateCategorySync = (category, item, value) => setFormSync(prev => ({ ...prev, [category]: { ...prev[category], [item]: value } }));
 
@@ -347,6 +363,219 @@
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NOUVELLE PAGE : PIÈCES À COMMANDER ---
+        const PiecesToOrderView = ({ repairs, onOpenNav }) => {
+            // Filtrer : les réparations qui ne sont ni terminées ni archivées, et qui ont des pièces "à commander" (non "Aucune / En stock")
+            const repairsWithPieces = repairs.filter(r => 
+                r.status !== 'archived' && 
+                r.status !== 'done' && 
+                r.piece && 
+                r.piece !== 'Aucune / En stock'
+            ).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">🛒</span> Pièces à commander
+                        </h1>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto">
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                                <p className="text-gray-700 dark:text-gray-300 mb-2">
+                                    Voici la liste de toutes les pièces associées aux réparations <strong>En cours</strong> ou <strong>En attente</strong>.
+                                </p>
+                                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Une fois la réparation marquée comme "Terminée" dans le planning, elle disparaîtra de cette liste.</p>
+                            </div>
+
+                            {repairsWithPieces.length === 0 ? (
+                                <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                                    Aucune pièce à commander pour le moment.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {repairsWithPieces.map(repair => (
+                                        <div key={repair.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <span className="font-bold text-lg">{repair.client}</span>
+                                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 font-semibold">{repair.phone}</span>
+                                                    {repair.vendeur && (
+                                                        <span className={`${getVendeurColor(repair.vendeur)} text-white w-3 h-3 rounded-full inline-block`} title={`Pris en charge par ${repair.vendeur}`}></span>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Prévu pour le : {new Date(repair.date).toLocaleDateString('fr-FR')}</p>
+                                            </div>
+                                            
+                                            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 w-full sm:w-auto min-w-[250px]">
+                                                <h4 className="font-bold text-xs text-blue-800 dark:text-blue-300 uppercase tracking-wide border-b border-blue-200 dark:border-blue-800 pb-1 mb-2">À COMMANDER</h4>
+                                                <ul className="text-sm space-y-1">
+                                                    {repair.piece.split(' + ').map((p, i) => (
+                                                        <li key={i} className="flex items-start">
+                                                            <span className="mr-2">👉</span>
+                                                            <span className="font-semibold text-gray-900 dark:text-gray-100">{p}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NOUVELLE PAGE : TABLEAU DE BORD (STATISTIQUES SANS CA) ---
+        const DashboardView = ({ repairs, onOpenNav }) => {
+            const [isAuthorized, setIsAuthorized] = useState(false);
+            const [pwdAttempt, setPwdAttempt] = useState('');
+            const [errorMsg, setErrorMsg] = useState('');
+
+            // Calculs statistiques
+            const stats = useMemo(() => {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                let totalIntakes = 0;
+                let totalCompleted = 0;
+                let sellerCount = { 'Clément': 0, 'Bérénys': 0, 'Gérard': 0 };
+
+                repairs.forEach(r => {
+                    // On se base sur la date de prise en charge (r.date, bien que modifiable, ou createdAt si existant, on utilise r.date pour simplifier)
+                    const repairDate = new Date(r.date);
+                    if (repairDate.getMonth() === currentMonth && repairDate.getFullYear() === currentYear) {
+                        totalIntakes++;
+                        if (r.status === 'done' || r.status === 'archived') {
+                            totalCompleted++;
+                        }
+                        if (r.vendeur && sellerCount[r.vendeur] !== undefined) {
+                            sellerCount[r.vendeur]++;
+                        }
+                    }
+                });
+
+                let bestSeller = '-';
+                let maxSales = -1;
+                Object.entries(sellerCount).forEach(([name, count]) => {
+                    if (count > maxSales && count > 0) {
+                        maxSales = count;
+                        bestSeller = name;
+                    } else if (count === maxSales && count > 0) {
+                        bestSeller += ` & ${name}`; // En cas d'égalité
+                    }
+                });
+
+                return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales };
+            }, [repairs]);
+
+            const handleAuth = (e) => {
+                e.preventDefault();
+                if (pwdAttempt === "magretfrite") {
+                    setIsAuthorized(true);
+                } else {
+                    setErrorMsg("Mot de passe incorrect");
+                }
+            };
+
+            if (!isAuthorized) {
+                return (
+                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col flex-1 w-full">
+                        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white">📊 Tableau de Bord</h1>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center p-4">
+                            <form onSubmit={handleAuth} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md w-full max-w-sm border border-gray-200 dark:border-gray-700 text-center">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Accès Restreint</h2>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Mot de passe requis pour voir les statistiques.</p>
+                                <input 
+                                    type="password" 
+                                    value={pwdAttempt} 
+                                    onChange={(e) => { setPwdAttempt(e.target.value); setErrorMsg(''); }} 
+                                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-3 mb-4 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-center font-bold"
+                                    placeholder="Mot de passe..."
+                                    autoFocus
+                                />
+                                {errorMsg && <p className="text-red-500 text-xs mb-3 font-bold">{errorMsg}</p>}
+                                <button type="submit" className="w-full bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">Valider</button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            const currentMonthName = new Date().toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">📊</span> Statistiques du mois ({currentMonthName})
+                        </h1>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            
+                            {/* Chiffres clés */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+                                    <div className="text-5xl mb-2">📱</div>
+                                    <div className="text-4xl font-black text-blue-600 dark:text-blue-400 mb-1">{stats.totalIntakes}</div>
+                                    <div className="text-gray-600 dark:text-gray-400 font-medium">Téléphones pris en charge</div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+                                    <div className="text-5xl mb-2">✅</div>
+                                    <div className="text-4xl font-black text-green-600 dark:text-green-400 mb-1">{stats.totalCompleted}</div>
+                                    <div className="text-gray-600 dark:text-gray-400 font-medium">Réparations terminées</div>
+                                </div>
+                            </div>
+
+                            {/* Vendeur du mois */}
+                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center flex flex-col items-center justify-center relative overflow-hidden">
+                                <div className="absolute top-0 right-0 -mt-4 -mr-4 text-9xl opacity-10">🏆</div>
+                                <h3 className="text-lg font-medium text-purple-100 uppercase tracking-widest mb-1 z-10">Meilleur(e) preneur(se) en charge</h3>
+                                <div className="text-4xl sm:text-5xl font-black mb-3 z-10">{stats.bestSeller}</div>
+                                {stats.maxSales > 0 && <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">{stats.maxSales} dossiers créés</div>}
+                                {stats.maxSales === 0 && <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">Aucun dossier ce mois-ci</div>}
+                            </div>
+
+                            {/* Détails par vendeur */}
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                <h3 className="font-bold text-lg mb-4 border-b pb-2 dark:border-gray-700">Détail des prises en charge par collaborateur</h3>
+                                <div className="space-y-4">
+                                    {Object.entries(stats.sellerCount).map(([name, count]) => (
+                                        <div key={name} className="flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <div className={`w-4 h-4 rounded-full mr-3 ${getVendeurColor(name)}`}></div>
+                                                <span className="font-medium">{name}</span>
+                                            </div>
+                                            <span className="font-bold">{count}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -558,7 +787,7 @@
                     </div>
                 </div>
             );
-            
+
             const iphone16Content = (
                 <div className="space-y-4">
                     <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
@@ -935,7 +1164,7 @@
           const [formData, setFormData] = useState({ 
               client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
               pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {},
-              isSAV: false
+              isSAV: false, vendeur: ''
           });
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -1048,7 +1277,8 @@
                 status: 'pending',
                 order: Date.now(), 
                 isPriority: false,
-                isSAV: formData.isSAV 
+                isSAV: formData.isSAV,
+                vendeur: formData.vendeur 
             };
 
             const { collection, addDoc } = window.FB_SDK;
@@ -1056,7 +1286,7 @@
 
             setFormData({ 
                 client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
-                pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false 
+                pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: ''
             });
             setActiveIntake({ id: docRef.id, ...newRepair });
             setView('intake');
@@ -1158,15 +1388,23 @@
                               <span className="mr-3">📅</span> Planning
                           </button>
                           
+                          <button onClick={() => { setView('pieces'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'pieces' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">🛒</span> Pièces à commander
+                          </button>
+
                           <button onClick={() => { setView('archives'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'archives' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🗄️</span> Archives
+                          </button>
+                          
+                          <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">📊</span> Tableau de bord
                           </button>
 
                           <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🔍</span> Logs iPhone (Panic)
                           </button>
                           <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">⚡</span> Diagnostique de démarrage
+                              <span className="mr-3">⚡</span> Diagnostique
                           </button>
                       </div>
 
@@ -1188,6 +1426,10 @@
                   <ProposalsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'archives' ? (
                   <ArchivesView repairs={repairs} setView={setView} setActiveIntake={setActiveIntake} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'pieces' ? (
+                  <PiecesToOrderView repairs={repairs} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'dashboard' ? (
+                  <DashboardView repairs={repairs} onOpenNav={() => setIsNavOpen(true)} />
               ) : (
                 <div className="flex flex-col lg:flex-row w-full font-sans text-black dark:text-white transition-colors duration-200">
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
@@ -1198,9 +1440,6 @@
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
                         </div>
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Changer de thème">
-                            {isDarkMode ? '☀️' : '🌙'}
-                        </button>
                     </div>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
@@ -1312,9 +1551,25 @@
                         </div>
                       )}
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Date prévue</label>
-                        <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Vendeur</label>
+                            <select 
+                                required
+                                className="w-full p-2 outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md" 
+                                value={formData.vendeur} 
+                                onChange={e => setFormData({...formData, vendeur: e.target.value})}
+                            >
+                              <option value="">- CHOISIR -</option>
+                              <option value="Clément">CLÉMENT</option>
+                              <option value="Bérénys">BÉRÉNYS</option>
+                              <option value="Gérard">GÉRARD</option>
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Date prévue</label>
+                            <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
+                        </div>
                       </div>
                       <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">+ Ajouter au planning</button>
                     </form>
@@ -1331,6 +1586,7 @@
                         <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/60 transition text-sm">Auj.</button>
                       </div>
 
+                      {/* BARRE DE RECHERCHE GLOBALE */}
                       <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                           <span className="text-gray-500">🔍</span>
                           <input 
@@ -1349,6 +1605,7 @@
                     </div>
 
                     <div className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
+                      {/* VUE DE RECHERCHE OU VUE GRILLE SEMAINE */}
                       {searchTerm ? (
                           <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                               <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Résultats pour "{searchTerm}"</h2>
@@ -1407,7 +1664,14 @@
                                            className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab border-opacity-50 ${getStatusColors(repair)} relative`}
                                       >
                                         <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
-                                          <span className="text-xs sm:text-sm truncate pr-2">{repair.client}</span>
+                                          <div className="flex flex-col truncate pr-2 w-full">
+                                            <span className="text-xs sm:text-sm truncate flex items-center">
+                                                {repair.vendeur && (
+                                                    <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 shrink-0 ${getVendeurColor(repair.vendeur)}`} title={`Vendeur: ${repair.vendeur}`}></span>
+                                                )}
+                                                {repair.client}
+                                            </span>
+                                          </div>
                                           <div className="flex space-x-1 flex-shrink-0">
                                               {repair.status !== 'done' && (
                                                   <button 
@@ -1489,12 +1753,12 @@
                                                     ↩
                                                 </button>
                                                 <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
-                                                    📞 Appelé (Suppr.)
+                                                    📞 Appelé
                                                 </button>
                                             </div>
                                         ) : (
                                             <button onClick={() => archiveRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
-                                                Récupéré (Sup)
+                                                Récupéré
                                             </button>
                                         )}
 
