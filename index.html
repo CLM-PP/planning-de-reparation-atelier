@@ -79,7 +79,7 @@
         const { useState, useEffect } = React;
 
         /* ==============================================================================
-           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE (AVEC VISIBILITÉ)
+           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE PRINCIPAL
            ============================================================================== */
         function ProtectedApp() {
             const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('auth') === 'true');
@@ -87,7 +87,8 @@
             const [showPassword, setShowPassword] = useState(false);
             const [error, setError] = useState(false);
 
-            const SECRET_PASSWORD = "tech en carton"; 
+            // MOT DE PASSE POUR SE CONNECTER AU PLANNING
+            const SECRET_PASSWORD = "techencarton"; 
 
             const handleLogin = (e) => {
                 e.preventDefault();
@@ -288,7 +289,6 @@
         const PanicLogsView = ({ setView, onOpenNav }) => {
             const [selectedModel, setSelectedModel] = useState(null);
 
-            // Contenus spécifiques pour chaque famille de modèles
             const olderModelsContent = (
                 <div className="space-y-4">
                     <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
@@ -536,7 +536,7 @@
                             </h1>
                         </div>
                         
-                        {/* Bouton de retour affiché seulement si un modèle est sélectionné */}
+                        {/* Bouton de retour */}
                         {selectedModel && (
                             <button onClick={() => setSelectedModel(null)} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-xs sm:text-sm flex items-center">
                                 <span className="mr-1">&larr;</span> Retour aux modèles
@@ -546,9 +546,7 @@
                     
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-5xl mx-auto flex flex-col h-full">
-                            
                             <div className="flex-1">
-                                {/* AFFICHAGE CONDITIONNEL : Grille ou Détail */}
                                 {!selectedModel ? (
                                     <>
                                         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
@@ -573,7 +571,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* ENCADRÉ : OUTILS AUTOMATIQUES AVEC LIEN DIRECT */}
                                             <div className="bg-gray-100 dark:bg-gray-700/50 border-l-4 border-gray-400 dark:border-gray-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200">
                                                 <p className="mb-2 leading-relaxed">
                                                     <strong>Outils d'analyse automatiques :</strong> Vous pouvez également utiliser un outil comme <a href="https://github.com/waynebonc/iDeviceLogAnalyzer-public/archive/refs/heads/master.zip" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">iDevice Panic Log Analyzer</a>, qui téléchargera les journaux d'erreurs de l'appareil, les affichera sur votre ordinateur et vous proposera des solutions. Il facilite ainsi la consultation du fichier journal.
@@ -610,7 +607,6 @@
                                 )}
                             </div>
 
-                            {/* CITATION DE LA SOURCE EN BAS DE PAGE */}
                             <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500 dark:text-gray-400 pb-4">
                                 Diagnostics et codes d'erreur basés sur la documentation communautaire de : <a href="https://repair.wiki/w/How_to_Troubleshoot_And_Fix_iPhone_Random_Restarts_Using_Panic_Logs" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-medium">repair.wiki (Troubleshoot iPhone Random Restarts)</a>.
                             </div>
@@ -692,7 +688,7 @@
             );
         };
 
-        // --- NOUVELLE PAGE: PROPOSITIONS D'AMÉLIORATION ---
+        // --- PAGE: PROPOSITIONS D'AMÉLIORATION ---
         const ProposalsView = ({ setView, onOpenNav }) => {
             const [proposals, setProposals] = useState([]);
             const [name, setName] = useState('');
@@ -723,7 +719,7 @@
 
             const handleDelete = async (id, action) => {
                 const pwd = prompt(`Mot de passe administrateur requis pour marquer cette proposition comme "${action}" :`);
-                if (pwd !== "patron") {
+                if (pwd !== "MagretFrite") {
                     if (pwd !== null) alert("Mot de passe incorrect.");
                     return;
                 }
@@ -733,7 +729,6 @@
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    {/* Header */}
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
                         <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -1023,7 +1018,7 @@
                           </button>
                       </div>
 
-                      {/* NOUVEAU BOUTON PROPOSITION TOUT EN BAS */}
+                      {/* BOUTON PROPOSITION TOUT EN BAS */}
                       <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0">
                           <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'proposals' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">💡</span> Proposition d'amélioration
