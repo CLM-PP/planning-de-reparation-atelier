@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning Réparation Atelier</title>
+    
+    <!-- LIAISON AVEC LES NOUVEAUX FICHIERS PWA POUR L'INSTALLATION -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/maintenance.png">
+
     <!-- Chargement des outils pour faire fonctionner l'application -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -60,11 +66,20 @@
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <div id="root"></div>
 
+    <!-- SCRIPT POUR DÉCLENCHER L'INSTALLATION PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js');
+            });
+        }
+    </script>
+
     <script type="text/babel">
         const { useState, useEffect } = React;
 
         /* ==============================================================================
-           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE (AVEC VISIBILITÉ)
+           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE
            ============================================================================== */
         function ProtectedApp() {
             const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('auth') === 'true');
@@ -573,7 +588,6 @@
                       <div>
                         <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 mt-2">Pièce(s) Commandée(s)</label>
                         <div className="grid grid-cols-2 gap-2 mb-2">
-                            {/* --- AJOUT LENTILLE CAMERA ET CORRECTION VITRE ARRIÈRE --- */}
                             {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre Arrière'].map(p => (
                                 <label key={p} className="flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
                                     <input 
