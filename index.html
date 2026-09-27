@@ -273,7 +273,7 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        {/* Le bouton menu est maintenant visible sur tous les écrans (lg:hidden a été retiré) */}
+                        {/* Le bouton menu est maintenant visible sur tous les écrans */}
                         <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
@@ -414,7 +414,9 @@
                 date: submitDate, 
                 piece: pieceString, 
                 supplier: '', 
-                status: 'pending' 
+                status: 'pending',
+                order: Date.now(), // Ajout d'un ordre par défaut
+                isPriority: false  // Statut de priorité par défaut
             };
 
             const { collection, addDoc } = window.FB_SDK;
@@ -443,22 +445,65 @@
             await deleteDoc(doc(window.db, "repairs", id));
           };
 
+          const togglePriority = async (id, currentVal) => {
+            const { doc, updateDoc } = window.FB_SDK;
+            await updateDoc(doc(window.db, "repairs", id), { isPriority: !currentVal });
+          };
+
+          // --- GESTION DU RE-ORDONNANCEMENT LIBRE ET CHANGEMENT DE DATE ---
           const handleDrop = async (e, targetDateStr, targetRepairId = null) => {
             e.preventDefault();
             e.stopPropagation();
             const draggedId = e.dataTransfer.getData('repairId');
             if (!draggedId || draggedId === targetRepairId) return;
-            await updateRepairDate(draggedId, targetDateStr);
+
+            const draggedRepair = repairs.find(r => r.id === draggedId);
+            if (!draggedRepair) return;
+
+            // On récupère les réparations du jour cible, triées (Priorité d'abord, puis ordre)
+            let targetDayRepairs = repairs.filter(r => r.date === targetDateStr).sort((a, b) => {
+                if (a.isPriority && !b.isPriority) return -1;
+                if (!a.isPriority && b.isPriority) return 1;
+                return (a.order || 0) - (b.order || 0);
+            });
+
+            // On retire l'élément glissé de sa place actuelle s'il était déjà dans ce jour
+            targetDayRepairs = targetDayRepairs.filter(r => r.id !== draggedId);
+
+            if (targetRepairId) {
+                // On l'insère avant l'élément sur lequel on l'a lâché
+                const targetIndex = targetDayRepairs.findIndex(r => r.id === targetRepairId);
+                if (targetIndex !== -1) {
+                    targetDayRepairs.splice(targetIndex, 0, draggedRepair);
+                } else {
+                    targetDayRepairs.push(draggedRepair);
+                }
+            } else {
+                // On l'ajoute à la fin
+                targetDayRepairs.push(draggedRepair);
+            }
+
+            // Mise à jour de Firestore avec les nouveaux index (sans casser l'état de priorité)
+            const { doc, updateDoc } = window.FB_SDK;
+            targetDayRepairs.forEach((rep, index) => {
+                const newOrder = index * 10;
+                if (rep.id === draggedId) {
+                    updateDoc(doc(window.db, "repairs", rep.id), { date: targetDateStr, order: newOrder });
+                } else if (rep.order !== newOrder) {
+                    updateDoc(doc(window.db, "repairs", rep.id), { order: newOrder });
+                }
+            });
           };
 
           const togglePieces = (id) => {
               setExpandedPieces(prev => ({ ...prev, [id]: !prev[id] }));
           };
 
-          const getStatusColors = (status) => {
-            if(status==='done') return 'bg-green-100 dark:bg-green-900/40 border-green-500 text-green-900 dark:text-green-100';
-            if(status==='called') return 'bg-purple-100 dark:bg-purple-900/40 border-purple-500 text-purple-900 dark:text-purple-100';
-            if(status==='waiting') return 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-500 text-yellow-900 dark:text-yellow-100';
+          // --- NOUVELLES COULEURS AVEC GESTION DE LA PRIORITÉ ---
+          const getStatusColors = (repair) => {
+            if(repair.status === 'done') return 'bg-green-100 dark:bg-green-900/40 border-green-500 text-green-900 dark:text-green-100';
+            if(repair.status === 'waiting') return 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-500 text-yellow-900 dark:text-yellow-100';
+            if(repair.isPriority) return 'bg-red-100 dark:bg-red-900/40 border-red-500 text-red-900 dark:text-red-100 border-2 shadow-[0_0_8px_rgba(239,68,68,0.4)]';
             return 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 shadow-sm'; 
           };
 
@@ -628,7 +673,13 @@
                         {weekDates.map((date, idx) => {
                           const dateStr = getLocalISO(date);
                           const isToday = dateStr === getLocalISO(new Date());
-                          const dayRepairs = repairs.filter(r => r.date === dateStr);
+                          
+                          // Tri initial des réparations du jour : Priorité en premier, puis l'ordre manuel
+                          const dayRepairs = repairs.filter(r => r.date === dateStr).sort((a, b) => {
+                              if (a.isPriority && !b.isPriority) return -1;
+                              if (!a.isPriority && b.isPriority) return 1;
+                              return (a.order || 0) - (b.order || 0);
+                          });
 
                           return (
                             <div key={idx} 
@@ -649,13 +700,24 @@
                                        onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} 
                                        onDragOver={(e) => e.preventDefault()}
                                        onDrop={(e) => handleDrop(e, dateStr, repair.id)}
-                                       className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab border-opacity-50 ${getStatusColors(repair.status)}`}>
-                                    
+                                       className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab border-opacity-50 ${getStatusColors(repair)} relative`}
+                                  >
                                     <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
-                                      <span className="text-xs sm:text-sm truncate">{repair.client}</span>
-                                      {repair.status === 'done' && <span className="text-green-700 dark:text-green-400 font-bold ml-1">✓</span>}
-                                      {repair.status === 'called' && <span className="text-purple-700 dark:text-purple-400 font-bold ml-1">✓📞</span>}
-                                      {repair.status === 'waiting' && <span className="text-yellow-700 dark:text-yellow-400 font-bold ml-1">⏳</span>}
+                                      <span className="text-xs sm:text-sm truncate pr-2">{repair.client}</span>
+                                      <div className="flex space-x-1 flex-shrink-0">
+                                          {/* BOUTON PRIORITÉ */}
+                                          {repair.status !== 'done' && (
+                                              <button 
+                                                  onClick={() => togglePriority(repair.id, repair.isPriority)}
+                                                  className={`text-[10px] px-1.5 py-0.5 rounded shadow-sm transition ${repair.isPriority ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'}`}
+                                                  title="Mettre en priorité"
+                                              >
+                                                  {repair.isPriority ? '🔥 Urgent' : '⭐'}
+                                              </button>
+                                          )}
+                                          {repair.status === 'done' && <span className="text-green-700 dark:text-green-400 font-bold ml-1">✓</span>}
+                                          {repair.status === 'waiting' && <span className="text-yellow-700 dark:text-yellow-400 font-bold ml-1">⏳</span>}
+                                      </div>
                                     </div>
                                     
                                     {repair.clientPhone && <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</div>}
@@ -684,10 +746,10 @@
                                     )}
                                     
                                     <div className="flex flex-col lg:flex-row justify-between items-stretch mt-2 pt-2 border-t border-black/10 dark:border-white/10 gap-2 lg:gap-1">
-                                      {repair.status !== 'done' && repair.status !== 'called' && (
+                                      {repair.status !== 'done' && (
                                         <button onClick={() => updateRepairStatus(repair.id, 'done')} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
                                       )}
-                                      {repair.status !== 'waiting' && (
+                                      {repair.status !== 'waiting' && repair.status !== 'done' && (
                                         <button onClick={() => { 
                                             const tm = new Date(date); 
                                             tm.setDate(tm.getDate() + 1); 
@@ -698,9 +760,10 @@
                                       )}
                                     </div>
                                     
+                                    {/* NOUVEAU COMPORTEMENT: SUPPRESSION DIRECTE AU CLIC SUR APPELÉ */}
                                     {repair.status === 'done' ? (
-                                        <button onClick={() => updateRepairStatus(repair.id, 'called')} className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
-                                            📞 Appelé
+                                        <button onClick={() => deleteRepair(repair.id)} className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
+                                            📞 Appelé (Supprimer)
                                         </button>
                                     ) : (
                                         <button onClick={() => deleteRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
