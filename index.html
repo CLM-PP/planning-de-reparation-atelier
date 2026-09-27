@@ -284,7 +284,7 @@
           );
         };
 
-        // --- PAGE PANIC LOGS AVEC EXPLICATIONS AMÉLIORÉES ---
+        // --- PAGE PANIC LOGS AVEC EXPLICATIONS LISIBLES ---
         const PanicLogsView = ({ setView, onOpenNav }) => {
             const [selectedModel, setSelectedModel] = useState(null);
 
@@ -963,7 +963,8 @@
                         <input type="text" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Réparation</label>
+                        {/* --- CHANGEMENT DU LABEL ICI --- */}
+                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Réparation ou panne</label>
                         <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       
