@@ -79,7 +79,7 @@
         const { useState, useEffect } = React;
 
         /* ==============================================================================
-           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE
+           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE (AVEC VISIBILITÉ)
            ============================================================================== */
         function ProtectedApp() {
             const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('auth') === 'true');
@@ -284,20 +284,57 @@
           );
         };
 
-        const WIPView = ({ setView, onOpenNav }) => {
+        // --- NOUVELLE PAGE PANIC LOGS REMPLAÇANT "AUTRE PAGE" ---
+        const PanicLogsView = ({ setView, onOpenNav }) => {
+            const panicLogsData = [
+                { model: "iPhone X", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_X_That_Randomly_Restarts" },
+                { model: "iPhone XS et XS Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_XS_That_Randomly_Restarts" },
+                { model: "iPhone 11", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_11_That_Randomly_Restarts" },
+                { model: "iPhone 11 Pro et 11 Pro Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_11_Pro_That_Randomly_Restarts" },
+                { model: "iPhone 12 Series", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_12_That_Randomly_Restarts" },
+                { model: "iPhone 13 Series", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_13_That_Randomly_Restarts" },
+                { model: "iPhone 14 et 14 Plus", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_14_That_Randomly_Restarts" },
+                { model: "iPhone 14 Pro et 14 Pro Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_14_Pro_That_Randomly_Restarts" },
+                { model: "iPhone 15 et 15 Plus", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_15_That_Randomly_Restarts" },
+                { model: "iPhone 15 Pro et 15 Pro Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_15_Pro_That_Randomly_Restarts" },
+                { model: "iPhone SE 2020", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_SE_2020_That_Randomly_Restarts" },
+                { model: "iPhone SE 2020 (Problème Mic1)", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_SE_2020_with_No_Touch_and/or_3_Min_Restart_(Mic1_Problem)" }
+            ];
+
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
                         <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Autre page</h1>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">🔍</span> Panic Logs iPhone
+                        </h1>
                     </div>
-                    <div className="flex-1 flex items-center justify-center p-4">
-                        <div className="text-center bg-white dark:bg-gray-800 p-10 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-lg">
-                            <div className="text-6xl mb-6">🛠️</div>
-                            <h1 className="text-3xl font-bold mb-4">Page en cours de programmation</h1>
-                            <p className="text-gray-600 dark:text-gray-400 mb-8 mx-auto">Cet espace est réservé pour la prochaine fonctionnalité.</p>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto">
+                            <p className="text-gray-600 dark:text-gray-400 mb-8 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                Utilisez ces liens repair.wiki pour identifier et diagnostiquer rapidement les composants responsables des redémarrages aléatoires (kernel panics) selon le modèle d'iPhone.
+                            </p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {panicLogsData.map((item, idx) => (
+                                    <a 
+                                        key={idx} 
+                                        href={item.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="block p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition duration-200 hover:border-blue-500 dark:hover:border-blue-500 group relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
+                                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 flex items-center">
+                                            {item.model}
+                                            <svg className="w-4 h-4 ml-2 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        </h3>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 truncate opacity-80 group-hover:opacity-100">{item.url}</p>
+                                    </a>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -514,7 +551,7 @@
 
           return (
             <div className="flex w-full min-h-screen">
-              {/* === MENU LATÉRAL DE NAVIGATION (TIROIR) === */}
+              {/* === MENU LATÉRAL DE NAVIGATION === */}
               {isNavOpen && (
                 <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden" onClick={() => setIsNavOpen(false)}></div>
               )}
@@ -529,8 +566,8 @@
                           <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'planning' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">📅</span> Planning
                           </button>
-                          <button onClick={() => { setView('wip'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'wip' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">⚙️</span> Autre page
+                          <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">🔍</span> Logs iPhone (Panic)
                           </button>
                       </div>
                   </div>
@@ -538,8 +575,8 @@
 
               {view === 'intake' && activeIntake ? (
                   <IntakeView activeIntake={activeIntake} setView={setView} />
-              ) : view === 'wip' ? (
-                  <WIPView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'panic_logs' ? (
+                  <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : (
                 <div className="flex flex-col lg:flex-row w-full font-sans text-black dark:text-white transition-colors duration-200">
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
