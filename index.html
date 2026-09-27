@@ -573,7 +573,8 @@
                       <div>
                         <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 mt-2">Pièce(s) Commandée(s)</label>
                         <div className="grid grid-cols-2 gap-2 mb-2">
-                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre arr.'].map(p => (
+                            {/* --- AJOUT LENTILLE CAMERA ET CORRECTION VITRE ARRIÈRE --- */}
+                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre Arrière'].map(p => (
                                 <label key={p} className="flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
                                     <input 
                                         type="checkbox" 
