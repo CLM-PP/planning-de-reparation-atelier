@@ -79,7 +79,7 @@
         const { useState, useEffect } = React;
 
         /* ==============================================================================
-           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE
+           SYSTÈME DE SÉCURITÉ PAR MOT DE PASSE (AVEC VISIBILITÉ)
            ============================================================================== */
         function ProtectedApp() {
             const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('auth') === 'true');
@@ -556,7 +556,7 @@
                                                 Sélectionnez un modèle d'iPhone pour voir la signification de ses codes de redémarrage (kernel panics).
                                             </p>
                                             
-                                            {/* --- NOUVELLE MISE EN FORME LISIBLE --- */}
+                                            {/* --- INSTRUCTIONS CORRIGÉES --- */}
                                             <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-5 rounded-md text-sm text-gray-800 dark:text-gray-200 mb-5 shadow-sm">
                                                 <h3 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-300 flex items-center">
                                                     <span className="mr-2">📱</span> Comment trouver le journal d'erreur (Panic Log) :
@@ -566,8 +566,8 @@
                                                     <li>Allez dans <strong>Confidentialité</strong> (ou Confidentialité et sécurité).</li>
                                                     <li>Touchez <strong>Analyses et améliorations</strong>.</li>
                                                     <li>Ouvrez <strong>Données d'analyse</strong>.</li>
-                                                    <li>Écrivez <strong>"panic-full"</strong> dans la barre de recherche en haut.</li>
-                                                    <li>Cliquez sur le fichier le plus récent.</li>
+                                                    <li>Écrivez <strong>"full"</strong> dans la barre de recherche.</li>
+                                                    <li>Défilez tout en bas et cliquez sur le fichier le plus récent.</li>
                                                 </ol>
                                                 <div className="bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-700">
                                                     💡 <strong>À rechercher dans le texte :</strong> Les mentions <strong className="text-red-600 dark:text-red-400">« SMC PANIC - ASSERTION FAILED »</strong>, <strong className="text-red-600 dark:text-red-400">« Sensor Array »</strong> ou un code en <strong className="text-red-600 dark:text-red-400">« 0x… »</strong>
