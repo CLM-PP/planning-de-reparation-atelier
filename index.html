@@ -284,73 +284,176 @@
           );
         };
 
-        // --- PAGE PANIC LOGS ---
+        // --- PAGE PANIC LOGS AVEC AFFICHAGE INTERNE ---
         const PanicLogsView = ({ setView, onOpenNav }) => {
+            const [selectedModel, setSelectedModel] = useState(null);
+
+            // Contenu spécifique pour l'iPhone 14 / 14 Plus
+            const iphone14Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x400000 (ou 4194304)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil (verre arrière)</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">Vitre arrière débranchée. Cela provoque un redémarrage de 3 minutes.</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Vérifiez qu'il est branché et que le câble flexible n'est pas déchiré.</li>
+                            <li>Vérifiez qu'aucun liquide n'est endommagé ou défectueux.</li>
+                            <li>Testez avec des pièces d'origine ou de qualité supérieure (les flexibles de rechange présentent un taux de défauts élevé).</li>
+                            <li>Mettez les connecteurs FPC en mode diode pour détecter tout défaut.</li>
+                            <li>Il pourrait s'agir d'un problème de sandwich.</li>
+                        </ul>
+                    </div>
+                    
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x100000 (ou 1048576)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">Nappe du port de charge débranchée. Cela provoque un redémarrage de 3 minutes.</p>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">0x500000 (ou 5242880)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Batterie OU Moteur haptique / Port de charge</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li><strong>Batterie :</strong> Problème de communication pendant la charge. Redémarre toutes les 3 min 30 s. Tester avec une autre batterie. Vérifiez les valeurs des diodes sur le connecteur de la carte mère.</li>
+                            <li className="mt-2 text-orange-800 dark:text-orange-300"><strong>Alternative (Moteur haptique / Port de charge) :</strong></li>
+                            <li>Assurez-vous que ce câble flexible est branché.</li>
+                            <li>Vérifiez qu'aucun câble flexible n'est déchiré, endommagé par un liquide ou défectueux.</li>
+                            <li>Testez avec des pièces d'origine (taux de défauts élevé sur les rechanges).</li>
+                            <li>Mettez les connecteurs FPC en mode diode.</li>
+                            <li>Il pourrait s'agir d'un problème de sandwich.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x200000 (ou 2097152)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Câble flexible de proximité (Prox Flex)</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">Capteur de proximité débranché. Cela provoque un redémarrage après 3 minutes.</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Assurez-vous que ce câble flexible est branché.</li>
+                            <li>Vérifiez qu'aucun câble flexible n'est déchiré, endommagé par un liquide ou défectueux.</li>
+                            <li>Testez avec des pièces d'origine ou de qualité supérieure.</li>
+                            <li>Mettez les connecteurs FPC en mode diode pour détecter tout défaut.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-900/20 rounded-r-md">
+                        <h4 className="font-bold text-teal-700 dark:text-teal-400 text-lg">0x600000 (ou 6291456)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil + Câble flex de proximité</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Vérifier avec un flexible d'origine en bon état.</li>
+                            <li>Les deux doivent être connectés à la carte mère.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-red-600 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0x20000 (ou 131072)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Carte Logique (Carte mère)</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Il s'agit probablement d'une déconnexion de l'interposeur de la carte logique (couche intermédiaire de la carte sandwich).</li>
+                            <li>Vérifiez les bords de la carte logique pour repérer les espaces entre les couches.</li>
+                            <li>Cela nécessitera probablement une réparation approfondie de la carte et des outils spécialisés pour la chauffer en toute sécurité.</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+
+            // Contenu générique (Placeholder) pour les autres modèles
+            const fallbackContent = (
+                <div className="flex flex-col items-center justify-center p-10 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-center">
+                    <span className="text-4xl mb-4">🚧</span>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">En cours de rédaction</h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md">Les codes Panic Log détaillés pour ce modèle seront ajoutés très prochainement.</p>
+                </div>
+            );
+
             const panicLogsData = [
-                { model: "iPhone X", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_X_That_Randomly_Restarts" },
-                { model: "iPhone XS et XS Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_XS_That_Randomly_Restarts" },
-                { model: "iPhone 11", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_11_That_Randomly_Restarts" },
-                { model: "iPhone 11 Pro et 11 Pro Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_11_Pro_That_Randomly_Restarts" },
-                { model: "iPhone 12 Series", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_12_That_Randomly_Restarts" },
-                { model: "iPhone 13 Series", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_13_That_Randomly_Restarts" },
-                { model: "iPhone 14 et 14 Plus", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_14_That_Randomly_Restarts" },
-                { model: "iPhone 14 Pro et 14 Pro Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_14_Pro_That_Randomly_Restarts" },
-                { model: "iPhone 15 et 15 Plus", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_15_That_Randomly_Restarts" },
-                { model: "iPhone 15 Pro et 15 Pro Max", url: "https://repair.wiki/w/How_To_Fix_an_iPhone_15_Pro_That_Randomly_Restarts" }
+                { id: "x", model: "iPhone X", content: fallbackContent },
+                { id: "xs", model: "iPhone XS et XS Max", content: fallbackContent },
+                { id: "11", model: "iPhone 11", content: fallbackContent },
+                { id: "11p", model: "iPhone 11 Pro et 11 Pro Max", content: fallbackContent },
+                { id: "12", model: "iPhone 12 Series", content: fallbackContent },
+                { id: "13", model: "iPhone 13 Series", content: fallbackContent },
+                { id: "14", model: "iPhone 14 et 14 Plus", content: iphone14Content },
+                { id: "14p", model: "iPhone 14 Pro et 14 Pro Max", content: fallbackContent },
+                { id: "15", model: "iPhone 15 et 15 Plus", content: fallbackContent },
+                { id: "15p", model: "iPhone 15 Pro et 15 Pro Max", content: fallbackContent },
+                { id: "se", model: "iPhone SE 2020", content: fallbackContent }
             ];
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                            <span className="mr-2">🔍</span> Panic Logs iPhone
-                        </h1>
+                    {/* Header */}
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <span className="mr-2">🔍</span> {selectedModel ? `Diagnostic - ${selectedModel.model}` : 'Panic Logs iPhone'}
+                            </h1>
+                        </div>
+                        
+                        {/* Bouton de retour affiché seulement si un modèle est sélectionné */}
+                        {selectedModel && (
+                            <button onClick={() => setSelectedModel(null)} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-xs sm:text-sm flex items-center">
+                                <span className="mr-1">&larr;</span> Retour aux modèles
+                            </button>
+                        )}
                     </div>
+                    
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-5xl mx-auto">
-                            <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                                    Utilisez ces liens repair.wiki pour identifier et diagnostiquer rapidement les composants responsables des redémarrages aléatoires (kernel panics) selon le modèle d'iPhone.
-                                </p>
-                                
-                                <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-r-md text-sm text-gray-800 dark:text-gray-200">
-                                    <p className="mb-2 leading-relaxed">
-                                        <strong>Pour trouver le journal des incidents critiques sur l'appareil :</strong> accédez à <strong>Paramètres</strong> &rarr; <strong>Confidentialité</strong> &rarr; <strong>Analyses et améliorations</strong> &rarr; <strong>Données d'analyse</strong> &rarr; Ecrivez dans la barre de recherche <strong>"full"</strong> puis défilez vers le bas &rarr; Cliquez puis vous devrez parcourir le texte à la recherche de mots-clés susceptibles de vous orienter vers la cause.
-                                    </p>
-                                    <p>
-                                        Recherchez la mention <strong>« SMC PANIC - ASSERTION FAILED »</strong>… <strong>« Sensor Array »</strong>… <strong>« 0x… »</strong>
-                                    </p>
-                                </div>
-                            </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {panicLogsData.map((item, idx) => (
-                                    <a 
-                                        key={idx} 
-                                        href={item.url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        className="block p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition duration-200 hover:border-blue-500 dark:hover:border-blue-500 group relative overflow-hidden"
-                                    >
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
-                                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 flex items-center">
-                                            {item.model}
-                                            <svg className="w-4 h-4 ml-2 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                        </h3>
-                                        <p className="text-xs text-blue-600 dark:text-blue-400 truncate opacity-80 group-hover:opacity-100">{item.url}</p>
-                                    </a>
-                                ))}
-                            </div>
+                            {/* AFFICHAGE CONDITIONNEL : Grille ou Détail */}
+                            {!selectedModel ? (
+                                <>
+                                    <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                                        <p className="text-gray-700 dark:text-gray-300 mb-4">
+                                            Sélectionnez un modèle d'iPhone pour voir la signification de ses codes de redémarrage (kernel panics).
+                                        </p>
+                                        
+                                        <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-r-md text-sm text-gray-800 dark:text-gray-200">
+                                            <p className="mb-2 leading-relaxed">
+                                                <strong>Pour trouver le journal des incidents critiques sur l'appareil :</strong> accédez à <strong>Paramètres</strong> &rarr; <strong>Confidentialité</strong> &rarr; <strong>Analyses et améliorations</strong> &rarr; <strong>Données d'analyse</strong> &rarr; Ecrivez dans la barre de recherche <strong>"full"</strong> puis défilez vers le bas &rarr; Cliquez puis vous devrez parcourir le texte à la recherche de mots-clés susceptibles de vous orienter vers la cause.
+                                            </p>
+                                            <p>
+                                                Recherchez la mention <strong>« SMC PANIC - ASSERTION FAILED »</strong>… <strong>« Sensor Array »</strong>… <strong>« 0x… »</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {panicLogsData.map((item) => (
+                                            <button 
+                                                key={item.id} 
+                                                onClick={() => setSelectedModel(item)}
+                                                className="block w-full text-left p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition duration-200 hover:border-blue-500 dark:hover:border-blue-500 group relative overflow-hidden"
+                                            >
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
+                                                <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center justify-between">
+                                                    {item.model}
+                                                    <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                                                </h3>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 pb-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                        Diagnostic : {selectedModel.model}
+                                    </h2>
+                                    {selectedModel.content}
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // --- NOUVELLE PAGE: DIAGNOSTIQUE DÉMARRAGE ---
+        // --- PAGE DIAGNOSTIQUE DÉMARRAGE ---
         const DiagnosticView = ({ setView, onOpenNav }) => {
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
@@ -371,7 +474,6 @@
                                 </p>
                                 
                                 <div className="flex justify-center mb-6 mt-4">
-                                    {/* L'IMAGE QUE VOUS AVEZ FOURNIE */}
                                     <img src="image_3.png" alt="Tableau de diagnostic de démarrage" className="max-w-full h-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700" />
                                 </div>
 
@@ -651,7 +753,7 @@
                               <span className="mr-3">🔍</span> Logs iPhone (Panic)
                           </button>
                           
-                          {/* NOUVEAU BOUTON DIAGNOSTIQUE */}
+                          {/* BOUTON DIAGNOSTIQUE */}
                           <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">⚡</span> Diagnostique de démarrage
                           </button>
