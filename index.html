@@ -99,7 +99,6 @@
                                 autoFocus
                             />
                             
-                            {/* CASE À COCHER POUR VOIR LE MOT DE PASSE */}
                             <div className="flex items-center justify-center mb-4 text-sm text-gray-600 dark:text-gray-300">
                                 <input 
                                     type="checkbox" 
@@ -274,7 +273,7 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Autre page</h1>
@@ -407,11 +406,12 @@
 
           return (
             <div className="flex w-full min-h-screen">
+              {/* === MENU LATÉRAL DE NAVIGATION (TIROIR) === */}
               {isNavOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden lg:hidden" onClick={() => setIsNavOpen(false)}></div>
+                <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden" onClick={() => setIsNavOpen(false)}></div>
               )}
               
-              <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl z-50 transform transition-transform duration-300 print:hidden lg:hidden ${isNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+              <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl z-50 transform transition-transform duration-300 print:hidden ${isNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                   <div className="p-6">
                       <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-gray-700 pb-4">
                           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
@@ -437,7 +437,7 @@
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden" title="Ouvrir le menu">
+                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
@@ -446,10 +446,6 @@
                             {isDarkMode ? '☀️' : '🌙'}
                         </button>
                     </div>
-
-                    <button onClick={() => setView('wip')} className="hidden lg:flex w-full mb-6 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition justify-center items-center shadow-sm">
-                        ⚙️ Autre page
-                    </button>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
                       <div>
