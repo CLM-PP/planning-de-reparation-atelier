@@ -273,7 +273,7 @@
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
                         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Autre page</h1>
@@ -467,7 +467,7 @@
                   <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center lg:hidden" title="Ouvrir le menu">
+                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
@@ -476,10 +476,6 @@
                             {isDarkMode ? '☀️' : '🌙'}
                         </button>
                     </div>
-
-                    <button onClick={() => setView('wip')} className="hidden lg:flex w-full mb-6 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition justify-center items-center shadow-sm">
-                        ⚙️ Autre page
-                    </button>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
                       <div>
@@ -637,7 +633,6 @@
                                     <div className="text-gray-900 dark:text-gray-200 font-medium mb-1 text-xs sm:text-sm truncate">{repair.phone}</div>
                                     <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">{repair.repair}</div>
                                     
-                                    {/* NOUVEAU RENDU : LISTE À PUCES QUAND C'EST DÉPLIÉ */}
                                     {repair.piece !== 'Aucune / En stock' && (
                                         <div 
                                             onClick={(e) => { e.stopPropagation(); togglePieces(repair.id); }}
@@ -650,14 +645,10 @@
                                                     {repair.piece.split(' + ').map((pItem, i) => (
                                                         <span key={i} className="whitespace-normal pl-1">👉 {pItem}</span>
                                                     ))}
-                                                    {/* Rétrocompatibilité ancienne version */}
-                                                    {(repair.supplier && !repair.piece.includes(repair.supplier)) && (
-                                                        <span className="whitespace-normal pl-1 text-blue-600 dark:text-blue-400 italic">Fournisseur : {repair.supplier}</span>
-                                                    )}
                                                 </div>
                                             ) : (
                                                 <div className="truncate w-full">
-                                                    🛒 {repair.piece} {(repair.supplier && !repair.piece.includes(repair.supplier)) ? `(${repair.supplier})` : ''}
+                                                    🛒 {repair.piece}
                                                 </div>
                                             )}
                                         </div>
