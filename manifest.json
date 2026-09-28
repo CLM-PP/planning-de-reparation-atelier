@@ -1,20 +1,16 @@
 {
-  "name": "Planning Atelier Réparation",
+  "name": "Planning Réparation Atelier",
   "short_name": "Atelier",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f9fafb",
+  "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://img.icons8.com/color/512/maintenance.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://img.icons8.com/color/512/maintenance.png",
+      "src": "https://img.icons8.com/nolan/512/support-ticket.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
