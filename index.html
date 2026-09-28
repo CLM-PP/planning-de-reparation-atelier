@@ -260,6 +260,7 @@
                 <div className="mt-2 mb-2 p-2 border border-gray-400 bg-gray-50 text-[9px] text-gray-700 leading-tight">
                     <p>En signant ce document, le client accepte que ses données personnelles (nom, numéro de téléphone) soient conservées par l'atelier dans le seul but de gérer le suivi de la réparation et l'éventuelle garantie (SAV) de l'appareil, conformément à la réglementation RGPD en vigueur.</p>
                 </div>
+
             </div>
             <div>
                 <div className="border-t border-l border-black mb-4 flex flex-col">
@@ -305,6 +306,16 @@
                 (r.clientPhone || '').includes(searchTerm)
             ) : archived;
 
+            const deleteArchive = (id) => {
+                const pwd = prompt("Mot de passe administrateur pour supprimer définitivement cette fiche :");
+                if (pwd === "magretfrite") {
+                    const { doc, deleteDoc } = window.FB_SDK;
+                    deleteDoc(doc(window.db, "repairs", id)).catch(console.error);
+                } else if(pwd !== null) {
+                    alert("Mot de passe incorrect !");
+                }
+            };
+
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
@@ -317,6 +328,7 @@
                             </h1>
                         </div>
                         
+                        {/* Barre de recherche des archives */}
                         <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                             <span className="text-gray-500">🔍</span>
                             <input 
@@ -341,6 +353,7 @@
                                     <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
                                     
                                     <div className="font-medium text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-start">
+                                        {/* INDICATEUR SAV DANS LES ARCHIVES */}
                                         {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase shadow-sm mt-0.5 shrink-0">SAV</span>}
                                         <span>{repair.phone} - {repair.repair}</span>
                                     </div>
@@ -349,15 +362,7 @@
                                         <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 py-2 rounded font-bold transition flex justify-center items-center">
                                             📄 Voir la fiche
                                         </button>
-                                        <button onClick={async () => {
-                                            const pwd = prompt("Mot de passe administrateur pour supprimer définitivement cette fiche :");
-                                            if (pwd === "magretfrite") {
-                                                const { doc, deleteDoc } = window.FB_SDK;
-                                                await deleteDoc(doc(window.db, "repairs", repair.id));
-                                            } else if(pwd !== null) {
-                                                alert("Mot de passe incorrect !");
-                                            }
-                                        }} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-4 py-2 rounded transition flex justify-center items-center" title="Supprimer définitivement">
+                                        <button onClick={() => deleteArchive(repair.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-4 py-2 rounded transition flex justify-center items-center" title="Supprimer définitivement">
                                             🗑️
                                         </button>
                                     </div>
@@ -1234,7 +1239,7 @@
             return days;
           })();
 
-          const handleSubmit = async (e) => {
+          const handleSubmit = (e) => {
             e.preventDefault();
             if (!formData.client || !formData.phone || !formData.repair) return;
             let submitDate = formData.date;
@@ -1280,40 +1285,41 @@
             };
 
             const { collection, addDoc } = window.FB_SDK;
-            const docRef = await addDoc(collection(window.db, "repairs"), newRepair);
+            // Retrait de await pour ne pas bloquer en mode hors-ligne
+            addDoc(collection(window.db, "repairs"), newRepair).catch(console.error);
 
             setFormData({ 
                 client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
-                pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: ''
+                pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: '' 
             });
-            setActiveIntake({ id: docRef.id, ...newRepair });
+            setActiveIntake({ id: "temp-" + Date.now(), ...newRepair });
             setView('intake');
           };
 
-          const updateRepairStatus = async (id, newStatus) => {
+          const updateRepairStatus = (id, newStatus) => {
             const { doc, updateDoc } = window.FB_SDK;
-            await updateDoc(doc(window.db, "repairs", id), { status: newStatus });
+            updateDoc(doc(window.db, "repairs", id), { status: newStatus }).catch(console.error);
           };
 
-          const archiveRepair = async (id) => {
+          const archiveRepair = (id) => {
             const { doc, updateDoc } = window.FB_SDK;
-            await updateDoc(doc(window.db, "repairs", id), { 
+            updateDoc(doc(window.db, "repairs", id), { 
                 status: 'archived', 
                 archivedAt: new Date().toISOString() 
-            });
+            }).catch(console.error);
           };
 
-          const updateRepairDate = async (id, newDate) => {
+          const updateRepairDate = (id, newDate) => {
             const { doc, updateDoc } = window.FB_SDK;
-            await updateDoc(doc(window.db, "repairs", id), { date: newDate });
+            updateDoc(doc(window.db, "repairs", id), { date: newDate }).catch(console.error);
           };
 
-          const togglePriority = async (id, currentVal) => {
+          const togglePriority = (id, currentVal) => {
             const { doc, updateDoc } = window.FB_SDK;
-            await updateDoc(doc(window.db, "repairs", id), { isPriority: !currentVal });
+            updateDoc(doc(window.db, "repairs", id), { isPriority: !currentVal }).catch(console.error);
           };
 
-          const handleDrop = async (e, targetDateStr, targetRepairId = null) => {
+          const handleDrop = (e, targetDateStr, targetRepairId = null) => {
             e.preventDefault();
             e.stopPropagation();
             const draggedId = e.dataTransfer.getData('repairId');
@@ -1345,9 +1351,9 @@
             targetDayRepairs.forEach((rep, index) => {
                 const newOrder = index * 10;
                 if (rep.id === draggedId) {
-                    updateDoc(doc(window.db, "repairs", rep.id), { date: targetDateStr, order: newOrder });
+                    updateDoc(doc(window.db, "repairs", rep.id), { date: targetDateStr, order: newOrder }).catch(console.error);
                 } else if (rep.order !== newOrder) {
-                    updateDoc(doc(window.db, "repairs", rep.id), { order: newOrder });
+                    updateDoc(doc(window.db, "repairs", rep.id), { order: newOrder }).catch(console.error);
                 }
             });
           };
@@ -1403,8 +1409,9 @@
                       </div>
 
                       <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
+                          {/* TABLEAU DE BORD DEPLACE EN BAS */}
                           <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">📊</span> Tableau de bord
+                              <span className="mr-3">📊</span> Statistiques
                           </button>
                           <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'proposals' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">💡</span> Proposition d'amélioration
@@ -1437,6 +1444,9 @@
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
                         </div>
+                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Changer de thème">
+                            {isDarkMode ? '☀️' : '🌙'}
+                        </button>
                     </div>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
@@ -1583,6 +1593,7 @@
                         <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/60 transition text-sm">Auj.</button>
                       </div>
 
+                      {/* BARRE DE RECHERCHE GLOBALE */}
                       <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                           <span className="text-gray-500">🔍</span>
                           <input 
@@ -1601,6 +1612,7 @@
                     </div>
 
                     <div className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
+                      {/* VUE DE RECHERCHE OU VUE GRILLE SEMAINE */}
                       {searchTerm ? (
                           <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                               <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Résultats pour "{searchTerm}"</h2>
