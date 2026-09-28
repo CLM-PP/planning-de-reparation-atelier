@@ -9,9 +9,9 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     
-    <!-- NOUVEAU LOGO OFFICIEL : TICKETS D'ASSISTANCE DÉGRADÉ BLEU -->
-    <link rel="icon" type="image/png" href="https://img.icons8.com/nolan/512/support-ticket.png">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/nolan/512/support-ticket.png">
+    <!-- NOUVEAU LOGO OFFICIEL (Astuce ?v=2 ajoutée pour forcer le rafraîchissement) -->
+    <link rel="icon" type="image/png" href="https://img.icons8.com/nolan/512/support-ticket.png?v=2">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/nolan/512/support-ticket.png?v=2">
 
     <!-- Chargement des outils pour faire fonctionner l'application -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1857,6 +1857,7 @@
                                           )}
                                         </div>
                                         
+                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
