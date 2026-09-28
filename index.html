@@ -8,8 +8,8 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     
-    <link rel="icon" type="image/svg+xml" href="logo.svg?v=11">
-    <link rel="apple-touch-icon" href="logo.svg?v=11">
+    <link rel="icon" type="image/svg+xml" href="logo.svg?v=12">
+    <link rel="apple-touch-icon" href="logo.svg?v=12">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,6 +19,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- SDK FIREBASE -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -335,8 +336,8 @@
           </div>
         );
 
-        /* === VUES COMPOSANTS SECONDAIRES === */
-        
+        /* === VUES SECONDAIRES COMPLÈTES === */
+
         const IntakeView = ({ activeIntake, setView }) => {
           const [formSync, setFormSync] = useState(() => {
               const baseData = { 
@@ -373,7 +374,7 @@
                   </div>
                 </div>
                 <div className="mb-4 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded text-sm text-blue-800 dark:text-blue-300 print:hidden">
-                    💡 Vous pouvez modifier le nom du client, le téléphone, le modèle et la réparation. Vous pouvez aussi dessiner un schéma ! N'oubliez pas de sauvegarder.
+                    💡 Vous pouvez modifier le nom du client, le téléphone, le modèle et la réparation directement sur ce bon. Vous pouvez aussi dessiner un schéma ! N'oubliez pas de sauvegarder.
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full print:gap-4 print:h-screen print:grid-cols-2">
                   <FormHalf title="EXEMPLAIRE BOUTIQUE" activeIntake={activeIntake} formSync={formSync} updateSync={updateSync} updateCategorySync={updateCategorySync} />
@@ -384,118 +385,114 @@
           );
         };
 
-        const TeamMessagesView = ({ setView, onOpenNav }) => {
-            const [messages, setMessages] = useState([]);
-            const [text, setText] = useState('');
-            const [author, setAuthor] = useState('');
-            const [activeTab, setActiveTab] = useState('actifs');
-            const [searchTerm, setSearchTerm] = useState('');
+        const ArchivesView = ({ repairs, setView, setActiveIntake, onOpenNav }) => {
+            const [searchTerm, setSearchTerm] = useState("");
+            const archived = repairs.filter(r => r.status === 'archived').sort((a,b) => new Date(b.archivedAt || b.date) - new Date(a.archivedAt || a.date));
+            const filteredArchives = searchTerm ? archived.filter(r => (r.client+r.phone+r.clientPhone).toLowerCase().includes(searchTerm.toLowerCase())) : archived;
 
-            useEffect(() => {
-                if(!window.FB_SDK) return;
-                const unsubscribe = window.FB_SDK.onSnapshot(window.FB_SDK.collection(window.db, "team_notes"), (snapshot) => {
-                    setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
-                });
-                return unsubscribe;
-            }, []);
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!author || !text || !window.FB_SDK) return;
-                await window.FB_SDK.addDoc(window.FB_SDK.collection(window.db, "team_notes"), { author, text, createdAt: Date.now(), status: 'active' });
-                setText('');
-            };
-
-            const markAsSeen = async (id) => { if(window.FB_SDK) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'archived', seenAt: Date.now() }); };
-            const unarchiveMessage = async (id) => { if(window.FB_SDK) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'active', seenAt: null }); };
-            const deleteMessage = async (id) => {
-                if (prompt("Mot de passe administrateur :") === "magretfrite" && window.FB_SDK) window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "team_notes", id));
-            };
-
-            const activeMessages = messages.filter(m => m.status === 'active');
-            let archivedMessages = messages.filter(m => m.status === 'archived');
-            if (searchTerm) archivedMessages = archivedMessages.filter(m => (m.author+m.text+new Date(m.createdAt).toLocaleDateString('fr-FR')).toLowerCase().includes(searchTerm.toLowerCase()));
+            const deleteArchive = (id) => { if (prompt("Mot de passe :") === "magretfrite") window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "repairs", id)); };
+            const unarchiveRepair = (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { status: 'done', archivedAt: null, pickedUpAt: null });
+            const markPickedUp = (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { pickedUpAt: new Date().toISOString() });
 
             return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center sticky top-0 z-10">
-                        <div className="flex items-center">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-                            <h1 className="text-xl font-bold">📝 Mots d'équipe</h1>
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition flex items-center justify-center"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                            <h1 className="text-xl font-bold dark:text-white">🗄️ Archives</h1>
                         </div>
-                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                            <button onClick={() => { setActiveTab('actifs'); setSearchTerm(''); }} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'actifs' ? 'bg-white text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}>En attente {activeMessages.length > 0 && <span className="ml-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">{activeMessages.length}</span>}</button>
-                            <button onClick={() => setActiveTab('archives')} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'archives' ? 'bg-white text-blue-600' : 'text-gray-600 dark:text-gray-300'}`}>Archives</button>
-                        </div>
+                        <input type="text" placeholder="🔍 Recherche archive..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 max-w-md bg-gray-100 dark:bg-gray-700 dark:text-white border-none outline-none rounded-full px-4 py-2 text-sm" />
                     </div>
-                    <div className="flex-1 p-4 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto">
-                            {activeTab === 'actifs' && (
-                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500 shadow-sm">
-                                    <h2 className="font-bold mb-2">Laisser un message</h2>
-                                    <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none rounded"><option value="">- Qui écrit ? -</option><option value="Clément">Clément</option><option value="Bérénys">Bérénys</option><option value="Gérard">Gérard</option></select>
-                                    <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Message..." className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none rounded resize-none h-24"></textarea>
-                                    <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded">Épingler</button>
-                                </form>
-                            )}
-                            {activeTab === 'archives' && (
-                                <input type="text" placeholder="🔍 Rechercher (nom, date, mot)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white dark:bg-gray-800 dark:border-gray-700 border p-3 rounded-full mb-6 outline-none shadow-sm" />
-                            )}
-                            <div className="space-y-4">
-                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
-                                    <div key={m.id} className={`p-5 rounded-xl border flex flex-col sm:flex-row justify-between ${activeTab === 'actifs' ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-white dark:bg-gray-800 dark:border-gray-700 opacity-80'}`}>
-                                        <div className="w-full"><div className="font-bold">📌 {m.author} <span className="text-xs text-gray-500 font-normal ml-2">{new Date(m.createdAt).toLocaleDateString('fr-FR')}</span></div><p className="mt-2 whitespace-pre-wrap">{m.text}</p></div>
-                                        <div className="flex gap-2 mt-4 sm:mt-0 items-center shrink-0">
-                                            {activeTab === 'actifs' ? (
-                                                <><button onClick={() => markAsSeen(m.id)} className="bg-green-500 text-white font-bold px-4 py-2 rounded whitespace-nowrap">✅ Vu !</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 text-red-600 px-3 py-2 rounded">🗑️</button></>
-                                            ) : (
-                                                <><span className="text-xs font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-full whitespace-nowrap">Vu le {new Date(m.seenAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span><button onClick={() => unarchiveMessage(m.id)} className="bg-orange-100 text-orange-700 px-3 py-2 rounded text-xs font-bold whitespace-nowrap">↩ Remettre</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 text-red-600 px-3 py-2 rounded">🗑️</button></>
-                                            )}
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredArchives.length === 0 && <p className="text-gray-500 text-center py-10 font-bold">Aucune archive.</p>}
+                            {filteredArchives.map(repair => (
+                                <div key={repair.id} className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
+                                    <div className="flex justify-between items-start mb-3"><span className="font-bold text-lg dark:text-white">{repair.client}</span><span className="text-xs bg-gray-200 dark:bg-gray-700 dark:text-gray-200 px-2 py-1 rounded">Le {new Date(repair.archivedAt || repair.date).toLocaleDateString('fr-FR')}</span></div>
+                                    <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
+                                    <div className="font-medium text-sm mb-3 flex items-start dark:text-gray-200">{repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px]">SAV</span>}<span>{repair.phone} - {repair.repair}</span></div>
+                                    {repair.techComment && <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded text-xs mb-3 border dark:border-gray-600 dark:text-gray-300"><strong>📝 Note :</strong> {repair.techComment}</div>}
+                                    <div className="mt-auto flex flex-col gap-2 border-t dark:border-gray-700 pt-4">
+                                        {repair.pickedUpAt ? <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-center py-2 rounded-lg text-sm font-bold border border-green-200 dark:border-green-800">✅ Récupéré le {new Date(repair.pickedUpAt).toLocaleDateString('fr-FR')}</div> : <button onClick={() => markPickedUp(repair.id)} className="w-full bg-green-500 text-white font-bold py-2 rounded-lg">📦 Marqué Récupéré</button>}
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 py-1.5 rounded text-xs font-bold border border-blue-200 dark:border-blue-800">📄 Fiche</button>
+                                            <button onClick={() => unarchiveRepair(repair.id)} className="flex-1 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 py-1.5 rounded text-xs font-bold border border-orange-200 dark:border-orange-800">↩ Désarchiver</button>
+                                            <button onClick={() => deleteArchive(repair.id)} className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded border border-red-200 dark:border-red-800">🗑️</button>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             );
         };
 
-        const SamFwGuideView = ({ onOpenNav }) => (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
-                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                    <h1 className="text-xl font-bold"><span className="mr-2">🔓</span> Déblocage FRP & Firmware (SamFw)</h1>
-                </div>
-                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                    <div className="max-w-4xl mx-auto space-y-8">
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                            <div className="bg-blue-100 dark:bg-blue-900/50 p-4 border-b border-blue-200 dark:border-blue-800 font-bold text-lg text-blue-900 dark:text-blue-100">🔐 Contournement Compte Google (FRP)</div>
-                            <div className="p-6 space-y-4">
-                                <p>1. Lancez <strong>SamFw FRP Tool</strong> sur le PC.</p>
-                                <p>2. Branchez le Samsung bloqué en USB.</p>
-                                <p>3. Sur le téléphone, tapez <strong className="text-red-500">*#0*#</strong> dans l'appel d'urgence pour ouvrir le mode Test.</p>
-                                <p>4. Sur le PC, cliquez sur <strong>Remove FRP</strong>.</p>
-                                <p>5. Autorisez le débogage USB sur l'écran du téléphone.</p>
-                            </div>
+        const DashboardView = ({ repairs, onOpenNav }) => {
+            const [timeRange, setTimeRange] = useState('month');
+            const stats = useMemo(() => {
+                const now = new Date();
+                let totalIntakes = 0; let totalCompleted = 0; let sellerCount = { 'Clément': 0, 'Bérénys': 0, 'Gérard': 0 };
+                repairs.forEach(r => {
+                    const repairDate = new Date(r.date);
+                    let match = false;
+                    if (timeRange === 'day') match = repairDate.toDateString() === now.toDateString();
+                    else if (timeRange === 'month') match = repairDate.getMonth() === now.getMonth() && repairDate.getFullYear() === now.getFullYear();
+                    else if (timeRange === 'year') match = repairDate.getFullYear() === now.getFullYear();
+                    
+                    if (match) {
+                        totalIntakes++;
+                        if (r.status === 'done' || r.status === 'archived') totalCompleted++;
+                        if (r.vendeur && sellerCount[r.vendeur] !== undefined) sellerCount[r.vendeur]++;
+                    }
+                });
+                let bestSeller = '-'; let maxSales = -1;
+                Object.entries(sellerCount).forEach(([name, count]) => {
+                    if (count > maxSales && count > 0) { maxSales = count; bestSeller = name; } 
+                    else if (count === maxSales && count > 0) { bestSeller += ` & ${name}`; }
+                });
+                return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales };
+            }, [repairs, timeRange]);
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold dark:text-white">📊 Stats</h1></div>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                            {['day', 'month', 'year'].map(t => (
+                                <button key={t} onClick={() => setTimeRange(t)} className={`px-3 py-1.5 text-sm rounded-md font-bold ${timeRange === t ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-600 dark:text-gray-300'}`}>{t === 'day' ? 'Jour' : t === 'month' ? 'Mois' : 'Année'}</button>
+                            ))}
                         </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                            <div className="bg-green-100 dark:bg-green-900/50 p-4 border-b border-green-200 dark:border-green-800 font-bold text-lg text-green-900 dark:text-green-100">⚡ Flasher / Changer le Firmware Samsung</div>
-                            <div className="p-6 space-y-4">
-                                <p>1. Téléchargez le firmware sur <strong className="text-blue-500">SamFw.com</strong>.</p>
-                                <p>2. Extrayez le ZIP (Fichiers AP, BL, CP, CSC).</p>
-                                <p>3. Mettez le téléphone en <strong>Mode Download</strong> (Volume Haut + Bas branché au PC).</p>
-                                <p>4. Dans l'onglet <strong>Odin Flash</strong>, placez chaque fichier dans sa case :<br/>
-                                <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded inline-block mt-2">⚠️ Attention : <strong>CSC_</strong> efface les données. <strong>HOME_CSC_</strong> conserve les données.</span></p>
-                                <p>5. Cliquez sur <strong>Flash</strong> et attendez le message PASS!</p>
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center border dark:border-gray-700"><div className="text-5xl mb-2">📱</div><div className="text-4xl font-black text-blue-600 dark:text-blue-400">{stats.totalIntakes}</div><div className="text-gray-600 dark:text-gray-400">Prises en charge</div></div>
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center border dark:border-gray-700"><div className="text-5xl mb-2">✅</div><div className="text-4xl font-black text-green-600 dark:text-green-400">{stats.totalCompleted}</div><div className="text-gray-600 dark:text-gray-400">Terminées</div></div>
                             </div>
+                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center"><h3 className="text-lg font-medium text-purple-100 uppercase tracking-widest mb-1">Meilleur vendeur</h3><div className="text-4xl sm:text-5xl font-black mb-3">{stats.bestSeller}</div><div className="bg-white/20 px-4 py-1 rounded-full text-sm inline-block font-bold">{stats.maxSales > 0 ? `${stats.maxSales} dossiers créés` : 'Aucun dossier'}</div></div>
                         </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        };
+
+        const PiecesToOrderView = ({ repairs, onOpenNav }) => {
+            const repairsWithPieces = repairs.filter(r => r.status !== 'archived' && r.status !== 'done' && r.piece && r.piece !== 'Aucune / En stock').sort((a, b) => new Date(a.date) - new Date(b.date));
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold dark:text-white">🛒 Pièces à commander</h1></div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto"><div className="max-w-4xl mx-auto space-y-4">
+                        {repairsWithPieces.length === 0 ? <div className="text-center py-10 dark:text-gray-400">Aucune pièce.</div> : repairsWithPieces.map(r => (
+                            <div key={r.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border dark:border-gray-700 flex justify-between items-center shadow-sm">
+                                <div><div className="font-bold dark:text-white">{r.client}</div><p className="text-sm dark:text-gray-400">{new Date(r.date).toLocaleDateString('fr-FR')}</p></div>
+                                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800 font-bold dark:text-blue-300">{r.piece}</div>
+                            </div>
+                        ))}
+                    </div></div>
+                </div>
+            );
+        };
 
         const ErrorCodesView = ({ onOpenNav }) => {
             const [searchTerm, setSearchTerm] = useState("");
@@ -504,7 +501,7 @@
                 { code: "Erreur 4013", type: "Nappe Face ID / NAND", desc: "Très lié à la nappe de proximité (Face ID). Débranchez-la pour flasher." },
                 { code: "Erreur -1 / 50", type: "Baseband", desc: "Défaut de la puce réseau (Baseband) ou EEPROM." },
                 { code: "Erreur 14", type: "Stockage plein", desc: "Stockage saturé. Flasher en Retain Data avec 3uTools." },
-                { code: "Erreur 21", type: "Batterie", desc: "Batterie non détectée. Vérifiez le connecteur ou la nappe de charge." },
+                { code: "Erreur 21 / 1601", type: "Batterie", desc: "Batterie non détectée. Vérifiez le connecteur ou la nappe de charge." },
                 { code: "3uTools 20%", type: "NAND / Batterie", desc: "Problème écriture NAND ou informations batterie manquantes." },
                 { code: "3uTools 80%", type: "Baseband / NFC", desc: "Problème flashage puce réseau ou puce secondaire." },
                 { code: "Erreur 1110", type: "Bootloop Stockage", desc: "Boucle sur la pomme à cause d'un stockage à 100%." }
@@ -513,14 +510,14 @@
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">🚨 Erreurs courantes (iTunes)</h1></div>
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold dark:text-white">🚨 Erreurs (iTunes)</h1></div>
                     <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-4 w-full">
-                        <input type="text" placeholder="🔍 Rechercher code..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border p-3 rounded-full outline-none bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm mb-4" />
+                        <input type="text" placeholder="🔍 Rechercher code..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full border p-3 rounded-full outline-none bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white shadow-sm mb-4" />
                         {filtered.map((item, idx) => (
                             <div key={idx} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
                                 <h3 className="font-bold text-lg text-red-600 dark:text-red-400">{item.code}</h3>
-                                <div className="font-semibold text-sm mb-2">{item.type}</div>
-                                <p className="text-sm">{item.desc}</p>
+                                <div className="font-semibold text-sm mb-2 dark:text-gray-300">{item.type}</div>
+                                <p className="text-sm dark:text-gray-400">{item.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -529,39 +526,220 @@
         };
 
         const PanicLogsView = ({ onOpenNav }) => {
+            const [selectedModel, setSelectedModel] = useState(null);
+            
+            const PanicCard = ({color, title, subtitle, desc}) => (
+                <div className={`p-4 border-l-4 border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20 rounded-r-md`}>
+                    <h4 className={`font-bold text-${color}-700 dark:text-${color}-400 text-lg`}>{title}</h4>
+                    <p className="font-bold text-gray-900 dark:text-white mt-1">{subtitle}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{desc}</p>
+                </div>
+            );
+
+            const olderModelsContent = (
+                <div className="space-y-4">
+                    <PanicCard color="red" title="TG0B ou TG0V" subtitle="Batterie / Connecteur" desc="La batterie est défectueuse ou le connecteur est endommagé." />
+                    <PanicCard color="blue" title="Prs0 ou Mic1" subtitle="Nappe du port de charge" desc="Problème récurrent sur ces modèles. Testez avec une nappe neuve." />
+                    <PanicCard color="orange" title="Mic2" subtitle="Nappe du bouton Power" desc="Généralement lié à la nappe d'alimentation." />
+                </div>
+            );
+
+            const iphone12Content = (
+                <div className="space-y-4">
+                    <PanicCard color="red" title="TG0B ou TG0V" subtitle="Batterie / Connecteur" desc="Batterie ou connecteur défectueux." />
+                    <PanicCard color="blue" title="Prs0 ou Mic1" subtitle="Nappe du port de charge" desc="Problème récurrent." />
+                    <PanicCard color="teal" title="Eiger" subtitle="Nappe du port de charge" desc="Assurez-vous que la nappe n'est pas déchirée ou oxydée." />
+                </div>
+            );
+
+            const iphone13Content = (
+                <div className="space-y-4">
+                    <PanicCard color="green" title="0x1000 (ou 4096)" subtitle="Câble flex de proximité" desc="Souvent endommagé lors d'un remplacement d'écran." />
+                    <PanicCard color="blue" title="0x800 (ou 2048)" subtitle="Nappe du port de charge" desc="Testez avec un nouveau port de charge." />
+                    <PanicCard color="purple" title="0x1800" subtitle="Port de charge ET Nappe de proximité" desc="Les deux pièces posent problème en même temps." />
+                    <PanicCard color="red" title="0x4000" subtitle="Ligne de données de la batterie" desc="Affichage d'un message non officiel ou fluctuation du pourcentage." />
+                    <PanicCard color="orange" title="0x400 / 0xc00" subtitle="Séparation de carte mère / Port de charge" desc="0x400 indique une séparation des couches (souvent sur le 13 Mini)." />
+                </div>
+            );
+
+            const iphone14Content = (
+                <div className="space-y-4">
+                    <PanicCard color="purple" title="0x400000" subtitle="Nappe de chargement sans fil (Vitre arrière)" desc="Vitre arrière débranchée ou flexible déchiré. Redémarrage de 3 minutes." />
+                    <PanicCard color="blue" title="0x100000" subtitle="Nappe du port de charge" desc="Redémarrage toutes les 3 minutes." />
+                    <PanicCard color="orange" title="0x500000" subtitle="Batterie OU Moteur haptique" desc="Problème de communication. Tester avec une autre batterie d'abord." />
+                    <PanicCard color="green" title="0x200000" subtitle="Prox Flex (Capteur Proximité)" desc="Capteur de proximité débranché ou endommagé (souvent lors du changement d'écran)." />
+                    <PanicCard color="teal" title="0x600000" subtitle="Nappe de chargement sans fil + Prox Flex" desc="Les deux doivent être connectés et fonctionnels." />
+                    <PanicCard color="red" title="0x20000" subtitle="Carte Logique (Carte mère)" desc="Déconnexion de l'interposeur (Sandwich board). Micro-soudure requise." />
+                </div>
+            );
+
+            const iphone14ProContent = (
+                <div className="space-y-4">
+                    <PanicCard color="green" title="0x80000" subtitle="Câble flex de proximité" desc="Problème classique après changement d'écran." />
+                    <PanicCard color="blue" title="0x40000" subtitle="Nappe du port de charge" desc="Tester avec une nouvelle nappe USB." />
+                    <PanicCard color="orange" title="0x10000" subtitle="Nappe du bouton Power" desc="Nappe défectueuse ou endommagée." />
+                    <PanicCard color="red" title="0x20000" subtitle="Séparation de carte mère (Sandwich)" desc="Problème matériel grave sur la carte mère." />
+                </div>
+            );
+
+            const iphone15Content = (
+                <div className="space-y-4">
+                    <PanicCard color="purple" title="0x200000" subtitle="Nappe de chargement sans fil (Vitre arrière)" desc="Fréquent après un remplacement de vitre arrière au laser." />
+                    <PanicCard color="blue" title="0x80000" subtitle="Nappe du port de charge (USB-C)" desc="Problème de communication avec le port USB-C." />
+                    <PanicCard color="green" title="0x100000" subtitle="Câble flex de proximité" desc="Nappe frontale endommagée." />
+                </div>
+            );
+
+            const iphone15ProContent = (
+                <div className="space-y-4">
+                    <PanicCard color="red" title="0xa1" subtitle="Capteur de batterie" desc="Batterie défectueuse ou non reconnue correctement." />
+                    <PanicCard color="blue" title="0x300000" subtitle="Nappe du port de charge (USB-C)" desc="Redémarrage toutes les 3 minutes." />
+                    <PanicCard color="purple" title="0x400000" subtitle="Nappe de chargement sans fil" desc="Vérifier la connexion de la bobine Qi." />
+                    <PanicCard color="teal" title="0x700000" subtitle="Port de charge + Nappe sans fil" desc="Les deux composants posent problème simultanément." />
+                </div>
+            );
+
+            const iphone16Content = (
+                <div className="space-y-4">
+                    <PanicCard color="blue" title="1572864 (0x80000)" subtitle="Nappe de charge / Capteur de pression d'air" desc="Très courant après un remplacement de vitre arrière ou si la nappe a été touchée. Redémarrage 3 min." />
+                    <PanicCard color="purple" title="2097152 (0x200000)" subtitle="Nappe de chargement sans fil" desc="La bobine arrière est défectueuse ou débranchée." />
+                    <PanicCard color="red" title="169 (0xa9)" subtitle="Ligne de données de la batterie" desc="L'iPhone reste bloqué à 1% ou 0%. Tester avec une nouvelle batterie." />
+                    <PanicCard color="orange" title="3670016" subtitle="Problème de Sandwich (Carte mère)" desc="Ports de charge et sans fil inactifs à cause d'une séparation des cartes." />
+                </div>
+            );
+
+            const iphone16ProContent = (
+                <div className="space-y-4">
+                    <PanicCard color="teal" title="0x300000 (3145728)" subtitle="Problème Capteurs / USB-C" desc="Erreur de communication SMC. Vérifiez la nappe USB-C." />
+                    <PanicCard color="gray" title="Crash Appareil Photo" subtitle="Module Caméra Avant en court-circuit" desc="La caméra avant provoque un arrêt de l'ensemble du système de caméras. Remplacer et appairer." />
+                </div>
+            );
+
+            const iphone17Content = (
+                <div className="space-y-4">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded text-sm text-yellow-800 dark:text-yellow-300">
+                        💡 <strong>Série 17 :</strong> L'architecture standardise les codes hexadécimaux. Vérifiez proximité, USB-C et charge sans fil.
+                    </div>
+                    <PanicCard color="green" title="0x200000 / 0x80000" subtitle="Capteur de proximité / Nappe frontale" desc="Très fréquent sur 17 Pro Max lors d'un capteur de proximité mal branché." />
+                    <PanicCard color="blue" title="0x300000" subtitle="Port de charge USB-C" desc="Lié aux modèles équipés du contrôleur USB-C avancé." />
+                    <PanicCard color="orange" title="0x100000" subtitle="Nappe du Bouton Power" desc="" />
+                    <PanicCard color="purple" title="0x400000" subtitle="Bobine de chargement sans fil" desc="" />
+                    <PanicCard color="red" title="0x500000" subtitle="Problème de Batterie" desc="Défaut de communication avec le BMS de la batterie." />
+                </div>
+            );
+
+            const seContent = (
+                <div className="space-y-4">
+                    <PanicCard color="red" title="TG0B" subtitle="Batterie" desc="Batterie défectueuse ou pourcentage non détecté." />
+                    <PanicCard color="blue" title="Mic1" subtitle="Nappe du port de charge OU Carte Mère" desc="Si le problème persiste avec une nappe neuve, c'est une piste rompue sur la carte mère (I2C1_AP_SCL / SDA) nécessitant un pontage (jumper)." />
+                </div>
+            );
+
+            const panicLogsData = [
+                { id: "x", model: "iPhone X", content: olderModelsContent },
+                { id: "xs", model: "iPhone XS / Max", content: olderModelsContent },
+                { id: "11", model: "iPhone 11", content: olderModelsContent },
+                { id: "11p", model: "iPhone 11 Pro / Max", content: olderModelsContent },
+                { id: "12", model: "iPhone 12 Series", content: iphone12Content },
+                { id: "13", model: "iPhone 13 Series", content: iphone13Content },
+                { id: "14", model: "iPhone 14 / Plus", content: iphone14Content },
+                { id: "14p", model: "iPhone 14 Pro / Max", content: iphone14ProContent },
+                { id: "15", model: "iPhone 15 / Plus", content: iphone15Content },
+                { id: "15p", model: "iPhone 15 Pro / Max", content: iphone15ProContent },
+                { id: "16", model: "iPhone 16 / Plus", content: iphone16Content },
+                { id: "16p", model: "iPhone 16 Pro / Max", content: iphone16ProContent },
+                { id: "17", model: "iPhone 17 Series", content: iphone17Content },
+                { id: "se", model: "iPhone SE (2020/2022)", content: seContent }
+            ];
+
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">🔍 Panic Logs (iPhone)</h1></div>
-                    <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-4 w-full">
-                        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 text-sm rounded border border-blue-200 dark:border-blue-800">💡 Allez dans <em>Réglages {'>'} Confidentialité {'>'} Analyse {'>'} Données d'analyse</em> et cherchez "panic-full".</div>
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm"><strong className="text-purple-500">0x400000 / 0x200000</strong> : Nappe de charge sans fil (Vitre arrière) OU Nappe Capteur Proximité (prox flex) déconnectée/HS. (Surtout iPhone 14/15)</div>
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm"><strong className="text-blue-500">0x100000 / Prs0 / Mic1</strong> : Nappe du port de charge HS ou débranchée. Redémarrage de 3 minutes.</div>
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm"><strong className="text-green-500">0x1000 / 0x80000</strong> : Capteur de proximité / Nappe frontale. Souvent endommagé lors d'un remplacement d'écran. (iPhone 13 et Série 17)</div>
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm"><strong className="text-red-500">TG0B / TG0V / 169</strong> : Capteur de température batterie (Batterie HS ou connecteur endommagé).</div>
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm"><strong className="text-teal-500">1572864</strong> : Nappe de charge / Capteur de pression d'air. Très courant après un laser vitre arrière. (iPhone 16)</div>
-                        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm"><strong className="text-orange-500">0x20000 / 0x400 / 3670016</strong> : Séparation des cartes mères (Sandwich Board issue). Micro-soudure requise.</div>
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                            <h1 className="text-xl font-bold dark:text-white"><span className="mr-2">🔍</span> {selectedModel ? `Diag - ${selectedModel.model}` : 'Panic Logs iPhone'}</h1>
+                        </div>
+                        {selectedModel && <button onClick={() => setSelectedModel(null)} className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 rounded-md font-bold text-sm">Retour</button>}
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto flex flex-col h-full">
+                            {!selectedModel ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {panicLogsData.map((item) => (
+                                        <button key={item.id} onClick={() => setSelectedModel(item)} className="block w-full text-left p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-blue-500 transition font-bold text-lg dark:text-white">
+                                            {item.model}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">{selectedModel.content}</div>
+                            )}
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        const DiagnosticView = ({ onOpenNav }) => {
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">⚡ Diag. Démarrage</h1></div>
-                    <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-4 w-full">
-                        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border dark:border-gray-700 shadow-sm mb-6">
-                            <p className="text-sm">Analyse de la consommation de courant via testeur USB (5V) pour identifier l'étape où la carte mère bloque lors du démarrage.</p>
+        const DiagnosticView = ({ onOpenNav }) => (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0">
+                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                    <h1 className="text-xl font-bold dark:text-white">⚡ Diag. Démarrage (5V)</h1>
+                </div>
+                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto space-y-4">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border dark:border-gray-700 shadow-sm">
+                            <p className="mb-6 dark:text-gray-300">Analyse de la consommation de courant via testeur USB (5V) pour identifier l'étape où la carte mère bloque lors du démarrage.</p>
+                            <div className="space-y-4">
+                                <div className="p-4 rounded border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20"><strong className="text-red-700 dark:text-red-400">🔴 0.00A à 0.05A</strong><br/><span className="text-sm dark:text-gray-300">Détection VBUS. Connecteur de charge HS, Nappe Flex coupée, OVP grillée, Court-circuit VPH_PWR.</span></div>
+                                <div className="p-4 rounded border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20"><strong className="text-orange-700 dark:text-orange-400">🟠 0.08A à 0.15A</strong><br/><span className="text-sm dark:text-gray-300">Activation PMIC. Billage CPU/RAM, Boucle CPU (oscillation 0.08-0.12A).</span></div>
+                                <div className="p-4 rounded border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20"><strong className="text-yellow-700 dark:text-yellow-400">🟡 0.20A à 0.40A</strong><br/><span className="text-sm dark:text-gray-300">Lecture Bootloader. Corruption logicielle sévère, Défaut ligne PMIC secondaire.</span></div>
+                                <div className="p-4 rounded border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20"><strong className="text-green-700 dark:text-green-400">🟢 0.40A à 0.60A</strong><br/><span className="text-sm dark:text-gray-300">Initialisation Affichage. Problème FPC écran (L'écran s'apprête à s'allumer).</span></div>
+                                <div className="p-4 rounded border-l-4 border-green-600 bg-green-100 dark:bg-green-900/30"><strong className="text-green-800 dark:text-green-300">🟩 0.60A à 1.50A+</strong><br/><span className="text-sm dark:text-gray-300">Chargement de l'OS. Démarrage normal en cours.</span></div>
+                            </div>
                         </div>
-                        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded border-l-4 border-red-500"><strong className="text-red-700 dark:text-red-400">🔴 0.00A à 0.05A</strong> : Connecteur de charge HS, Nappe Flex coupée, OVP grillée, Court-circuit VPH_PWR.</div>
-                        <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded border-l-4 border-orange-500"><strong className="text-orange-700 dark:text-orange-400">🟠 0.08A à 0.15A</strong> : Activation PMIC principal. Billage CPU/RAM, Boucle CPU.</div>
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border-l-4 border-yellow-400"><strong className="text-yellow-700 dark:text-yellow-400">🟡 0.20A à 0.40A</strong> : Lecture Bootloader. Corruption logicielle, Défaut ligne PMIC secondaire.</div>
-                        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded border-l-4 border-green-400"><strong className="text-green-700 dark:text-green-400">🟢 0.40A à 0.60A</strong> : Init affichage. Problème FPC écran (L'écran s'apprête).</div>
-                        <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded border-l-4 border-green-600"><strong className="text-green-800 dark:text-green-300">🟩 0.60A à 1.50A+</strong> : Chargement de l'OS. Démarrage normal en cours.</div>
                     </div>
                 </div>
-            );
-        };
+            </div>
+        );
+
+        const SamFwGuideView = ({ onOpenNav }) => (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0 z-10">
+                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                    <h1 className="text-xl font-bold dark:text-white"><span className="mr-2">🔓</span> SamFw (FRP & Flash)</h1>
+                </div>
+                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto space-y-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="bg-blue-100 dark:bg-blue-900/50 p-4 font-bold text-lg text-blue-900 dark:text-blue-100">🔐 Contournement Compte Google (FRP)</div>
+                            <div className="p-6 space-y-4 dark:text-gray-300">
+                                <p>1. Lancez <strong>SamFw FRP Tool</strong> sur le PC.</p>
+                                <p>2. Branchez le Samsung bloqué en USB.</p>
+                                <p>3. Sur le téléphone, tapez <strong className="text-red-500">*#0*#</strong> dans l'appel d'urgence pour ouvrir le mode Test.</p>
+                                <p>4. Sur le PC, cliquez sur <strong>Remove FRP</strong>.</p>
+                                <p>5. Autorisez le débogage USB sur l'écran du téléphone quand la popup apparaît.</p>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="bg-green-100 dark:bg-green-900/50 p-4 font-bold text-lg text-green-900 dark:text-green-100">⚡ Flasher / Changer le Firmware Samsung</div>
+                            <div className="p-6 space-y-4 dark:text-gray-300">
+                                <p>1. Téléchargez le firmware sur <strong className="text-blue-500">SamFw.com</strong> (Code région souvent XEF).</p>
+                                <p>2. Extrayez le ZIP pour obtenir les fichiers AP, BL, CP, CSC.</p>
+                                <p>3. Mettez le téléphone en <strong>Mode Download</strong> (Volume Haut + Bas branché au PC).</p>
+                                <p>4. Dans l'onglet <strong>Odin Flash</strong>, placez chaque fichier dans sa case correspondante.</p>
+                                <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 text-sm">
+                                    ⚠️ <strong>Pour le fichier CSC :</strong><br/>
+                                    • <strong>CSC_...</strong> = Efface TOUTES les données (Remise à zéro usine)<br/>
+                                    • <strong>HOME_CSC_...</strong> = Conserve les données du client (Mise à jour)
+                                </div>
+                                <p>5. Cliquez sur <strong>Flash</strong> et attendez le message vert PASS!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
 
         const ProposalsView = ({ onOpenNav }) => {
             const [proposals, setProposals] = useState([]);
@@ -579,22 +757,22 @@
                 setName(''); setText('');
             };
             const handleDelete = async (id) => {
-                if (prompt("Mot de passe :") === "magretfrite" && window.FB_SDK) window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "proposals", id));
+                if (prompt("Mot de passe administrateur :") === "magretfrite" && window.FB_SDK) window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "proposals", id));
             };
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">💡 Propositions</h1></div>
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold dark:text-white">💡 Propositions d'amélioration</h1></div>
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full"><div className="max-w-4xl mx-auto">
-                        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border dark:border-gray-700 mb-8">
+                        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
                             <input required value={name} onChange={e => setName(e.target.value)} placeholder="Prénom" className="w-full border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none" />
-                            <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Idée..." className="w-full h-24 border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none resize-none"></textarea>
+                            <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Idée ou problème..." className="w-full h-24 border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none resize-none"></textarea>
                             <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md">Envoyer</button>
                         </form>
                         <div className="space-y-4">
                             {proposals.map(p => (
-                                <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border dark:border-gray-700 shadow-sm flex justify-between">
-                                    <div><div className="font-bold">👤 {p.name}</div><p className="mt-1">{p.text}</p></div>
-                                    <button onClick={() => handleDelete(p.id)} className="bg-green-500 text-white px-4 rounded font-bold h-10">✅ Fait</button>
+                                <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                                    <div className="w-full"><div className="font-bold">👤 {p.name}</div><p className="mt-1 dark:text-gray-300">{p.text}</p></div>
+                                    <button onClick={() => handleDelete(p.id)} className="bg-green-500 text-white px-4 py-2 rounded font-bold sm:ml-4 mt-4 sm:mt-0 whitespace-nowrap">✅ Fait</button>
                                 </div>
                             ))}
                         </div>
@@ -703,8 +881,15 @@
             });
           };
 
+          const getStatusColors = (repair) => {
+            if(repair.status === 'done') return 'bg-green-100 dark:bg-green-900/40 border-green-500 text-green-900 dark:text-green-100';
+            if(repair.status === 'waiting') return 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-500 text-yellow-900 dark:text-yellow-100';
+            if(repair.isPriority) return 'bg-red-100 dark:bg-red-900/40 border-red-500 text-red-900 dark:text-red-100 shadow-[0_0_8px_rgba(239,68,68,0.4)]';
+            return 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 shadow-sm'; 
+          };
+
           return (
-            <div className="flex w-full min-h-screen">
+            <div className="flex w-full min-h-screen bg-gray-50 dark:bg-gray-900 text-black dark:text-white transition-colors duration-200">
               {isNavOpen && <div className="fixed inset-0 bg-black/50 z-40 print:hidden" onClick={() => setIsNavOpen(false)}></div>}
               
               <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl z-50 transform transition-transform duration-300 print:hidden flex flex-col ${isNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -713,26 +898,25 @@
                       <button onClick={() => setIsNavOpen(false)} className="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                      <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">📅</span> Planning</button>
-                      <button onClick={() => { setView('pieces'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🛒</span> Pièces à commander</button>
-                      <button onClick={() => { setView('archives'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🗄️</span> Archives</button>
-                      <button onClick={() => { setView('team_notes'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between">
-                          <div><span className="mr-3">📝</span> Mots d'équipe</div>
-                          {activeNotesCount > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{activeNotesCount}</span>}
+                      <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'planning' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">📅</span> Planning</button>
+                      <button onClick={() => { setView('pieces'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'pieces' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">🛒</span> Pièces à commander</button>
+                      <button onClick={() => { setView('archives'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'archives' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">🗄️</span> Archives</button>
+                      <button onClick={() => { setView('team_notes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center justify-between ${view === 'team_notes' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                          <div><span className="mr-3">📝</span> Mots d'équipe</div>{activeNotesCount > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{activeNotesCount}</span>}
                       </button>
-                      <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🔍</span> Logs iPhone</button>
-                      <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">⚡</span> Diag. démarrage</button>
-                      <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🔓</span> SamFw (FRP)</button>
-                      <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🚨</span> Erreurs (iTunes)</button>
+                      <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">🔍</span> Logs iPhone</button>
+                      <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">⚡</span> Diag. démarrage</button>
+                      <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'samfw_guide' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">🔓</span> SamFw (FRP)</button>
+                      <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'error_codes' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">🚨</span> Erreurs (iTunes)</button>
                       <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700 block"><span className="mr-3">💶</span> Reprise Mobile</a>
                   </div>
                   <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
-                      <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">📊</span> Statistiques</button>
-                      <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">💡</span> Propositions</button>
+                      <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">📊</span> Statistiques</button>
+                      <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'proposals' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}><span className="mr-3">💡</span> Propositions</button>
                   </div>
               </div>
 
-              {/* GESTION DE L'AFFICHAGE DES VUES */}
+              {/* ROUTAGE VERS LES DIFFÉRENTES VUES */}
               {view === 'intake' && activeIntake ? (
                   <IntakeView activeIntake={activeIntake} setView={setView} />
               ) : view === 'panic_logs' ? (
@@ -774,6 +958,7 @@
                           <input type="checkbox" checked={formData.isSAV} onChange={(e) => setFormData({...formData, isSAV: e.target.checked})} className="w-5 h-5"/><span>⚠️ SAV (Garantie)</span>
                       </label>
                       
+                      {/* SECTION PIÈCES */}
                       <div>
                         <label className="block text-sm font-medium mb-2">Pièce(s) Commandée(s)</label>
                         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -794,6 +979,7 @@
                           <input type="text" required placeholder="Précisez la pièce" value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border rounded-md p-2 outline-none bg-white dark:bg-gray-700 dark:border-gray-600" />
                       )}
 
+                      {/* SECTION FOURNISSEURS */}
                       {formData.pieces.length > 0 && (
                         <div className="space-y-3 pt-2 border-t dark:border-gray-700 mt-2">
                             <label className="block text-sm font-bold">Fournisseur(s) optionnel(s)</label>
@@ -851,12 +1037,12 @@
                                 
                                 return (
                                     <div key={idx} onDragOver={e=>e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr)} className={`flex flex-col rounded-lg border ${isToday ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 shadow-md' : 'bg-gray-100 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700'}`}>
-                                        <div className={`p-2 text-center border-b font-bold text-xs sm:text-sm ${isToday ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600'}`}>
+                                        <div className={`p-2 text-center border-b font-bold text-xs sm:text-sm ${isToday ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600'}`}>
                                             {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][date.getDay()]} <br className="lg:hidden"/> {String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
                                             {dayRepairs.filter(r => !searchTerm || (r.client+r.phone+r.clientPhone).toLowerCase().includes(searchTerm.toLowerCase())).map(repair => (
-                                                <div key={repair.id} draggable onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr, repair.id)} className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab ${repair.status === 'done' ? 'bg-green-100 border-green-500 text-green-900 dark:bg-green-900/40 dark:text-green-100' : repair.status === 'waiting' ? 'bg-yellow-100 border-yellow-500 text-yellow-900 dark:bg-yellow-900/40 dark:text-yellow-100' : repair.isPriority ? 'bg-red-100 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)] dark:bg-red-900/40 dark:text-red-100' : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600'} relative`}>
+                                                <div key={repair.id} draggable onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr, repair.id)} className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab ${getStatusColors(repair)} relative`}>
                                                     
                                                     <div className="font-bold flex justify-between mb-1">
                                                         <div className="truncate pr-2">{repair.vendeur && <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 ${getVendeurColor(repair.vendeur)}`}></span>}{repair.client}</div>
@@ -869,7 +1055,7 @@
                                                     <div className="text-[10px] sm:text-xs mb-2 truncate">{repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-1 font-bold text-[9px] uppercase">SAV</span>}{repair.repair}</div>
                                                     
                                                     {repair.piece && repair.piece !== 'Aucune / En stock' && (
-                                                        <div onClick={(e) => { e.stopPropagation(); setExpandedPieces(prev => ({...prev, [repair.id]: !prev[repair.id]})); }} className="bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1.5 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold cursor-pointer">
+                                                        <div onClick={(e) => { e.stopPropagation(); togglePieces(repair.id); }} className="bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1.5 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold cursor-pointer">
                                                             {expandedPieces[repair.id] ? (
                                                                 <div className="flex flex-col space-y-1"><span className="border-b border-blue-200 dark:border-blue-700 pb-1 mb-1">🛒 Pièces :</span>{repair.piece.split(' + ').map((pItem, i) => (<span key={i} className="whitespace-normal">👉 {pItem}</span>))}</div>
                                                             ) : (<div className="truncate">🛒 {repair.piece}</div>)}
