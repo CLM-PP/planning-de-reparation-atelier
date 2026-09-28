@@ -34,7 +34,6 @@
       };
 
       const app = initializeApp(firebaseConfig);
-      
       const db = initializeFirestore(app, {
         localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
       });
@@ -69,7 +68,6 @@
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <div id="root"></div>
 
-    <!-- KILL SWITCH DE CACHE -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -103,11 +101,8 @@
             const handleLogin = (e) => {
                 e.preventDefault();
                 if (passwordInput === SECRET_PASSWORD) {
-                    if (rememberMe) {
-                        localStorage.setItem('auth', 'true');
-                    } else {
-                        sessionStorage.setItem('auth', 'true');
-                    }
+                    if (rememberMe) localStorage.setItem('auth', 'true');
+                    else sessionStorage.setItem('auth', 'true');
                     setIsAuthenticated(true);
                 } else {
                     setError(true);
@@ -120,15 +115,7 @@
                         <form onSubmit={handleLogin} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md w-full max-w-sm border border-gray-200 dark:border-gray-700">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">🔒 Accès Sécurisé</h2>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center">Entrez le mot de passe de l'atelier pour accéder au planning.</p>
-                            <input 
-                                type={showPassword ? "text" : "password"} 
-                                placeholder="Mot de passe..." 
-                                value={passwordInput} 
-                                onChange={(e) => { setPasswordInput(e.target.value); setError(false); }} 
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-3 mb-4 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-center font-bold"
-                                autoFocus
-                            />
-                            
+                            <input type={showPassword ? "text" : "password"} placeholder="Mot de passe..." value={passwordInput} onChange={(e) => { setPasswordInput(e.target.value); setError(false); }} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-3 mb-4 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-center font-bold" autoFocus />
                             <div className="flex flex-col space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-300">
                                 <div className="flex items-center justify-center">
                                     <input type="checkbox" id="showPass" checked={showPassword} onChange={() => setShowPassword(!showPassword)} className="mr-2 cursor-pointer w-4 h-4" />
@@ -139,7 +126,6 @@
                                     <label htmlFor="rememberMe" className="cursor-pointer select-none font-bold text-gray-800 dark:text-gray-200">Se souvenir de moi</label>
                                 </div>
                             </div>
-
                             {error && <p className="text-red-500 text-xs mb-3 text-center font-bold">Mot de passe incorrect</p>}
                             <button type="submit" className="w-full bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">Se connecter</button>
                         </form>
@@ -149,9 +135,6 @@
             return <AppContent />;
         }
 
-        /* ==============================================================================
-           FONCTIONS UTILITAIRES
-           ============================================================================== */
         const getLocalISO = (d) => {
           const y = d.getFullYear();
           const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -179,11 +162,7 @@
           </div>
         );
 
-        /* ==============================================================================
-           COMPOSANTS VUES SECONDAIRES
-           ============================================================================== */
-
-        /* --- 1. FICHE DE PRISE EN CHARGE --- */
+        /* === FICHE PRISE EN CHARGE MODIFIABLE === */
         const FormHalf = ({ title, activeIntake, formSync, updateSync, updateCategorySync }) => (
           <div className="border-2 border-black p-4 bg-white text-black h-full flex flex-col justify-between shadow-sm">
             <div>
@@ -196,7 +175,6 @@
                 </div>
                 <div className="grid grid-cols-4 gap-0 border-l border-black text-xs text-center mb-4 text-black">
                   <div className="border-r border-b border-black p-1 bg-white flex justify-center items-center">{new Date(activeIntake.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</div>
-                  
                   <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="06..." value={formSync.clientPhone || ''} onChange={(e) => updateSync('clientPhone', e.target.value)} />
                   <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="Modèle..." value={formSync.phone || ''} onChange={(e) => updateSync('phone', e.target.value)} />
                   <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black focus:bg-blue-50 w-full" value={formSync.accessoire || ''} onChange={(e) => updateSync('accessoire', e.target.value)} />
@@ -320,7 +298,7 @@
                 </div>
                 
                 <div className="mt-2 mb-2 p-2 border border-gray-400 bg-gray-50 text-[9px] text-gray-700 leading-tight">
-                    <p>En signant ce document, le client accepte que ses données personnelles (nom, numéro de téléphone) soient conservées par l'atelier dans le seul but de gérer le suivi de la réparation et l'éventuelle garantie (SAV) de l'appareil, conformément à la réglementation RGPD en vigueur.</p>
+                    <p>En signant ce document, le client accepte que ses données personnelles soient conservées par l'atelier dans le seul but de gérer le suivi de la réparation et l'éventuelle garantie (SAV) de l'appareil, conformément à la réglementation RGPD.</p>
                 </div>
             </div>
             <div>
@@ -333,20 +311,16 @@
           </div>
         );
 
+        /* === VUES SECONDAIRES DE L'APPLICATION === */
+
         const IntakeView = ({ activeIntake, setView }) => {
           const [formSync, setFormSync] = useState(() => {
               const baseData = { 
-                  client: activeIntake.client || '', 
-                  clientPhone: activeIntake.clientPhone || '', 
-                  phone: activeIntake.phone || '', 
-                  repair: activeIntake.repair || '', 
-                  vendeur: activeIntake.vendeur || '', 
-                  prix: activeIntake.prix || '', 
+                  client: activeIntake.client || '', clientPhone: activeIntake.clientPhone || '', phone: activeIntake.phone || '', 
+                  repair: activeIntake.repair || '', vendeur: activeIntake.vendeur || '', prix: activeIntake.prix || '', 
                   accessoire: '', commentaire: '', codeDev: '', codeType: 'text', pattern: [], codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' 
               };
-              if (activeIntake.intakeData) {
-                  return { ...baseData, ...activeIntake.intakeData };
-              }
+              if (activeIntake.intakeData) { return { ...baseData, ...activeIntake.intakeData }; }
               return baseData;
           });
           
@@ -354,15 +328,9 @@
           const updateCategorySync = (category, item, value) => setFormSync(prev => ({ ...prev, [category]: { ...prev[category], [item]: value } }));
 
           const saveIntakeData = () => {
-              const { doc, updateDoc } = window.FB_SDK;
-              updateDoc(doc(window.db, "repairs", activeIntake.id), { 
-                  client: formSync.client,
-                  clientPhone: formSync.clientPhone,
-                  phone: formSync.phone,
-                  repair: formSync.repair,
-                  vendeur: formSync.vendeur,
-                  prix: formSync.prix,
-                  intakeData: formSync 
+              window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", activeIntake.id), { 
+                  client: formSync.client, clientPhone: formSync.clientPhone, phone: formSync.phone, repair: formSync.repair,
+                  vendeur: formSync.vendeur, prix: formSync.prix, intakeData: formSync 
               })
               .then(() => alert("✅ Fiche de prise en charge sauvegardée !"))
               .catch((err) => { console.error(err); alert("Erreur lors de la sauvegarde."); });
@@ -372,15 +340,11 @@
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 print:p-0 print:bg-white text-black transition-colors duration-200 overflow-auto flex-1 w-full">
               <div className="max-w-6xl mx-auto h-full">
                 <div className="flex justify-between items-center mb-4 print:hidden">
-                  <button onClick={() => setView('planning')} className="bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded shadow hover:bg-gray-700 dark:hover:bg-gray-600 transition">&larr; Retour au planning</button>
+                  <button onClick={() => setView('planning')} className="bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded shadow hover:bg-gray-600 transition">&larr; Retour</button>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">Bon de prise en charge</h1>
                   <div className="flex gap-2">
-                      <button onClick={saveIntakeData} className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 font-bold flex items-center transition">
-                          💾 Sauvegarder
-                      </button>
-                      <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 font-bold flex items-center transition">
-                          🖨️ Imprimer (A4)
-                      </button>
+                      <button onClick={saveIntakeData} className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 font-bold transition">💾 Sauvegarder</button>
+                      <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 font-bold transition">🖨️ Imprimer</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full print:gap-4 print:h-screen print:grid-cols-2">
@@ -392,457 +356,73 @@
           );
         };
 
-        /* --- 2. ARCHIVES --- */
-        const ArchivesView = ({ repairs, setView, setActiveIntake, onOpenNav }) => {
-            const [searchTerm, setSearchTerm] = useState("");
-            
-            const archived = repairs.filter(r => r.status === 'archived').sort((a,b) => new Date(b.archivedAt || b.date) - new Date(a.archivedAt || a.date));
-            const filteredArchives = searchTerm ? archived.filter(r => 
-                (r.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (r.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (r.clientPhone || '').includes(searchTerm)
-            ) : archived;
-
-            const deleteArchive = (id) => {
-                const pwd = prompt("Mot de passe administrateur pour supprimer définitivement cette fiche :");
-                if (pwd === "magretfrite") {
-                    const { doc, deleteDoc } = window.FB_SDK;
-                    deleteDoc(doc(window.db, "repairs", id)).catch(console.error);
-                } else if(pwd !== null) {
-                    alert("Mot de passe incorrect !");
-                }
-            };
-            const unarchiveRepair = (id) => {
-                const { doc, updateDoc } = window.FB_SDK;
-                updateDoc(doc(window.db, "repairs", id), { status: 'done', archivedAt: null, pickedUpAt: null }).catch(console.error);
-            };
-            const markPickedUp = (id) => {
-                const { doc, updateDoc } = window.FB_SDK;
-                updateDoc(doc(window.db, "repairs", id), { pickedUpAt: new Date().toISOString() }).catch(console.error);
-            };
-
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
-                        <div className="flex items-center w-full sm:w-auto">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center whitespace-nowrap">
-                                <span className="mr-2">🗄️</span> Archives
-                            </h1>
-                        </div>
-                        <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
-                            <span className="text-gray-500">🔍</span>
-                            <input 
-                                type="text" 
-                                placeholder="Recherche archive (nom, modèle, tel)..." 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                            />
-                            {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2">&times;</button>}
-                        </div>
-                    </div>
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {filteredArchives.length === 0 && <p className="text-gray-500 dark:text-gray-400 col-span-3 text-center py-10 font-bold">Aucune archive correspondante.</p>}
-                            {filteredArchives.map(repair => (
-                                <div key={repair.id} className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col hover:shadow-md transition">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <span className="font-bold text-lg text-gray-900 dark:text-white truncate pr-2">{repair.client}</span>
-                                        <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded font-bold shrink-0">Le {new Date(repair.archivedAt || repair.date).toLocaleDateString('fr-FR')}</span>
-                                    </div>
-                                    <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
-                                    <div className="font-medium text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-start">
-                                        {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase shadow-sm mt-0.5 shrink-0">SAV</span>}
-                                        <span>{repair.phone} - {repair.repair}</span>
-                                    </div>
-                                    {repair.techComment && (
-                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded text-xs text-gray-700 dark:text-gray-300 mb-3 border border-gray-200 dark:border-gray-600">
-                                            <strong>📝 Note :</strong> {repair.techComment}
-                                        </div>
-                                    )}
-                                    <div className="mt-auto flex flex-col gap-2 border-t border-gray-100 dark:border-gray-700 pt-4">
-                                        {repair.pickedUpAt ? (
-                                            <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-center py-2 rounded-lg text-sm font-bold border border-green-200 dark:border-green-800 w-full mb-2">
-                                                ✅ Récupéré le {new Date(repair.pickedUpAt).toLocaleDateString('fr-FR')}
-                                            </div>
-                                        ) : (
-                                            <button onClick={() => markPickedUp(repair.id)} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg transition shadow-sm mb-2">
-                                                📦 Marquer comme Récupéré
-                                            </button>
-                                        )}
-                                        <div className="flex gap-2">
-                                            <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 py-1.5 rounded text-xs font-bold transition flex justify-center items-center">
-                                                📄 Fiche
-                                            </button>
-                                            <button onClick={() => unarchiveRepair(repair.id)} className="flex-1 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 py-1.5 rounded text-xs font-bold transition flex justify-center items-center">
-                                                ↩ Désarchiver
-                                            </button>
-                                            <button onClick={() => deleteArchive(repair.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded transition flex justify-center items-center" title="Supprimer définitivement">
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        /* --- 3. PIÈCES À COMMANDER --- */
-        const PiecesToOrderView = ({ repairs, onOpenNav }) => {
-            const repairsWithPieces = repairs.filter(r => r.status !== 'archived' && r.status !== 'done' && r.piece && r.piece !== 'Aucune / En stock').sort((a, b) => new Date(a.date) - new Date(b.date));
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">🛒</span> Pièces à commander</h1>
-                    </div>
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto">
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                                <p className="text-gray-700 dark:text-gray-300 mb-2">Voici la liste de toutes les pièces associées aux réparations <strong>En cours</strong> ou <strong>En attente</strong>.</p>
-                                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Une fois la réparation marquée comme "Terminée" dans le planning, elle disparaîtra de cette liste.</p>
-                            </div>
-                            {repairsWithPieces.length === 0 ? (
-                                <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">Aucune pièce à commander pour le moment.</div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {repairsWithPieces.map(repair => (
-                                        <div key={repair.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <span className="font-bold text-lg">{repair.client}</span>
-                                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 font-semibold">{repair.phone}</span>
-                                                    {repair.vendeur && <span className={`${getVendeurColor(repair.vendeur)} text-white w-3 h-3 rounded-full inline-block`} title={`Pris en charge par ${repair.vendeur}`}></span>}
-                                                </div>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">Prévu pour le : {new Date(repair.date).toLocaleDateString('fr-FR')}</p>
-                                            </div>
-                                            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 w-full sm:w-auto min-w-[250px]">
-                                                <h4 className="font-bold text-xs text-blue-800 dark:text-blue-300 uppercase tracking-wide border-b border-blue-200 dark:border-blue-800 pb-1 mb-2">À COMMANDER</h4>
-                                                <ul className="text-sm space-y-1">
-                                                    {repair.piece.split(' + ').map((p, i) => (
-                                                        <li key={i} className="flex items-start"><span className="mr-2">👉</span><span className="font-semibold text-gray-900 dark:text-gray-100">{p}</span></li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        /* --- 4. DASHBOARD --- */
-        const DashboardView = ({ repairs, onOpenNav }) => {
-            const [timeRange, setTimeRange] = useState('month');
-            const [showIntakesDetails, setShowIntakesDetails] = useState(false);
-            const [showCompletedDetails, setShowCompletedDetails] = useState(false);
-
-            const stats = useMemo(() => {
-                const now = new Date();
-                const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
-                const getWeekNumber = (d) => {
-                    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                    const dayNum = date.getUTCDay() || 7;
-                    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-                    const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
-                    return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
-                };
-                const isSameWeek = (d1, d2) => d1.getFullYear() === d2.getFullYear() && getWeekNumber(d1) === getWeekNumber(d2);
-                const isSameMonth = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
-                const isSameYear = (d1, d2) => d1.getFullYear() === d2.getFullYear();
-
-                let totalIntakes = 0; let totalCompleted = 0;
-                let sellerCount = { 'Clément': 0, 'Bérénys': 0, 'Gérard': 0 };
-                let intakesList = []; let completedList = [];
-
-                repairs.forEach(r => {
-                    const repairDate = new Date(r.date);
-                    let match = false;
-                    if (timeRange === 'day') match = isSameDay(repairDate, now);
-                    else if (timeRange === 'week') match = isSameWeek(repairDate, now);
-                    else if (timeRange === 'month') match = isSameMonth(repairDate, now);
-                    else if (timeRange === 'year') match = isSameYear(repairDate, now);
-
-                    if (match) {
-                        totalIntakes++; intakesList.push(r);
-                        if (r.status === 'done' || r.status === 'archived') { totalCompleted++; completedList.push(r); }
-                        if (r.vendeur && sellerCount[r.vendeur] !== undefined) { sellerCount[r.vendeur]++; }
-                    }
-                });
-
-                intakesList.sort((a, b) => new Date(b.date) - new Date(a.date));
-                completedList.sort((a, b) => new Date(b.archivedAt || b.date) - new Date(a.archivedAt || a.date));
-
-                let bestSeller = '-'; let maxSales = -1;
-                Object.entries(sellerCount).forEach(([name, count]) => {
-                    if (count > maxSales && count > 0) { maxSales = count; bestSeller = name; } 
-                    else if (count === maxSales && count > 0) { bestSeller += ` & ${name}`; }
-                });
-
-                return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales, intakesList, completedList };
-            }, [repairs, timeRange]);
-
-            const timeLabels = { day: "Aujourd'hui", week: "Cette semaine", month: "Ce mois-ci", year: "Cette année" };
-
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
-                        <div className="flex items-center">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">📊</span> Statistiques</h1>
-                        </div>
-                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
-                            {['day', 'week', 'month', 'year'].map(t => (
-                                <button key={t} onClick={() => setTimeRange(t)} className={`flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium rounded-md transition whitespace-nowrap ${timeRange === t ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-                                    {t === 'day' ? 'Jour' : t === 'week' ? 'Sem' : t === 'month' ? 'Mois' : 'Année'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto space-y-6">
-                            <h2 className="text-2xl font-black mb-6 text-gray-800 dark:text-gray-100 border-b border-gray-300 dark:border-gray-700 pb-2">Période : {timeLabels[timeRange]}</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div onClick={() => setShowIntakesDetails(!showIntakesDetails)} className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-400 transition relative">
-                                    <div className="text-5xl mb-2">📱</div>
-                                    <div className="text-4xl font-black text-blue-600 dark:text-blue-400 mb-1">{stats.totalIntakes}</div>
-                                    <div className="text-gray-600 dark:text-gray-400 font-medium">Téléphones pris en charge</div>
-                                </div>
-                                <div onClick={() => setShowCompletedDetails(!showCompletedDetails)} className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-green-400 transition relative">
-                                    <div className="text-5xl mb-2">✅</div>
-                                    <div className="text-4xl font-black text-green-600 dark:text-green-400 mb-1">{stats.totalCompleted}</div>
-                                    <div className="text-gray-600 dark:text-gray-400 font-medium">Réparations terminées</div>
-                                </div>
-                            </div>
-                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center flex flex-col items-center justify-center relative mt-6">
-                                <h3 className="text-lg font-medium text-purple-100 uppercase tracking-widest mb-1 z-10">Meilleur(e) preneur(se) en charge</h3>
-                                <div className="text-4xl sm:text-5xl font-black mb-3 z-10">{stats.bestSeller}</div>
-                                <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">{stats.maxSales > 0 ? `${stats.maxSales} dossiers créés` : 'Aucun dossier'}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        /* --- 5. CODES ERREUR ITUNES / 3UTOOLS --- */
-        const ErrorCodesView = ({ setView, onOpenNav }) => {
-            const [searchTerm, setSearchTerm] = useState("");
-            const errorCodes = [
-                { code: "Erreur 9 / 4014 / 4005", source: "iTunes", type: "NAND / CPU / USB", desc: "Problème de communication avec la puce mémoire (NAND) ou le processeur. Sur iPhone X et supérieur, l'erreur 4014 peut aussi venir d'un court-circuit sur l'écran ou la nappe de proximité (Face ID)." },
-                { code: "Erreur 4013", source: "iTunes", type: "Nappe Face ID / NAND", desc: "Très souvent lié à la nappe de proximité (Face ID) en court-circuit (surtout iPhone X au 13). Débranchez la nappe frontale et réessayez de démarrer ou flasher. Sinon, la puce NAND est à remplacer/reprogrammer en micro-soudure." },
-                { code: "Erreur -1 / 50 / 47", source: "iTunes", type: "Baseband (Réseau)", desc: "Défaut de la puce réseau (Baseband) ou de l'EEPROM. Carte mère en cause, réparation complexe requise." },
-                { code: "Erreur 14", source: "iTunes", type: "Stockage saturé / USB", desc: "Le stockage de l'iPhone est complètement plein (le plus courant), ou le câble/port USB est défectueux. Flasher en mode 'Retain User Data' avec 3uTools peut parfois sauver les données, sinon restauration complète obligatoire." },
-                { code: "Erreur 21 / 1601 / 1611", source: "iTunes", type: "Batterie / Port de charge", desc: "La carte mère ne communique pas avec la batterie. Vérifiez le connecteur de batterie, la nappe de charge (dock) ou remplacez la batterie." },
-                { code: "Erreur 53", source: "iTunes", type: "Touch ID / Home", desc: "Bouton Home d'origine manquant ou défectueux (Erreur historique, souvent résolue par une simple mise à jour récente)." },
-                { code: "Erreur 4000", source: "iTunes", type: "Verrouillage Passcode", desc: "La mise à jour via iTunes est bloquée car l'iPhone est verrouillé par un code. Désactivez le code ou flashez l'appareil en mode Recovery/DFU." },
-                { code: "Bloqué à 19% / 20%", source: "3uTools", type: "NAND / Batterie", desc: "Souvent un problème d'écriture sur la mémoire (NAND) ou de lecture d'informations de la batterie. Vérifiez la batterie ou la nappe de charge avant de soupçonner la carte mère." },
-                { code: "Bloqué à 60% / 80%", source: "3uTools", type: "Baseband / NFC", desc: "60% correspond souvent au flashage du Baseband (Réseau). Si ça bloque ici, la puce réseau est HS. 80% peut concerner une puce secondaire comme le NFC." },
-                { code: "Erreur 1110", source: "iTunes / 3uTools", type: "Stockage Plein (Bootloop)", desc: "Boucle de redémarrage sur le logo Apple due à un stockage plein à 100%. Tentez l'option 'Fix Flash' sur 3uTools." }
-            ];
-
-            const filtered = errorCodes.filter(e => 
-                e.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                e.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                e.type.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
-                        <div className="flex items-center w-full sm:w-auto">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center whitespace-nowrap">
-                                <span className="mr-2">🚨</span> Erreurs (iTunes/3uTools)
-                            </h1>
-                        </div>
-                        <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
-                            <span className="text-gray-500">🔍</span>
-                            <input type="text" placeholder="Recherche (ex: 4013, 20%, baseband)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white" />
-                        </div>
-                    </div>
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                        <div className="max-w-5xl mx-auto">
-                            <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-red-500">
-                                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">Entrez un code d'erreur affiché par iTunes ou un pourcentage de blocage sur 3uTools pour trouver le composant matériel souvent défectueux.</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filtered.map((item, idx) => (
-                                    <div key={idx} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-bold text-lg text-red-600 dark:text-red-400">{item.code}</h3>
-                                            <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${item.source === 'iTunes' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{item.source}</span>
-                                        </div>
-                                        <div className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">Panne : {item.type}</div>
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.desc}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        /* --- 6. PANIC LOGS --- */
-        const PanicLogsView = ({ setView, onOpenNav }) => {
-            const [selectedModel, setSelectedModel] = useState(null);
-            const PanicCard = ({color, title, subtitle, desc}) => (
-                <div className={`p-4 border-l-4 border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20 rounded-r-md`}>
-                    <h4 className={`font-bold text-${color}-700 dark:text-${color}-400 text-lg`}>{title}</h4>
-                    <p className="font-bold text-gray-900 dark:text-white mt-1">{subtitle}</p>
-                    <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{desc}</p>
-                </div>
-            );
-
-            const iphone13Content = (
-                <div className="space-y-4">
-                    <PanicCard color="green" title="0x1000 (ou 4096)" subtitle="Câble flex de proximité" desc="Souvent endommagé lors d'un remplacement d'écran." />
-                    <PanicCard color="blue" title="0x800 (ou 2048)" subtitle="Nappe du port de charge" desc="" />
-                    <PanicCard color="purple" title="0x1800" subtitle="Port de charge ET Nappe de proximité" desc="Les deux pièces posent problème." />
-                    <PanicCard color="red" title="0x4000" subtitle="Ligne de données de la batterie" desc="Affichage d'un message non officiel ou fluctuation." />
-                    <PanicCard color="orange" title="0x400 / 0xc00" subtitle="Séparation de carte mère / Port de charge" desc="0x400 indique une séparation des couches (13 Mini souvent)." />
-                </div>
-            );
-
-            const iphone14Content = (
-                <div className="space-y-4">
-                    <PanicCard color="purple" title="0x400000" subtitle="Nappe de chargement sans fil" desc="Vitre arrière débranchée. Redémarrage de 3 minutes." />
-                    <PanicCard color="blue" title="0x100000" subtitle="Nappe du port de charge" desc="Redémarrage de 3 minutes." />
-                    <PanicCard color="orange" title="0x500000" subtitle="Batterie OU Moteur haptique" desc="Problème de communication. Tester avec une autre batterie." />
-                    <PanicCard color="green" title="0x200000" subtitle="Prox Flex (Proximité)" desc="Capteur de proximité débranché ou endommagé." />
-                    <PanicCard color="red" title="0x20000" subtitle="Carte Logique (Carte mère)" desc="Déconnexion de l'interposeur (Sandwich)." />
-                </div>
-            );
-
-            const panicLogsData = [
-                { id: "13", model: "iPhone 13 Series", content: iphone13Content },
-                { id: "14", model: "iPhone 14 Series", content: iphone14Content },
-                { id: "15", model: "iPhone 15 Series", content: <div className="space-y-4"><PanicCard color="purple" title="0x200000" subtitle="Nappe sans fil (Vitre arrière)" desc="" /><PanicCard color="blue" title="0x80000" subtitle="Nappe du port de charge" desc="" /></div> },
-                { id: "16", model: "iPhone 16 Series", content: <div className="space-y-4"><PanicCard color="blue" title="1572864" subtitle="Nappe de charge / Capteur air" desc="Après remplacement vitre arrière." /><PanicCard color="red" title="169" subtitle="Données de batterie" desc="" /></div> }
-            ];
-
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
-                        <div className="flex items-center">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 transition flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">🔍</span> {selectedModel ? `Diagnostic - ${selectedModel.model}` : 'Panic Logs iPhone'}</h1>
-                        </div>
-                        {selectedModel && <button onClick={() => setSelectedModel(null)} className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 rounded-md font-bold text-sm">&larr; Retour</button>}
-                    </div>
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                        <div className="max-w-5xl mx-auto flex flex-col h-full">
-                            {!selectedModel ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {panicLogsData.map((item) => (
-                                        <button key={item.id} onClick={() => setSelectedModel(item)} className="block w-full text-left p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 shadow-sm hover:border-blue-500 transition font-bold text-lg">
-                                            {item.model}
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200">{selectedModel.content}</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        /* --- 7. DIAGNOSTIQUE DEMARRAGE --- */
-        const DiagnosticView = ({ setView, onOpenNav }) => (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
-                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 transition flex items-center justify-center">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">⚡</span> Diagnostique de démarrage smartphone</h1>
-                </div>
-                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                            <h3 className="text-lg font-bold mt-4 mb-4 border-b border-gray-200 pb-2">Retranscription des étapes de consommation (5V)</h3>
-                            <div className="space-y-3">
-                                <div className="p-3 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 text-sm"><strong>🔴 0.00A à 0.05A :</strong> Connecteur de charge HS, Nappe coupée, OVP grillée.</div>
-                                <div className="p-3 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-sm"><strong>🟠 0.08A à 0.15A :</strong> Billage CPU/RAM, Boucle CPU.</div>
-                                <div className="p-3 border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-sm"><strong>🟡 0.20A à 0.40A :</strong> Corruption logicielle, Défaut ligne PMIC.</div>
-                                <div className="p-3 border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20 text-sm"><strong>🟢 0.40A à 0.60A :</strong> Problème FPC écran (L'écran s'apprête).</div>
-                                <div className="p-3 border-l-4 border-green-600 bg-green-100 dark:bg-green-900/30 text-sm"><strong>🟩 0.60A à 1.50A+ :</strong> Démarrage normal en cours.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-
-        /* --- 8. PROPOSITIONS --- */
-        const ProposalsView = ({ setView, onOpenNav }) => {
-            const [proposals, setProposals] = useState([]);
-            const [name, setName] = useState('');
+        const TeamMessagesView = ({ setView, onOpenNav }) => {
+            const [messages, setMessages] = useState([]);
             const [text, setText] = useState('');
+            const [author, setAuthor] = useState('');
+            const [activeTab, setActiveTab] = useState('actifs');
+            const [searchTerm, setSearchTerm] = useState('');
 
             useEffect(() => {
                 const { collection, onSnapshot } = window.FB_SDK;
-                return onSnapshot(collection(window.db, "proposals"), (snapshot) => {
-                    setProposals(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
+                return onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
+                    setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
                 });
             }, []);
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
-                if (!name || !text) return;
-                const { collection, addDoc } = window.FB_SDK;
-                await addDoc(collection(window.db, "proposals"), { name, text, createdAt: Date.now() });
-                setName(''); setText('');
+                if (!author || !text) return;
+                await window.FB_SDK.addDoc(window.FB_SDK.collection(window.db, "team_notes"), { author, text, createdAt: Date.now(), status: 'active' });
+                setText('');
             };
 
-            const handleDelete = async (id, action) => {
-                const pwd = prompt(`Mot de passe administrateur :`);
-                if (pwd === "magretfrite") {
-                    const { doc, deleteDoc } = window.FB_SDK;
-                    await deleteDoc(doc(window.db, "proposals", id));
-                }
+            const markAsSeen = async (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'archived', seenAt: Date.now() });
+            const unarchiveMessage = async (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'active', seenAt: null });
+            const deleteMessage = async (id) => {
+                if (prompt("Mot de passe administrateur :") === "magretfrite") window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "team_notes", id));
             };
+
+            const activeMessages = messages.filter(m => m.status === 'active');
+            let archivedMessages = messages.filter(m => m.status === 'archived');
+            if (searchTerm) archivedMessages = archivedMessages.filter(m => (m.author+m.text+new Date(m.createdAt).toLocaleDateString('fr-FR')).toLowerCase().includes(searchTerm.toLowerCase()));
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">💡</span> Propositions d'amélioration</h1>
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                            <h1 className="text-xl font-bold">📝 Mots d'équipe</h1>
+                        </div>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                            <button onClick={() => { setActiveTab('actifs'); setSearchTerm(''); }} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'actifs' ? 'bg-white text-blue-600' : 'text-gray-600'}`}>En attente {activeMessages.length > 0 && <span className="ml-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">{activeMessages.length}</span>}</button>
+                            <button onClick={() => setActiveTab('archives')} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'archives' ? 'bg-white text-blue-600' : 'text-gray-600'}`}>Archives</button>
+                        </div>
                     </div>
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
+                    <div className="flex-1 p-4 overflow-y-auto">
                         <div className="max-w-4xl mx-auto">
-                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
-                                <h2 className="text-lg font-bold mb-4">Nouvelle proposition</h2>
-                                <input required value={name} onChange={e => setName(e.target.value)} placeholder="Prénom" className="w-full border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 outline-none" />
-                                <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Idée..." className="w-full h-24 border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 outline-none resize-none"></textarea>
-                                <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md">Envoyer</button>
-                            </form>
+                            {activeTab === 'actifs' && (
+                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500 shadow-sm">
+                                    <h2 className="font-bold mb-2">Laisser un message</h2>
+                                    <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none rounded"><option value="">- Qui écrit ? -</option><option value="Clément">Clément</option><option value="Bérénys">Bérénys</option><option value="Gérard">Gérard</option></select>
+                                    <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Message..." className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 dark:border-gray-600 outline-none rounded resize-none h-24"></textarea>
+                                    <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded">Épingler</button>
+                                </form>
+                            )}
+                            {activeTab === 'archives' && (
+                                <input type="text" placeholder="🔍 Rechercher (nom, date, mot)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white dark:bg-gray-800 dark:border-gray-700 border p-3 rounded-full mb-6 outline-none shadow-sm" />
+                            )}
                             <div className="space-y-4">
-                                {proposals.map(p => (
-                                    <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between">
-                                        <div><div className="font-bold mb-1">👤 {p.name}</div><p className="text-sm">{p.text}</p></div>
-                                        <div className="flex gap-2 mt-2 sm:mt-0"><button onClick={() => handleDelete(p.id, 'Fait')} className="bg-green-500 text-white px-4 py-2 rounded text-sm font-bold">✅ Fait</button></div>
+                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
+                                    <div key={m.id} className="p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row justify-between bg-white dark:bg-gray-800 dark:border-gray-700">
+                                        <div><div className="font-bold">📌 {m.author} <span className="text-xs text-gray-500 font-normal ml-2">{new Date(m.createdAt).toLocaleDateString('fr-FR')}</span></div><p className="mt-2 text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{m.text}</p></div>
+                                        <div className="flex gap-2 mt-4 sm:mt-0 items-center">
+                                            {activeTab === 'actifs' ? (
+                                                <><button onClick={() => markAsSeen(m.id)} className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded">✅ Vu !</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-2 rounded">🗑️</button></>
+                                            ) : (
+                                                <><button onClick={() => unarchiveMessage(m.id)} className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-3 py-2 rounded text-xs font-bold">↩ Remettre</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-2 rounded">🗑️</button></>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -852,7 +432,198 @@
             );
         };
 
-        /* --- 9. GUIDE SAMFW --- */
+        const ArchivesView = ({ repairs, setView, setActiveIntake, onOpenNav }) => {
+            const [searchTerm, setSearchTerm] = useState("");
+            const archived = repairs.filter(r => r.status === 'archived').sort((a,b) => new Date(b.archivedAt || b.date) - new Date(a.archivedAt || a.date));
+            const filteredArchives = searchTerm ? archived.filter(r => (r.client+r.phone+r.clientPhone).toLowerCase().includes(searchTerm.toLowerCase())) : archived;
+
+            const deleteArchive = (id) => { if (prompt("Mot de passe :") === "magretfrite") window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "repairs", id)); };
+            const unarchiveRepair = (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { status: 'done', archivedAt: null, pickedUpAt: null });
+            const markPickedUp = (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { pickedUpAt: new Date().toISOString() });
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition flex items-center justify-center"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                            <h1 className="text-xl font-bold">🗄️ Archives</h1>
+                        </div>
+                        <input type="text" placeholder="🔍 Recherche archive..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 max-w-md bg-gray-100 dark:bg-gray-700 border-none outline-none rounded-full px-4 py-2 text-sm" />
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filteredArchives.map(repair => (
+                                <div key={repair.id} className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
+                                    <div className="flex justify-between items-start mb-3"><span className="font-bold text-lg">{repair.client}</span><span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">Le {new Date(repair.archivedAt || repair.date).toLocaleDateString('fr-FR')}</span></div>
+                                    <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
+                                    <div className="font-medium text-sm mb-3 flex items-start">{repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px]">SAV</span>}<span>{repair.phone} - {repair.repair}</span></div>
+                                    {repair.techComment && <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded text-xs mb-3 border dark:border-gray-600"><strong>📝 Note :</strong> {repair.techComment}</div>}
+                                    <div className="mt-auto flex flex-col gap-2 border-t dark:border-gray-700 pt-4">
+                                        {repair.pickedUpAt ? <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-center py-2 rounded-lg text-sm font-bold border border-green-200 dark:border-green-800">✅ Récupéré le {new Date(repair.pickedUpAt).toLocaleDateString('fr-FR')}</div> : <button onClick={() => markPickedUp(repair.id)} className="w-full bg-green-500 text-white font-bold py-2 rounded-lg">📦 Marqué Récupéré</button>}
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 py-1.5 rounded text-xs font-bold border border-blue-200 dark:border-blue-800">📄 Fiche</button>
+                                            <button onClick={() => unarchiveRepair(repair.id)} className="flex-1 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 py-1.5 rounded text-xs font-bold border border-orange-200 dark:border-orange-800">↩ Désarchiver</button>
+                                            <button onClick={() => deleteArchive(repair.id)} className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded border border-red-200 dark:border-red-800">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DashboardView = ({ repairs, onOpenNav }) => {
+            const [timeRange, setTimeRange] = useState('month');
+            const stats = useMemo(() => {
+                const now = new Date();
+                let totalIntakes = 0; let totalCompleted = 0; let sellerCount = { 'Clément': 0, 'Bérénys': 0, 'Gérard': 0 };
+                repairs.forEach(r => {
+                    const repairDate = new Date(r.date);
+                    let match = false;
+                    if (timeRange === 'day') match = repairDate.toDateString() === now.toDateString();
+                    else if (timeRange === 'month') match = repairDate.getMonth() === now.getMonth() && repairDate.getFullYear() === now.getFullYear();
+                    else if (timeRange === 'year') match = repairDate.getFullYear() === now.getFullYear();
+                    
+                    if (match) {
+                        totalIntakes++;
+                        if (r.status === 'done' || r.status === 'archived') totalCompleted++;
+                        if (r.vendeur && sellerCount[r.vendeur] !== undefined) sellerCount[r.vendeur]++;
+                    }
+                });
+                let bestSeller = '-'; let maxSales = -1;
+                Object.entries(sellerCount).forEach(([name, count]) => {
+                    if (count > maxSales && count > 0) { maxSales = count; bestSeller = name; } 
+                    else if (count === maxSales && count > 0) { bestSeller += ` & ${name}`; }
+                });
+                return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales };
+            }, [repairs, timeRange]);
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">📊 Stats</h1></div>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                            {['day', 'month', 'year'].map(t => (
+                                <button key={t} onClick={() => setTimeRange(t)} className={`px-3 py-1.5 text-sm rounded-md font-bold ${timeRange === t ? 'bg-white text-blue-600' : 'text-gray-600'}`}>{t === 'day' ? 'Jour' : t === 'month' ? 'Mois' : 'Année'}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center border dark:border-gray-700"><div className="text-5xl mb-2">📱</div><div className="text-4xl font-black text-blue-600">{stats.totalIntakes}</div><div className="text-gray-600 dark:text-gray-400">Prises en charge</div></div>
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm text-center border dark:border-gray-700"><div className="text-5xl mb-2">✅</div><div className="text-4xl font-black text-green-600">{stats.totalCompleted}</div><div className="text-gray-600 dark:text-gray-400">Terminées</div></div>
+                            </div>
+                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center"><h3 className="text-lg font-medium text-purple-100 uppercase tracking-widest mb-1">Meilleur vendeur</h3><div className="text-4xl sm:text-5xl font-black mb-3">{stats.bestSeller}</div><div className="bg-white/20 px-4 py-1 rounded-full text-sm inline-block font-bold">{stats.maxSales > 0 ? `${stats.maxSales} dossiers créés` : 'Aucun dossier'}</div></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PiecesToOrderView = ({ repairs, onOpenNav }) => {
+            const repairsWithPieces = repairs.filter(r => r.status !== 'archived' && r.status !== 'done' && r.piece && r.piece !== 'Aucune / En stock');
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">🛒 Pièces à commander</h1></div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto"><div className="max-w-4xl mx-auto space-y-4">
+                        {repairsWithPieces.length === 0 ? <div className="text-center py-10">Aucune pièce.</div> : repairsWithPieces.map(r => (
+                            <div key={r.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border flex justify-between items-center shadow-sm">
+                                <div><div className="font-bold">{r.client}</div><p className="text-sm">{new Date(r.date).toLocaleDateString('fr-FR')}</p></div>
+                                <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-200 font-bold">{r.piece}</div>
+                            </div>
+                        ))}
+                    </div></div>
+                </div>
+            );
+        };
+
+        const ErrorCodesView = ({ onOpenNav }) => {
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">🚨 Erreurs courantes (iTunes)</h1></div>
+                    <div className="p-8 max-w-4xl mx-auto space-y-4">
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-red-500">Erreur 4013 / 9</strong> : Problème NAND ou Nappe Face ID en court-circuit.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-red-500">Erreur -1 / 50</strong> : Puce Baseband HS (Réseau). Carte mère.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-red-500">Erreur 14</strong> : Stockage plein ou câble USB défectueux.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-red-500">Erreur 21 / 1601</strong> : Batterie non détectée ou Nappe de charge HS.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-blue-500">3uTools 20%</strong> : Problème d'écriture NAND ou Batterie.</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PanicLogsView = ({ onOpenNav }) => {
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">🔍 Panic Logs (iPhone)</h1></div>
+                    <div className="p-8 max-w-4xl mx-auto space-y-4">
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-purple-500">0x400000 / 0x200000</strong> : Nappe de charge sans fil (Vitre arrière) OU Nappe Capteur Proximité (prox flex) déconnectée/HS.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-blue-500">0x100000 / Prs0 / Mic1</strong> : Nappe du port de charge HS ou débranchée.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-red-500">TG0B / TG0V</strong> : Capteur de température batterie (Batterie HS ou connecteur endommagé).</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-orange-500">0x20000 / 0x400</strong> : Séparation des cartes mères (Sandwich Board issue).</div>
+                        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 mt-4 text-sm rounded border border-blue-200">💡 Allez dans <em>Réglages {'>'} Confidentialité {'>'} Analyse {'>'} Données d'analyse</em> et cherchez "panic-full".</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DiagnosticView = ({ onOpenNav }) => {
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">⚡ Diag. Démarrage</h1></div>
+                    <div className="p-8 max-w-4xl mx-auto space-y-4">
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-red-500">0.00A à 0.05A</strong> : Connecteur de charge HS, Nappe Flex coupée, OVP grillée.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-orange-500">0.08A à 0.15A</strong> : Billage CPU/RAM, Boucle CPU.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-yellow-500">0.20A à 0.40A</strong> : Corruption logicielle, Défaut ligne PMIC secondaire.</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-green-500">0.40A à 0.60A</strong> : Problème FPC écran (L'écran s'apprête).</div>
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded border shadow-sm"><strong className="text-green-700">0.60A à 1.50A+</strong> : Démarrage normal de l'OS.</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ProposalsView = ({ onOpenNav }) => {
+            const [proposals, setProposals] = useState([]);
+            const [name, setName] = useState('');
+            const [text, setText] = useState('');
+            useEffect(() => {
+                return window.FB_SDK.onSnapshot(window.FB_SDK.collection(window.db, "proposals"), (snapshot) => {
+                    setProposals(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
+                });
+            }, []);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                await window.FB_SDK.addDoc(window.FB_SDK.collection(window.db, "proposals"), { name, text, createdAt: Date.now() });
+                setName(''); setText('');
+            };
+            const handleDelete = async (id) => {
+                if (prompt("Mot de passe :") === "magretfrite") window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "proposals", id));
+            };
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center sticky top-0"><button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><h1 className="text-xl font-bold">💡 Propositions d'amélioration</h1></div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full"><div className="max-w-4xl mx-auto">
+                        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+                            <input required value={name} onChange={e => setName(e.target.value)} placeholder="Prénom" className="w-full border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 outline-none" />
+                            <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Idée..." className="w-full h-24 border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 outline-none resize-none"></textarea>
+                            <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md">Envoyer</button>
+                        </form>
+                        <div className="space-y-4">
+                            {proposals.map(p => (
+                                <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border flex justify-between">
+                                    <div><div className="font-bold">👤 {p.name}</div><p className="mt-1">{p.text}</p></div>
+                                    <button onClick={() => handleDelete(p.id)} className="bg-green-500 text-white px-4 py-2 rounded font-bold h-10">✅ Fait</button>
+                                </div>
+                            ))}
+                        </div>
+                    </div></div>
+                </div>
+            );
+        };
+
         const SamFwGuideView = ({ onOpenNav }) => (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                 <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
@@ -878,84 +649,6 @@
             </div>
         );
 
-        /* --- 10. NOTES D'ÉQUIPE --- */
-        const TeamMessagesView = ({ setView, onOpenNav }) => {
-            const [messages, setMessages] = useState([]);
-            const [text, setText] = useState('');
-            const [author, setAuthor] = useState('');
-            const [activeTab, setActiveTab] = useState('actifs');
-            const [searchTerm, setSearchTerm] = useState('');
-
-            useEffect(() => {
-                const { collection, onSnapshot } = window.FB_SDK;
-                return onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
-                    setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
-                });
-            }, []);
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!author || !text) return;
-                const { collection, addDoc } = window.FB_SDK;
-                await addDoc(collection(window.db, "team_notes"), { author, text, createdAt: Date.now(), status: 'active' });
-                setText('');
-            };
-
-            const markAsSeen = async (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'archived', seenAt: Date.now() });
-            const unarchiveMessage = async (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'active', seenAt: null });
-            const deleteMessage = async (id) => {
-                if (prompt("Mot de passe administrateur :") === "magretfrite") window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "team_notes", id));
-            };
-
-            const activeMessages = messages.filter(m => m.status === 'active');
-            let archivedMessages = messages.filter(m => m.status === 'archived');
-            if (searchTerm) archivedMessages = archivedMessages.filter(m => (m.author+m.text+new Date(m.createdAt).toLocaleDateString()).toLowerCase().includes(searchTerm.toLowerCase()));
-
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center sticky top-0 z-10">
-                        <div className="flex items-center">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-                            <h1 className="text-xl font-bold">📝 Mots pour l'équipe</h1>
-                        </div>
-                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                            <button onClick={() => { setActiveTab('actifs'); setSearchTerm(''); }} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'actifs' ? 'bg-white text-blue-600' : 'text-gray-600'}`}>En attente {activeMessages.length > 0 && <span className="ml-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">{activeMessages.length}</span>}</button>
-                            <button onClick={() => setActiveTab('archives')} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'archives' ? 'bg-white text-blue-600' : 'text-gray-600'}`}>Archives</button>
-                        </div>
-                    </div>
-                    <div className="flex-1 p-4 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto">
-                            {activeTab === 'actifs' && (
-                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 mb-8">
-                                    <h2 className="font-bold mb-2">Laisser un message</h2>
-                                    <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 outline-none rounded"><option value="">- Qui écrit ? -</option><option value="Clément">Clément</option><option value="Bérénys">Bérénys</option><option value="Gérard">Gérard</option></select>
-                                    <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Message..." className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 outline-none rounded resize-none h-24"></textarea>
-                                    <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded">Épingler</button>
-                                </form>
-                            )}
-                            {activeTab === 'archives' && (
-                                <input type="text" placeholder="🔍 Rechercher (nom, date, mot)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white dark:bg-gray-800 border p-3 rounded-full mb-6 outline-none" />
-                            )}
-                            <div className="space-y-4">
-                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
-                                    <div key={m.id} className="p-5 rounded-xl border flex flex-col sm:flex-row justify-between bg-white dark:bg-gray-800">
-                                        <div><div className="font-bold">📌 {m.author} <span className="text-xs text-gray-500 font-normal ml-2">{new Date(m.createdAt).toLocaleDateString('fr-FR')}</span></div><p className="mt-2">{m.text}</p></div>
-                                        <div className="flex gap-2 mt-4 sm:mt-0">
-                                            {activeTab === 'actifs' ? (
-                                                <><button onClick={() => markAsSeen(m.id)} className="bg-green-500 text-white font-bold px-4 py-2 rounded">✅ C'est vu !</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 text-red-600 px-3 py-2 rounded">🗑️</button></>
-                                            ) : (
-                                                <><button onClick={() => unarchiveMessage(m.id)} className="bg-orange-100 text-orange-700 px-3 py-2 rounded text-xs font-bold">↩ Remettre</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 text-red-600 px-3 py-2 rounded">🗑️</button></>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
         /* ==============================================================================
            APPLICATION PRINCIPALE / ROUTEUR
            ============================================================================== */
@@ -979,11 +672,10 @@
 
           useEffect(() => {
             const handleFirebaseReady = () => {
-              const { collection, onSnapshot } = window.FB_SDK;
-              const unSub1 = onSnapshot(collection(window.db, "repairs"), (snapshot) => {
+              const unSub1 = window.FB_SDK.onSnapshot(window.FB_SDK.collection(window.db, "repairs"), (snapshot) => {
                 setRepairs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
               });
-              const unSub2 = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
+              const unSub2 = window.FB_SDK.onSnapshot(window.FB_SDK.collection(window.db, "team_notes"), (snapshot) => {
                   let count = 0; snapshot.forEach(doc => { if(doc.data().status === 'active') count++; }); setActiveNotesCount(count);
               });
               return () => { unSub1(); unSub2(); };
@@ -1126,17 +818,72 @@
                       <label className="flex items-center space-x-2 text-sm font-medium bg-red-50 dark:bg-red-900/20 p-2.5 rounded-md border border-red-200 cursor-pointer text-red-700 dark:text-red-400">
                           <input type="checkbox" checked={formData.isSAV} onChange={(e) => setFormData({...formData, isSAV: e.target.checked})} className="w-5 h-5"/><span>⚠️ SAV (Garantie)</span>
                       </label>
+                      
+                      {/* SECTION PIÈCES */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Pièce(s) Commandée(s)</label>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre Arrière'].map(p => (
+                                <label key={p} className="flex items-center space-x-2 text-sm cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                    <input type="checkbox" checked={formData.pieces.includes(p)} onChange={(e) => { const newPieces = e.target.checked ? [...formData.pieces, p] : formData.pieces.filter(x => x !== p); setFormData({...formData, pieces: newPieces}); }} className="w-4 h-4"/>
+                                    <span className="truncate">{p}</span>
+                                </label>
+                            ))}
+                            <label className="col-span-2 flex items-center space-x-2 text-sm cursor-pointer bg-gray-50 dark:bg-gray-700 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                <input type="checkbox" checked={formData.pieces.includes('Autre')} onChange={(e) => { const newPieces = e.target.checked ? [...formData.pieces, 'Autre'] : formData.pieces.filter(x => x !== 'Autre'); setFormData({...formData, pieces: newPieces}); }} className="w-4 h-4" />
+                                <span>Autre chose (préciser)...</span>
+                            </label>
+                        </div>
+                      </div>
+
+                      {formData.pieces.includes('Autre') && (
+                          <input type="text" required placeholder="Précisez la pièce" value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border rounded-md p-2 outline-none bg-white dark:bg-gray-700 dark:border-gray-600" />
+                      )}
+
+                      {/* SECTION FOURNISSEURS */}
+                      {formData.pieces.length > 0 && (
+                        <div className="space-y-3 pt-2">
+                            <label className="block text-sm font-bold">Fournisseur(s) optionnel(s)</label>
+                            {formData.pieces.map(p => {
+                                const displayName = p === 'Autre' ? (formData.customPiece || 'Autre pièce') : p;
+                                return (
+                                    <div key={p} className="flex flex-col bg-gray-50 dark:bg-gray-700/30 p-2 rounded border border-gray-200 dark:border-gray-600">
+                                        <span className="text-xs font-semibold mb-1">{displayName}</span>
+                                        <select value={formData.pieceSuppliers[p] || ''} onChange={e => setFormData({...formData, pieceSuppliers: { ...formData.pieceSuppliers, [p]: e.target.value }})} className="w-full border rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 dark:border-gray-600 text-sm">
+                                            <option value="">-- Aucun --</option><option value="Utopya">Utopya</option><option value="Mobilax">Mobilax</option><option value="Amazon">Amazon</option><option value="Autre">Autre...</option>
+                                        </select>
+                                        {formData.pieceSuppliers[p] === 'Autre' && <input type="text" placeholder="Nom du fournisseur..." required value={formData.customPieceSuppliers[p] || ''} onChange={e => setFormData({...formData, customPieceSuppliers: { ...formData.customPieceSuppliers, [p]: e.target.value }})} className="w-full border rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 dark:border-gray-600 text-sm mt-2" />}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-2">
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium mb-1">Vendeur</label>
+                            <select required className="w-full p-2 outline-none border bg-white dark:bg-gray-700 dark:border-gray-600 rounded-md" value={formData.vendeur} onChange={e => setFormData({...formData, vendeur: e.target.value})}>
+                              <option value="">- CHOISIR -</option><option value="Clément">Clément</option><option value="Bérénys">Bérénys</option><option value="Gérard">Gérard</option>
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium mb-1">Date prévue</label>
+                            <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border p-2 outline-none bg-white dark:bg-gray-700 dark:border-gray-600 rounded-md" />
+                        </div>
+                      </div>
                       <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700">+ Ajouter au planning</button>
                     </form>
                   </div>
 
                   <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center shadow-sm">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-2">
                         <div className="flex gap-2">
                             <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&larr;</button>
+                            <h2 className="text-sm font-bold text-center whitespace-nowrap self-center hidden lg:block mx-2">Du {weekDates[0].toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})} au {weekDates[5].toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})}</h2>
                             <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&rarr;</button>
                             <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-md text-sm">Auj.</button>
                         </div>
+                        <input type="text" placeholder="🔍 Recherche client, modèle, tel..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:max-w-xs bg-gray-100 dark:bg-gray-700 border-none outline-none rounded-full px-4 py-2 text-sm" />
                     </div>
                     <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
                         <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 min-h-[500px] lg:min-h-0">
@@ -1144,29 +891,46 @@
                                 const dateStr = getLocalISO(date);
                                 const isToday = dateStr === getLocalISO(new Date());
                                 const dayRepairs = repairs.filter(r => r.date === dateStr && r.status !== 'archived').sort((a, b) => (a.isPriority===b.isPriority ? (a.order||0)-(b.order||0) : (a.isPriority ? -1 : 1)));
+                                
                                 return (
                                     <div key={idx} onDragOver={e=>e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr)} className={`flex flex-col rounded-lg border ${isToday ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 shadow-md' : 'bg-gray-100 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700'}`}>
                                         <div className={`p-2 text-center border-b font-bold text-sm ${isToday ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
                                             {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][date.getDay()]} <br/> {String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}
                                         </div>
                                         <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                                            {dayRepairs.map(repair => (
-                                                <div key={repair.id} draggable onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr, repair.id)} className={`p-3 rounded-md border text-sm cursor-grab ${repair.status === 'done' ? 'bg-green-100 border-green-500 text-green-900' : repair.status === 'waiting' ? 'bg-yellow-100 border-yellow-500 text-yellow-900' : repair.isPriority ? 'bg-red-100 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-white dark:bg-gray-700 border-gray-200'} relative`}>
+                                            {dayRepairs.filter(r => !searchTerm || (r.client+r.phone+r.clientPhone).toLowerCase().includes(searchTerm.toLowerCase())).map(repair => (
+                                                <div key={repair.id} draggable onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr, repair.id)} className={`p-3 rounded-md border text-sm cursor-grab ${repair.status === 'done' ? 'bg-green-100 border-green-500 text-green-900 dark:bg-green-900/40 dark:text-green-100' : repair.status === 'waiting' ? 'bg-yellow-100 border-yellow-500 text-yellow-900 dark:bg-yellow-900/40 dark:text-yellow-100' : repair.isPriority ? 'bg-red-100 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)] dark:bg-red-900/40 dark:text-red-100' : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600'} relative`}>
+                                                    
                                                     <div className="font-bold flex justify-between mb-1">
-                                                        <div className="truncate pr-2">{repair.client}</div>
+                                                        <div className="truncate pr-2">{repair.vendeur && <span className={`inline-block w-2 h-2 rounded-full mr-1 ${getVendeurColor(repair.vendeur)}`}></span>}{repair.client}</div>
+                                                        <div className="flex gap-1 shrink-0">
+                                                            {repair.status !== 'done' && <button onClick={() => togglePriority(repair.id, repair.isPriority)} className={`text-[10px] px-1 rounded ${repair.isPriority ? 'bg-red-500 text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'}`}>{repair.isPriority ? '🔥' : '⭐'}</button>}
+                                                        </div>
                                                     </div>
+                                                    {repair.clientPhone && <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</div>}
                                                     <div className="font-medium text-xs mb-1 truncate">{repair.phone}</div>
-                                                    <div className="text-xs mb-2">{repair.isSAV && <span className="bg-red-600 text-white px-1.5 rounded mr-1 font-bold text-[9px] uppercase">SAV</span>}{repair.repair}</div>
+                                                    <div className="text-xs mb-2 truncate">{repair.isSAV && <span className="bg-red-600 text-white px-1 rounded mr-1 font-bold text-[9px] uppercase">SAV</span>}{repair.repair}</div>
                                                     
-                                                    <textarea className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 resize-none outline-none" rows="2" placeholder="Note réparation..." defaultValue={repair.techComment || ''} onBlur={(e) => handleCommentBlur(e, repair)} />
+                                                    {repair.piece && repair.piece !== 'Aucune / En stock' && (
+                                                        <div onClick={(e) => { e.stopPropagation(); setExpandedPieces(prev => ({...prev, [repair.id]: !prev[repair.id]})); }} className="bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold cursor-pointer">
+                                                            {expandedPieces[repair.id] ? (
+                                                                <div className="flex flex-col space-y-1"><span className="border-b border-blue-200 pb-1 mb-1">🛒 Pièces :</span>{repair.piece.split(' + ').map((pItem, i) => (<span key={i} className="whitespace-normal">👉 {pItem}</span>))}</div>
+                                                            ) : (<div className="truncate">🛒 {repair.piece}</div>)}
+                                                        </div>
+                                                    )}
+
+                                                    <textarea className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 resize-none outline-none focus:border-blue-500" rows="2" placeholder="Note réparation..." defaultValue={repair.techComment || ''} onBlur={(e) => handleCommentBlur(e, repair)} />
                                                     
-                                                    <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 text-blue-800 text-xs py-1.5 rounded font-bold shadow-sm">📝 Fiche</button>
+                                                    <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs py-1.5 rounded font-bold shadow-sm">📝 Fiche</button>
                                                     
-                                                    <div className="flex gap-1 mt-2">
-                                                        {repair.status !== 'done' && <button onClick={() => updateRepairStatus(repair.id, 'done')} className="flex-1 bg-green-500 text-white text-xs py-1 rounded font-bold">Terminé</button>}
-                                                        {repair.status === 'done' && <button onClick={() => updateRepairStatus(repair.id, 'pending')} className="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded font-bold">↩</button>}
-                                                        <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-gray-800 text-white text-xs py-1 rounded font-bold">🗄️ Archiver</button>
+                                                    <div className="flex flex-col xl:flex-row gap-1 mt-2 border-t pt-2 dark:border-gray-600">
+                                                        {repair.status !== 'done' && <button onClick={() => updateRepairStatus(repair.id, 'done')} className="flex-1 bg-green-500 text-white text-[11px] py-1 rounded font-bold">Terminé</button>}
+                                                        {repair.status === 'done' && <button onClick={() => updateRepairStatus(repair.id, 'pending')} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 text-[11px] px-2 py-1 rounded font-bold">↩</button>}
+                                                        
+                                                        {repair.status === 'waiting' && <button onClick={() => updateRepairStatus(repair.id, 'pending')} className="flex-1 bg-blue-500 text-white text-[11px] py-1 rounded font-bold">↩ Annuler</button>}
+                                                        {repair.status !== 'waiting' && repair.status !== 'done' && <button onClick={() => updateRepairStatus(repair.id, 'waiting')} className="flex-1 bg-yellow-400 text-black text-[11px] py-1 rounded font-bold">Attente</button>}
                                                     </div>
+                                                    <button onClick={() => archiveRepair(repair.id)} className="w-full mt-1 bg-gray-800 dark:bg-gray-600 text-white text-[11px] py-1 rounded font-bold">🗄️ Archiver</button>
                                                 </div>
                                             ))}
                                         </div>
