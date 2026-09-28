@@ -260,7 +260,6 @@
                 <div className="mt-2 mb-2 p-2 border border-gray-400 bg-gray-50 text-[9px] text-gray-700 leading-tight">
                     <p>En signant ce document, le client accepte que ses données personnelles (nom, numéro de téléphone) soient conservées par l'atelier dans le seul but de gérer le suivi de la réparation et l'éventuelle garantie (SAV) de l'appareil, conformément à la réglementation RGPD en vigueur.</p>
                 </div>
-
             </div>
             <div>
                 <div className="border-t border-l border-black mb-4 flex flex-col">
@@ -328,7 +327,6 @@
                             </h1>
                         </div>
                         
-                        {/* Barre de recherche des archives */}
                         <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                             <span className="text-gray-500">🔍</span>
                             <input 
@@ -353,7 +351,6 @@
                                     <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
                                     
                                     <div className="font-medium text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-start">
-                                        {/* INDICATEUR SAV DANS LES ARCHIVES */}
                                         {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase shadow-sm mt-0.5 shrink-0">SAV</span>}
                                         <span>{repair.phone} - {repair.repair}</span>
                                     </div>
@@ -446,6 +443,7 @@
         // --- PAGE : TABLEAU DE BORD ---
         const DashboardView = ({ repairs, onOpenNav }) => {
             const [timeRange, setTimeRange] = useState('month');
+            const [showIntakesDetails, setShowIntakesDetails] = useState(false);
 
             const stats = useMemo(() => {
                 const now = new Date();
@@ -465,6 +463,7 @@
                 let totalIntakes = 0;
                 let totalCompleted = 0;
                 let sellerCount = { 'Clément': 0, 'Bérénys': 0, 'Gérard': 0 };
+                let intakesList = [];
 
                 repairs.forEach(r => {
                     const repairDate = new Date(r.date);
@@ -477,6 +476,7 @@
 
                     if (match) {
                         totalIntakes++;
+                        intakesList.push(r);
                         if (r.status === 'done' || r.status === 'archived') {
                             totalCompleted++;
                         }
@@ -485,6 +485,9 @@
                         }
                     }
                 });
+
+                // Trier la liste des prises en charge de la plus récente à la plus ancienne
+                intakesList.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 let bestSeller = '-';
                 let maxSales = -1;
@@ -497,7 +500,7 @@
                     }
                 });
 
-                return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales };
+                return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales, intakesList };
             }, [repairs, timeRange]);
 
             const timeLabels = {
@@ -519,7 +522,6 @@
                             </h1>
                         </div>
                         
-                        {/* TOGGLE PERIODES */}
                         <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
                             {['day', 'week', 'month', 'year'].map(t => (
                                 <button 
@@ -540,13 +542,18 @@
                                 Période : {timeLabels[timeRange]}
                             </h2>
                             
-                            {/* Chiffres clés */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+                                {/* CARTE CLIQUABLE */}
+                                <div 
+                                    onClick={() => setShowIntakesDetails(!showIntakesDetails)}
+                                    className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition relative"
+                                >
                                     <div className="text-5xl mb-2">📱</div>
                                     <div className="text-4xl font-black text-blue-600 dark:text-blue-400 mb-1">{stats.totalIntakes}</div>
                                     <div className="text-gray-600 dark:text-gray-400 font-medium">Téléphones pris en charge</div>
+                                    <div className="text-[10px] text-blue-500 mt-3 font-bold opacity-70 uppercase tracking-widest">Voir la liste 👇</div>
                                 </div>
+                                
                                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center">
                                     <div className="text-5xl mb-2">✅</div>
                                     <div className="text-4xl font-black text-green-600 dark:text-green-400 mb-1">{stats.totalCompleted}</div>
@@ -554,8 +561,44 @@
                                 </div>
                             </div>
 
-                            {/* Vendeur du mois */}
-                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center flex flex-col items-center justify-center relative overflow-hidden">
+                            {/* DÉTAIL DES PRISES EN CHARGE (Affiché au clic) */}
+                            {showIntakesDetails && (
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mt-6 animate-fade-in">
+                                    <div className="flex justify-between items-center border-b pb-2 mb-4 dark:border-gray-700">
+                                        <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">
+                                            Détail des {stats.totalIntakes} appareils ({timeLabels[timeRange]})
+                                        </h3>
+                                        <button onClick={() => setShowIntakesDetails(false)} className="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
+                                    </div>
+                                    {stats.intakesList.length === 0 ? (
+                                        <p className="text-gray-500 text-center py-4">Aucun appareil sur cette période.</p>
+                                    ) : (
+                                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                                            {stats.intakesList.map(r => (
+                                                <div key={r.id} className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center p-3 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 gap-2">
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 dark:text-white flex items-center">
+                                                            {r.client} 
+                                                            <span className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-normal ml-2">📞 {r.clientPhone}</span>
+                                                        </p>
+                                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{r.phone} - {r.repair}</p>
+                                                    </div>
+                                                    <div className="text-left sm:text-right w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end">
+                                                        <span className={`text-[10px] sm:text-xs px-2 py-1 rounded font-bold uppercase tracking-wider ${r.status === 'archived' ? 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200' : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400'}`}>
+                                                            {r.status === 'archived' ? 'Archivé' : 'En cours'}
+                                                        </span>
+                                                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 sm:mt-2 bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+                                                            {new Date(r.date).toLocaleDateString('fr-FR')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center flex flex-col items-center justify-center relative overflow-hidden mt-6">
                                 <div className="absolute top-0 right-0 -mt-4 -mr-4 text-9xl opacity-10">🏆</div>
                                 <h3 className="text-lg font-medium text-purple-100 uppercase tracking-widest mb-1 z-10">Meilleur(e) preneur(se) en charge</h3>
                                 <div className="text-4xl sm:text-5xl font-black mb-3 z-10">{stats.bestSeller}</div>
@@ -563,7 +606,6 @@
                                 {stats.maxSales === 0 && <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">Aucun dossier sur cette période</div>}
                             </div>
 
-                            {/* Détails par vendeur */}
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                                 <h3 className="font-bold text-lg mb-4 border-b pb-2 dark:border-gray-700 text-gray-800 dark:text-gray-200">Détail des prises en charge par collaborateur</h3>
                                 <div className="space-y-4">
@@ -1285,7 +1327,6 @@
             };
 
             const { collection, addDoc } = window.FB_SDK;
-            // Retrait de await pour ne pas bloquer en mode hors-ligne
             addDoc(collection(window.db, "repairs"), newRepair).catch(console.error);
 
             setFormData({ 
@@ -1409,7 +1450,6 @@
                       </div>
 
                       <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
-                          {/* TABLEAU DE BORD DEPLACE EN BAS */}
                           <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">📊</span> Statistiques
                           </button>
@@ -1444,9 +1484,6 @@
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
                         </div>
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Changer de thème">
-                            {isDarkMode ? '☀️' : '🌙'}
-                        </button>
                     </div>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
@@ -1593,7 +1630,6 @@
                         <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/60 transition text-sm">Auj.</button>
                       </div>
 
-                      {/* BARRE DE RECHERCHE GLOBALE */}
                       <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                           <span className="text-gray-500">🔍</span>
                           <input 
@@ -1612,7 +1648,6 @@
                     </div>
 
                     <div className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
-                      {/* VUE DE RECHERCHE OU VUE GRILLE SEMAINE */}
                       {searchTerm ? (
                           <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                               <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Résultats pour "{searchTerm}"</h2>
