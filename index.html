@@ -1746,6 +1746,25 @@
             );
         };
 
+        const RepriseView = ({ onOpenNav }) => (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col flex-1 w-full">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <h1 className="text-xl font-bold dark:text-white"><span className="mr-2">💶</span> Reprise Smartphone</h1>
+                </div>
+                <div className="flex-1 w-full h-full">
+                    {/* La fenêtre magique qui charge le site du collègue en plein écran */}
+                    <iframe 
+                        src="http://78.112.90.27/rachat-mobile.html" 
+                        className="w-full h-full border-none min-h-[800px]"
+                        title="Outil de reprise"
+                    ></iframe>
+                </div>
+            </div>
+        );
+        
         function AppContent() {
           const [repairs, setRepairs] = useState([]);
           const [currentDate, setCurrentDate] = useState(new Date());
@@ -2034,8 +2053,7 @@
                               <span className="mr-3">🚨</span> Erreurs (iTunes/3u)
                           </button>
 
-                          <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" rel="noopener noreferrer" className="w-full text-left p-3 rounded-md font-bold transition flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
-                              <span className="mr-3">💶</span> Reprise Smartphone <span className="ml-auto text-xs opacity-50">↗</span>
+                          <button onClick={() => { setView('reprise'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'reprise' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}><span className="mr-3">💶</span> Reprise Mobile</button>
                           </a>
                       </div>
 
@@ -2068,6 +2086,8 @@
                   <ArchivesView repairs={repairs} setView={setView} setActiveIntake={setActiveIntake} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'pieces' ? (
                   <PiecesToOrderView repairs={repairs} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'reprise' ? (
+                  <RepriseView onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'dashboard' ? (
                   <DashboardView repairs={repairs} onOpenNav={() => setIsNavOpen(true)} />
               ) : (
