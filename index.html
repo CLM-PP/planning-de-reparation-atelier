@@ -291,9 +291,22 @@
         );
 
         const IntakeView = ({ activeIntake, setView }) => {
-          const [formSync, setFormSync] = useState({ numero: activeIntake.clientPhone || '', accessoire: '', vendeur: activeIntake.vendeur || '', prix: '', commentaire: '', codeDev: '', codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' });
+          // MODIFICATION : Initialisation avec les données enregistrées dans Firebase
+          const [formSync, setFormSync] = useState(() => {
+              if (activeIntake.intakeData) return activeIntake.intakeData;
+              return { numero: activeIntake.clientPhone || '', accessoire: '', vendeur: activeIntake.vendeur || '', prix: '', commentaire: '', codeDev: '', codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' };
+          });
+          
           const updateSync = (field, value) => setFormSync(prev => ({ ...prev, [field]: value }));
           const updateCategorySync = (category, item, value) => setFormSync(prev => ({ ...prev, [category]: { ...prev[category], [item]: value } }));
+
+          // Fonction de sauvegarde du bon de prise en charge vers Firebase
+          const saveIntakeData = () => {
+              const { doc, updateDoc } = window.FB_SDK;
+              updateDoc(doc(window.db, "repairs", activeIntake.id), { intakeData: formSync })
+                  .then(() => alert("Fiche de prise en charge sauvegardée avec succès !"))
+                  .catch((err) => { console.error(err); alert("Erreur lors de la sauvegarde."); });
+          };
 
           return (
             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 print:p-0 print:bg-white text-black transition-colors duration-200 overflow-auto flex-1 w-full">
@@ -301,7 +314,14 @@
                 <div className="flex justify-between items-center mb-4 print:hidden">
                   <button onClick={() => setView('planning')} className="bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded shadow hover:bg-gray-700 dark:hover:bg-gray-600 transition">&larr; Retour au planning</button>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">Bon de prise en charge</h1>
-                  <button onClick={() => window.print()} className="bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 font-bold flex items-center">Imprimer (A4)</button>
+                  <div className="flex gap-2">
+                      <button onClick={saveIntakeData} className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 font-bold flex items-center transition">
+                          💾 Sauvegarder
+                      </button>
+                      <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 font-bold flex items-center transition">
+                          🖨️ Imprimer (A4)
+                      </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full print:gap-4 print:h-screen print:grid-cols-2">
                   <FormHalf title="EXEMPLAIRE BOUTIQUE" activeIntake={activeIntake} formSync={formSync} updateSync={updateSync} updateCategorySync={updateCategorySync} />
@@ -332,6 +352,16 @@
                 } else if(pwd !== null) {
                     alert("Mot de passe incorrect !");
                 }
+            };
+
+            const unarchiveRepair = (id) => {
+                const { doc, updateDoc } = window.FB_SDK;
+                updateDoc(doc(window.db, "repairs", id), { status: 'done', archivedAt: null, pickedUpAt: null }).catch(console.error);
+            };
+
+            const markPickedUp = (id) => {
+                const { doc, updateDoc } = window.FB_SDK;
+                updateDoc(doc(window.db, "repairs", id), { pickedUpAt: new Date().toISOString() }).catch(console.error);
             };
 
             return (
@@ -371,18 +401,41 @@
                                     <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
                                     
                                     <div className="font-medium text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-start">
-                                        {/* INDICATEUR SAV DANS LES ARCHIVES */}
                                         {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase shadow-sm mt-0.5 shrink-0">SAV</span>}
                                         <span>{repair.phone} - {repair.repair}</span>
                                     </div>
+
+                                    {/* AFFICHAGE DU COMMENTAIRE DE RÉPARATION DANS LES ARCHIVES */}
+                                    {repair.techComment && (
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded text-xs text-gray-700 dark:text-gray-300 mb-3 border border-gray-200 dark:border-gray-600">
+                                            <strong>📝 Note :</strong> {repair.techComment}
+                                        </div>
+                                    )}
                                     
-                                    <div className="mt-auto pt-4 flex gap-2 border-t border-gray-100 dark:border-gray-700">
-                                        <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 py-2 rounded font-bold transition flex justify-center items-center">
-                                            📄 Voir la fiche
-                                        </button>
-                                        <button onClick={() => deleteArchive(repair.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-4 py-2 rounded transition flex justify-center items-center" title="Supprimer définitivement">
-                                            🗑️
-                                        </button>
+                                    <div className="mt-auto flex flex-col gap-2 border-t border-gray-100 dark:border-gray-700 pt-4">
+                                        
+                                        {/* BOUTON RECUPERÉ */}
+                                        {repair.pickedUpAt ? (
+                                            <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-center py-2 rounded-lg text-sm font-bold border border-green-200 dark:border-green-800 w-full mb-2">
+                                                ✅ Récupéré le {new Date(repair.pickedUpAt).toLocaleDateString('fr-FR')}
+                                            </div>
+                                        ) : (
+                                            <button onClick={() => markPickedUp(repair.id)} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg transition shadow-sm mb-2">
+                                                📦 Marquer comme Récupéré
+                                            </button>
+                                        )}
+
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 py-1.5 rounded text-xs font-bold transition flex justify-center items-center">
+                                                📄 Fiche
+                                            </button>
+                                            <button onClick={() => unarchiveRepair(repair.id)} className="flex-1 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 py-1.5 rounded text-xs font-bold transition flex justify-center items-center">
+                                                ↩ Désarchiver
+                                            </button>
+                                            <button onClick={() => deleteArchive(repair.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded transition flex justify-center items-center" title="Supprimer définitivement">
+                                                🗑️
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -1504,6 +1557,14 @@
             updateDoc(doc(window.db, "repairs", id), { isPriority: !currentVal }).catch(console.error);
           };
 
+          // FONCTION D'ENREGISTREMENT DU COMMENTAIRE DE RÉPARATION
+          const handleCommentBlur = (e, repair) => {
+              if (e.target.value !== (repair.techComment || '')) {
+                  const { doc, updateDoc } = window.FB_SDK;
+                  updateDoc(doc(window.db, "repairs", repair.id), { techComment: e.target.value }).catch(console.error);
+              }
+          };
+
           const handleDrop = (e, targetDateStr, targetRepairId = null) => {
             e.preventDefault();
             e.stopPropagation();
@@ -1918,6 +1979,21 @@
                                                 )}
                                             </div>
                                         )}
+
+                                        {/* NOUVEAU CHAMP : COMMENTAIRE DE RÉPARATION */}
+                                        <textarea 
+                                            className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white resize-none outline-none focus:border-blue-500" 
+                                            rows="2" 
+                                            placeholder="Détail réparation / Note..." 
+                                            defaultValue={repair.techComment || ''} 
+                                            onBlur={(e) => handleCommentBlur(e, repair)}
+                                            title="Ce commentaire est sauvegardé automatiquement dès que vous cliquez ailleurs."
+                                        />
+
+                                        {/* BOUTON D'OUVERTURE DE LA FICHE */}
+                                        <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 text-[10px] sm:text-xs py-1.5 rounded font-bold shadow-sm transition">
+                                            📝 Fiche Prise en charge
+                                        </button>
                                         
                                         <div className="flex flex-col lg:flex-row justify-between items-stretch mt-2 pt-2 border-t border-black/10 dark:border-white/10 gap-2 lg:gap-1">
                                           {repair.status !== 'done' && (
@@ -1950,19 +2026,18 @@
                                           )}
                                         </div>
                                         
-                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
                                                     ↩
                                                 </button>
-                                                <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
-                                                    📞 Appelé
+                                                <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-gray-800 hover:bg-gray-900 dark:bg-gray-600 dark:hover:bg-gray-500 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
+                                                    🗄️ Archiver
                                                 </button>
                                             </div>
                                         ) : (
                                             <button onClick={() => archiveRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
-                                                Récupéré
+                                                🗄️ Archiver direct
                                             </button>
                                         )}
 
