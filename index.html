@@ -9,7 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     
-    <!-- LOGO SVG NÉON (Fabriqué en code) -->
+    <!-- LOGO SVG NÉON -->
     <link rel="icon" type="image/svg+xml" href="logo.svg?v=8">
     <link rel="apple-touch-icon" href="logo.svg?v=8">
 
@@ -39,7 +39,6 @@
 
       const app = initializeApp(firebaseConfig);
       
-      // INITIALISATION DU MODE HORS-LIGNE (Persistence)
       const db = initializeFirestore(app, {
         localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})
       });
@@ -67,13 +66,13 @@
             textarea { height: 50px !important; min-height: 50px !important; } 
             .h-24 { height: 80px !important; }
             select { appearance: none; -webkit-appearance: none; background: transparent; }
+            input { background: transparent !important; }
         }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <div id="root"></div>
 
-    <!-- SCRIPT POUR DÉCLENCHER L'INSTALLATION PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -175,6 +174,7 @@
           </div>
         );
 
+        /* === FICHE PRISE EN CHARGE MODIFIABLE === */
         const FormHalf = ({ title, activeIntake, formSync, updateSync, updateCategorySync }) => (
           <div className="border-2 border-black p-4 bg-white text-black h-full flex flex-col justify-between shadow-sm">
             <div>
@@ -187,13 +187,19 @@
                 </div>
                 <div className="grid grid-cols-4 gap-0 border-l border-black text-xs text-center mb-4 text-black">
                   <div className="border-r border-b border-black p-1 bg-white flex justify-center items-center">{new Date(activeIntake.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</div>
-                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black w-full font-bold" placeholder="06..." value={formSync.numero} onChange={(e) => updateSync('numero', e.target.value)} />
-                  <div className="border-r border-b border-black p-1 bg-white flex justify-center items-center">{activeIntake.phone}</div>
-                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black w-full" value={formSync.accessoire} onChange={(e) => updateSync('accessoire', e.target.value)} />
+                  
+                  {/* MODIFIABLE: Téléphone Client */}
+                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="06..." value={formSync.clientPhone} onChange={(e) => updateSync('clientPhone', e.target.value)} />
+                  
+                  {/* MODIFIABLE: Modèle de l'appareil */}
+                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="Modèle..." value={formSync.phone} onChange={(e) => updateSync('phone', e.target.value)} />
+                  
+                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black focus:bg-blue-50 w-full" value={formSync.accessoire} onChange={(e) => updateSync('accessoire', e.target.value)} />
                 </div>
                 <div className="grid grid-cols-4 border border-black mb-4 text-xs">
                   <div className="p-1 font-bold border-r border-black bg-blue-200 text-black flex items-center">NOM DU CLIENT</div>
-                  <div className="col-span-3 p-1 font-semibold bg-white text-black flex items-center">{activeIntake.client}</div>
+                  {/* MODIFIABLE: Nom Client */}
+                  <input className="col-span-3 p-1 font-bold bg-white text-blue-800 outline-none focus:bg-blue-50 w-full uppercase" value={formSync.client} onChange={(e) => updateSync('client', e.target.value)} />
                 </div>
                 <div className="border-t border-l border-black mb-4">
                   <div className="bg-blue-300 font-bold text-center border-r border-b border-black p-1 text-sm text-black">ÉTAT DE L'APPAREIL</div>
@@ -269,7 +275,8 @@
                     <div className="border-r border-black p-1">RÉPARATION</div><div className="border-r border-black p-1">PRIX</div>
                   </div>
                   <div className="grid grid-cols-2 border-b border-black text-xs text-center text-black">
-                    <div className="border-r border-black p-1 font-semibold bg-white flex items-center justify-center">{activeIntake.repair}</div>
+                    {/* MODIFIABLE: Réparation */}
+                    <input className="border-r border-black p-1 font-bold text-center bg-white text-blue-800 outline-none focus:bg-blue-50 w-full" value={formSync.repair} onChange={(e) => updateSync('repair', e.target.value)} />
                     <div className="border-r border-black p-1 flex items-center justify-center bg-white"><input type="number" className="w-16 text-center outline-none border-b border-dashed border-gray-400 mr-1 bg-white text-black" value={formSync.prix} onChange={e => updateSync('prix', e.target.value)} /> €</div>
                   </div>
                 </div>
@@ -291,21 +298,40 @@
         );
 
         const IntakeView = ({ activeIntake, setView }) => {
-          // MODIFICATION : Initialisation avec les données enregistrées dans Firebase
+          // MODIFICATION : Les champs de base sont maintenant synchronisés
           const [formSync, setFormSync] = useState(() => {
-              if (activeIntake.intakeData) return activeIntake.intakeData;
-              return { numero: activeIntake.clientPhone || '', accessoire: '', vendeur: activeIntake.vendeur || '', prix: '', commentaire: '', codeDev: '', codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' };
+              const baseData = { 
+                  client: activeIntake.client || '', 
+                  clientPhone: activeIntake.clientPhone || '', 
+                  phone: activeIntake.phone || '', 
+                  repair: activeIntake.repair || '', 
+                  vendeur: activeIntake.vendeur || '', 
+                  prix: activeIntake.prix || '', 
+                  accessoire: '', commentaire: '', codeDev: '', codeSim: '', etat: {}, fonction: {}, oxydation: '', sim: '' 
+              };
+              if (activeIntake.intakeData) {
+                  return { ...baseData, ...activeIntake.intakeData };
+              }
+              return baseData;
           });
           
           const updateSync = (field, value) => setFormSync(prev => ({ ...prev, [field]: value }));
           const updateCategorySync = (category, item, value) => setFormSync(prev => ({ ...prev, [category]: { ...prev[category], [item]: value } }));
 
-          // Fonction de sauvegarde du bon de prise en charge vers Firebase
+          // Fonction de sauvegarde globale vers Firebase
           const saveIntakeData = () => {
               const { doc, updateDoc } = window.FB_SDK;
-              updateDoc(doc(window.db, "repairs", activeIntake.id), { intakeData: formSync })
-                  .then(() => alert("Fiche de prise en charge sauvegardée avec succès !"))
-                  .catch((err) => { console.error(err); alert("Erreur lors de la sauvegarde."); });
+              updateDoc(doc(window.db, "repairs", activeIntake.id), { 
+                  client: formSync.client,
+                  clientPhone: formSync.clientPhone,
+                  phone: formSync.phone,
+                  repair: formSync.repair,
+                  vendeur: formSync.vendeur,
+                  prix: formSync.prix,
+                  intakeData: formSync 
+              })
+              .then(() => alert("✅ Fiche de prise en charge et données du planning sauvegardées avec succès !"))
+              .catch((err) => { console.error(err); alert("Erreur lors de la sauvegarde."); });
           };
 
           return (
@@ -323,6 +349,11 @@
                       </button>
                   </div>
                 </div>
+                
+                <div className="mb-4 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded text-sm text-blue-800 dark:text-blue-300 print:hidden">
+                    💡 <strong>Astuce :</strong> Vous pouvez modifier le nom du client, le téléphone, le modèle et la réparation directement sur ce bon. N'oubliez pas de cliquer sur <strong>Sauvegarder</strong> pour mettre à jour le planning !
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full print:gap-4 print:h-screen print:grid-cols-2">
                   <FormHalf title="EXEMPLAIRE BOUTIQUE" activeIntake={activeIntake} formSync={formSync} updateSync={updateSync} updateCategorySync={updateCategorySync} />
                   <FormHalf title="EXEMPLAIRE CLIENT" activeIntake={activeIntake} formSync={formSync} updateSync={updateSync} updateCategorySync={updateCategorySync} />
@@ -330,6 +361,213 @@
               </div>
             </div>
           );
+        };
+
+        // --- PAGE: BLOC NOTES D'ÉQUIPE ---
+        const TeamMessagesView = ({ setView, onOpenNav }) => {
+            const [messages, setMessages] = useState([]);
+            const [text, setText] = useState('');
+            const [author, setAuthor] = useState('');
+            const [activeTab, setActiveTab] = useState('actifs');
+
+            useEffect(() => {
+                const { collection, onSnapshot } = window.FB_SDK;
+                const unsubscribe = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
+                    const loaded = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })).sort((a, b) => b.createdAt - a.createdAt);
+                    setMessages(loaded);
+                });
+                return unsubscribe;
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!author || !text) return;
+                const { collection, addDoc } = window.FB_SDK;
+                await addDoc(collection(window.db, "team_notes"), {
+                    author, text, createdAt: Date.now(), status: 'active'
+                });
+                setText('');
+            };
+
+            const markAsSeen = async (id) => {
+                const { doc, updateDoc } = window.FB_SDK;
+                await updateDoc(doc(window.db, "team_notes", id), {
+                    status: 'archived', seenAt: Date.now()
+                });
+            };
+
+            const activeMessages = messages.filter(m => m.status === 'active');
+            const archivedMessages = messages.filter(m => m.status === 'archived');
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <span className="mr-2">📝</span> Mots pour l'équipe
+                            </h1>
+                        </div>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto">
+                            <button onClick={() => setActiveTab('actifs')} className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'actifs' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>En attente ({activeMessages.length})</button>
+                            <button onClick={() => setActiveTab('archives')} className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'archives' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>Archives (Lus)</button>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
+                        <div className="max-w-4xl mx-auto">
+                            {activeTab === 'actifs' && (
+                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500">
+                                    <h2 className="text-lg font-bold mb-4">Laisser un message</h2>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
+                                        <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
+                                            <option value="">- Choisir -</option>
+                                            <option value="Clément">Clément</option>
+                                            <option value="Bérénys">Bérénys</option>
+                                            <option value="Gérard">Gérard</option>
+                                        </select>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium mb-1">Message pour demain / plus tard</label>
+                                        <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Ex: Attention, le client pour le S23 passe demain matin à l'ouverture..." className="w-full h-24 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500"></textarea>
+                                    </div>
+                                    <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition w-full sm:w-auto">Épingler le message</button>
+                                </form>
+                            )}
+
+                            <div className="space-y-4">
+                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
+                                    <div key={m.id} className={`p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center ${activeTab === 'actifs' ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-70'}`}>
+                                        <div>
+                                            <div className="font-bold text-gray-900 dark:text-white mb-1 flex items-center">
+                                                <span className="text-xl mr-2">📌</span> {m.author}
+                                                <span className="text-xs font-normal text-gray-500 ml-3">Le {new Date(m.createdAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
+                                            </div>
+                                            <p className="text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap mt-2">{m.text}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                                            {activeTab === 'actifs' ? (
+                                                <button onClick={() => markAsSeen(m.id)} className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition flex items-center justify-center shadow-sm">
+                                                    ✅ C'est vu !
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+                                                    Vu le {new Date(m.seenAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).length === 0 && (
+                                    <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">
+                                        {activeTab === 'actifs' ? "Aucun message en attente pour l'équipe." : "L'historique est vide."}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- PAGE : GUIDE SAMFW TOOL ---
+        const SamFwGuideView = ({ onOpenNav }) => {
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">🔓</span> Déblocage Google (FRP) - SamFw
+                        </h1>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto space-y-6">
+                            
+                            <div className="bg-blue-50 dark:bg-blue-900/30 p-5 rounded-xl border-l-4 border-blue-500 text-sm md:text-base text-gray-800 dark:text-gray-200 shadow-sm">
+                                <h2 className="font-bold text-lg mb-2 text-blue-800 dark:text-blue-300">Qu'est-ce que c'est ?</h2>
+                                <p>Ce guide détaille la procédure pour contourner la protection Google (FRP) sur les smartphones Samsung bloqués après une réinitialisation d'usine, en utilisant l'outil gratuit <strong>SamFw FRP Tool</strong>.</p>
+                            </div>
+
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div className="bg-gray-100 dark:bg-gray-700 p-4 border-b border-gray-200 dark:border-gray-600 font-bold text-lg">
+                                    Étape par étape
+                                </div>
+                                <div className="p-6 space-y-6">
+                                    
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">1</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Lancement du logiciel</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Ouvrez <strong>SamFw FRP Tool</strong> sur l'ordinateur de l'atelier. Assurez-vous d'être connecté à internet.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">2</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Branchement du téléphone</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Allumez le Samsung bloqué sur l'écran "Compte Google" et branchez-le en USB à l'ordinateur.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-red-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">3</div>
+                                        <div className="w-full">
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Menu Secret Samsung (Mode Test)</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-2">Sur le téléphone, revenez au tout premier écran de démarrage (Écran "Bonjour"). Cliquez sur <strong>Appel d'urgence</strong>.</p>
+                                            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                                                <p className="text-sm uppercase font-bold text-gray-500 mb-1">Tapez ce code sur le clavier :</p>
+                                                <p className="text-4xl tracking-widest font-black text-red-600 dark:text-red-400">*#0*#</p>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">L'écran de diagnostic avec des cases (Red, Green, Blue...) va s'afficher. Ne touchez plus à rien.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">4</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Lancer le déblocage sur PC</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Dans le logiciel SamFw (onglet <em>Test Mode</em>), cliquez sur :<br/>
+                                            👉 <strong>Remove FRP</strong> <span className="text-sm">(ou Remove FRP August 2022 si l'appareil est récent)</span>.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">5</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Autoriser le Débogage USB</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Regardez bien l'écran du téléphone. Une popup va apparaître demandant d'autoriser le <strong>Débogage USB</strong>.</p>
+                                            <p className="text-gray-800 dark:text-gray-200 font-bold mt-1">Cochez "Toujours autoriser" et appuyez sur OK.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">6</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Fin !</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Le logiciel va envoyer sa commande. Le téléphone va redémarrer tout seul, directement sur le menu d'accueil. Le compte Google a disparu ! 🎉</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                            <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+                                ⚠️ Rappel : Cette manipulation ne doit être effectuée que pour les clients justifiant de la propriété légitime de l'appareil (facture, boîte d'origine).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
         // --- PAGE : ARCHIVES ---
@@ -1646,6 +1884,11 @@
                               <span className="mr-3">🗄️</span> Archives
                           </button>
 
+                          {/* NOUVEAU BOUTON : TEAM NOTES */}
+                          <button onClick={() => { setView('team_notes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'team_notes' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">📝</span> Mots de l'équipe
+                          </button>
+
                           <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🔍</span> Logs iPhone (Panic)
                           </button>
@@ -1654,12 +1897,15 @@
                               <span className="mr-3">⚡</span> Diagnostique de démarrage
                           </button>
 
-                          {/* NOUVEAU BOUTON : CODES ERREUR ITUNES */}
+                          {/* NOUVEAU BOUTON : SAMFW TOOL */}
+                          <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'samfw_guide' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">🔓</span> Déblocage (SamFw)
+                          </button>
+
                           <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'error_codes' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🚨</span> Erreurs (iTunes/3u)
                           </button>
 
-                          {/* NOUVEAU BOUTON : REPRISE SMARTPHONE (LIEN EXTERNE) */}
                           <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" rel="noopener noreferrer" className="w-full text-left p-3 rounded-md font-bold transition flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
                               <span className="mr-3">💶</span> Reprise Smartphone <span className="ml-auto text-xs opacity-50">↗</span>
                           </a>
@@ -1684,6 +1930,10 @@
                   <DiagnosticView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'error_codes' ? (
                   <ErrorCodesView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'samfw_guide' ? (
+                  <SamFwGuideView onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'team_notes' ? (
+                  <TeamMessagesView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'proposals' ? (
                   <ProposalsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'archives' ? (
@@ -2026,6 +2276,7 @@
                                           )}
                                         </div>
                                         
+                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
