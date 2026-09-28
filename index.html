@@ -10,8 +10,8 @@
     <meta name="theme-color" content="#0f172a">
     
     <!-- LOGO SVG NÉON -->
-    <link rel="icon" type="image/svg+xml" href="logo.svg?v=8">
-    <link rel="apple-touch-icon" href="logo.svg?v=8">
+    <link rel="icon" type="image/svg+xml" href="logo.svg?v=9">
+    <link rel="apple-touch-icon" href="logo.svg?v=9">
 
     <!-- Chargement des outils pour faire fonctionner l'application -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -73,11 +73,21 @@
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <div id="root"></div>
 
+    <!-- KILL SWITCH DE CACHE (Détruit la mémoire cassée du navigateur pour forcer la mise à jour) -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js');
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister(); // Supprime l'ancien service worker
+                }
             });
+            if (window.caches) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name); // Supprime l'ancien cache PWA
+                    }
+                });
+            }
         }
     </script>
 
@@ -174,7 +184,7 @@
           </div>
         );
 
-        /* === FICHE PRISE EN CHARGE === */
+        /* === FICHE PRISE EN CHARGE MODIFIABLE === */
         const FormHalf = ({ title, activeIntake, formSync, updateSync, updateCategorySync }) => (
           <div className="border-2 border-black p-4 bg-white text-black h-full flex flex-col justify-between shadow-sm">
             <div>
@@ -189,17 +199,17 @@
                   <div className="border-r border-b border-black p-1 bg-white flex justify-center items-center">{new Date(activeIntake.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</div>
                   
                   {/* MODIFIABLE: Téléphone Client */}
-                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="06..." value={formSync.clientPhone} onChange={(e) => updateSync('clientPhone', e.target.value)} />
+                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="06..." value={formSync.clientPhone || ''} onChange={(e) => updateSync('clientPhone', e.target.value)} />
                   
                   {/* MODIFIABLE: Modèle de l'appareil */}
-                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="Modèle..." value={formSync.phone} onChange={(e) => updateSync('phone', e.target.value)} />
+                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="Modèle..." value={formSync.phone || ''} onChange={(e) => updateSync('phone', e.target.value)} />
                   
-                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black focus:bg-blue-50 w-full" value={formSync.accessoire} onChange={(e) => updateSync('accessoire', e.target.value)} />
+                  <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black focus:bg-blue-50 w-full" value={formSync.accessoire || ''} onChange={(e) => updateSync('accessoire', e.target.value)} />
                 </div>
                 <div className="grid grid-cols-4 border border-black mb-4 text-xs">
                   <div className="p-1 font-bold border-r border-black bg-blue-200 text-black flex items-center">NOM DU CLIENT</div>
                   {/* MODIFIABLE: Nom Client */}
-                  <input className="col-span-3 p-1 font-bold bg-white text-blue-800 outline-none focus:bg-blue-50 w-full uppercase" value={formSync.client} onChange={(e) => updateSync('client', e.target.value)} />
+                  <input className="col-span-3 p-1 font-bold bg-white text-blue-800 outline-none focus:bg-blue-50 w-full uppercase" value={formSync.client || ''} onChange={(e) => updateSync('client', e.target.value)} />
                 </div>
                 <div className="border-t border-l border-black mb-4">
                   <div className="bg-blue-300 font-bold text-center border-r border-b border-black p-1 text-sm text-black">ÉTAT DE L'APPAREIL</div>
@@ -253,15 +263,15 @@
                 <div className="grid grid-cols-3 gap-0 border border-black mb-4 text-xs">
                   <div className="border-r border-black flex">
                     <span className="bg-blue-200 p-1 font-bold border-r border-black text-black flex items-center">Code déverr.</span>
-                    <input className="w-full p-1 outline-none text-center bg-white text-black" value={formSync.codeDev} onChange={e => updateSync('codeDev', e.target.value)} />
+                    <input className="w-full p-1 outline-none text-center bg-white text-black" value={formSync.codeDev || ''} onChange={e => updateSync('codeDev', e.target.value)} />
                   </div>
                   <div className="border-r border-black flex">
                     <span className="bg-blue-200 p-1 font-bold border-r border-black text-black flex items-center">Code sim</span>
-                    <input className="w-full p-1 outline-none text-center bg-white text-black" value={formSync.codeSim} onChange={e => updateSync('codeSim', e.target.value)} />
+                    <input className="w-full p-1 outline-none text-center bg-white text-black" value={formSync.codeSim || ''} onChange={e => updateSync('codeSim', e.target.value)} />
                   </div>
                   <div className="flex bg-white">
                     <span className="bg-blue-200 p-1 font-bold border-r border-black text-black flex items-center">VENDEUR</span>
-                    <select className="w-full p-1 outline-none text-center font-bold uppercase bg-white text-black cursor-pointer" value={formSync.vendeur} onChange={e => updateSync('vendeur', e.target.value)} style={{ textAlignLast: 'center' }}>
+                    <select className="w-full p-1 outline-none text-center font-bold uppercase bg-white text-black cursor-pointer" value={formSync.vendeur || ''} onChange={e => updateSync('vendeur', e.target.value)} style={{ textAlignLast: 'center' }}>
                       <option value="">- CHOISIR -</option>
                       <option value="Clément">CLÉMENT</option>
                       <option value="Bérénys">BÉRÉNYS</option>
@@ -276,8 +286,8 @@
                   </div>
                   <div className="grid grid-cols-2 border-b border-black text-xs text-center text-black">
                     {/* MODIFIABLE: Réparation */}
-                    <input className="border-r border-black p-1 font-bold text-center bg-white text-blue-800 outline-none focus:bg-blue-50 w-full" value={formSync.repair} onChange={(e) => updateSync('repair', e.target.value)} />
-                    <div className="border-r border-black p-1 flex items-center justify-center bg-white"><input type="number" className="w-16 text-center outline-none border-b border-dashed border-gray-400 mr-1 bg-white text-black" value={formSync.prix} onChange={e => updateSync('prix', e.target.value)} /> €</div>
+                    <input className="border-r border-black p-1 font-bold text-center bg-white text-blue-800 outline-none focus:bg-blue-50 w-full" value={formSync.repair || ''} onChange={(e) => updateSync('repair', e.target.value)} />
+                    <div className="border-r border-black p-1 flex items-center justify-center bg-white"><input type="number" className="w-16 text-center outline-none border-b border-dashed border-gray-400 mr-1 bg-white text-black" value={formSync.prix || ''} onChange={e => updateSync('prix', e.target.value)} /> €</div>
                   </div>
                 </div>
                 
@@ -290,12 +300,14 @@
             <div>
                 <div className="border-t border-l border-black mb-4 flex flex-col">
                   <div className="bg-blue-300 font-bold text-center border-r border-b border-black p-1 text-xs text-black">COMMENTAIRE</div>
-                  <textarea className="w-full h-12 p-2 text-xs border-r border-b border-black outline-none resize-none bg-white text-black" value={formSync.commentaire} onChange={e => updateSync('commentaire', e.target.value)} />
+                  <textarea className="w-full h-12 p-2 text-xs border-r border-b border-black outline-none resize-none bg-white text-black" value={formSync.commentaire || ''} onChange={e => updateSync('commentaire', e.target.value)} />
                 </div>
                 <div className="border border-black h-20 relative bg-white"><div className="bg-blue-200 font-bold text-center border-b border-black p-1 text-xs text-black">SIGNATURE (Accord Réparation & Données)</div></div>
             </div>
           </div>
         );
+
+        /* === VUES SECONDAIRES DE L'APPLICATION === */
 
         const IntakeView = ({ activeIntake, setView }) => {
           const [formSync, setFormSync] = useState(() => {
@@ -359,6 +371,301 @@
               </div>
             </div>
           );
+        };
+
+        const TeamMessagesView = ({ setView, onOpenNav }) => {
+            const [messages, setMessages] = useState([]);
+            const [text, setText] = useState('');
+            const [author, setAuthor] = useState('');
+            const [activeTab, setActiveTab] = useState('actifs');
+            const [searchTerm, setSearchTerm] = useState('');
+
+            useEffect(() => {
+                const { collection, onSnapshot } = window.FB_SDK;
+                const unsubscribe = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
+                    const loaded = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })).sort((a, b) => b.createdAt - a.createdAt);
+                    setMessages(loaded);
+                });
+                return unsubscribe;
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!author || !text) return;
+                const { collection, addDoc } = window.FB_SDK;
+                await addDoc(collection(window.db, "team_notes"), {
+                    author, text, createdAt: Date.now(), status: 'active'
+                });
+                setText('');
+            };
+
+            const markAsSeen = async (id) => {
+                const { doc, updateDoc } = window.FB_SDK;
+                await updateDoc(doc(window.db, "team_notes", id), {
+                    status: 'archived', seenAt: Date.now()
+                });
+            };
+
+            const unarchiveMessage = async (id) => {
+                const { doc, updateDoc } = window.FB_SDK;
+                await updateDoc(doc(window.db, "team_notes", id), {
+                    status: 'active', seenAt: null
+                });
+            };
+
+            const deleteMessage = async (id) => {
+                const pwd = prompt("Mot de passe administrateur requis pour supprimer définitivement ce message :");
+                if (pwd !== "magretfrite") {
+                    if (pwd !== null) alert("Mot de passe incorrect.");
+                    return;
+                }
+                const { doc, deleteDoc } = window.FB_SDK;
+                await deleteDoc(doc(window.db, "team_notes", id));
+            };
+
+            const activeMessages = messages.filter(m => m.status === 'active');
+            let archivedMessages = messages.filter(m => m.status === 'archived');
+
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                archivedMessages = archivedMessages.filter(m => {
+                    const authorMatch = (m.author || '').toLowerCase().includes(term);
+                    const dateStr = new Date(m.createdAt).toLocaleDateString('fr-FR');
+                    const dateMatch = dateStr.includes(term);
+                    const textMatch = (m.text || '').toLowerCase().includes(term);
+                    return authorMatch || dateMatch || textMatch;
+                });
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <span className="mr-2">📝</span> Mots pour l'équipe
+                            </h1>
+                        </div>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto">
+                            <button onClick={() => { setActiveTab('actifs'); setSearchTerm(''); }} className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition flex items-center justify-center gap-2 ${activeTab === 'actifs' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                                En attente 
+                                {activeMessages.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{activeMessages.length}</span>}
+                            </button>
+                            <button onClick={() => setActiveTab('archives')} className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'archives' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>Archives (Lus)</button>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
+                        <div className="max-w-4xl mx-auto">
+                            {activeTab === 'actifs' && (
+                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500">
+                                    <h2 className="text-lg font-bold mb-4">Laisser un message</h2>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
+                                        <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
+                                            <option value="">- Choisir -</option>
+                                            <option value="Clément">Clément</option>
+                                            <option value="Bérénys">Bérénys</option>
+                                            <option value="Gérard">Gérard</option>
+                                        </select>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium mb-1">Message pour demain / plus tard</label>
+                                        <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Ex: Attention, le client pour le S23 passe demain matin à l'ouverture..." className="w-full h-24 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500"></textarea>
+                                    </div>
+                                    <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition w-full sm:w-auto">Épingler le message</button>
+                                </form>
+                            )}
+
+                            {activeTab === 'archives' && (
+                                <div className="mb-6 flex items-center bg-white dark:bg-gray-800 rounded-full px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm focus-within:border-blue-500 transition-colors">
+                                    <span className="text-gray-500">🔍</span>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Rechercher un mot archivé (par auteur, date ex: 28/09/2026, ou contenu)..." 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                                    />
+                                    {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2 text-lg leading-none">&times;</button>}
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
+                                    <div key={m.id} className={`p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center ${activeTab === 'actifs' ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-80'}`}>
+                                        <div className="w-full">
+                                            <div className="font-bold text-gray-900 dark:text-white mb-1 flex items-center">
+                                                <span className="text-xl mr-2">📌</span> {m.author}
+                                                <span className="text-xs font-normal text-gray-500 ml-3">Le {new Date(m.createdAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
+                                            </div>
+                                            <p className="text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap mt-2">{m.text}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                                            {activeTab === 'actifs' ? (
+                                                <div className="flex gap-2 w-full sm:w-auto">
+                                                    <button onClick={() => markAsSeen(m.id)} className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition flex items-center justify-center shadow-sm whitespace-nowrap">
+                                                        ✅ C'est vu !
+                                                    </button>
+                                                    <button onClick={() => deleteMessage(m.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-2 rounded-lg transition flex items-center justify-center" title="Supprimer définitivement">
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full">
+                                                    <span className="text-xs font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-full whitespace-nowrap">
+                                                        Vu le {new Date(m.seenAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}
+                                                    </span>
+                                                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                                                        <button onClick={() => unarchiveMessage(m.id)} className="flex-1 sm:flex-none bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-3 py-1.5 rounded-lg transition text-xs font-bold border border-orange-200 dark:border-orange-800 flex items-center justify-center whitespace-nowrap">
+                                                            ↩ Remettre
+                                                        </button>
+                                                        <button onClick={() => deleteMessage(m.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded-lg transition flex items-center justify-center" title="Supprimer définitivement">
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).length === 0 && (
+                                    <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">
+                                        {activeTab === 'actifs' ? "Aucun message en attente pour l'équipe." : (searchTerm ? "Aucun message trouvé pour cette recherche." : "L'historique est vide.")}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SamFwGuideView = ({ onOpenNav }) => {
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">🔓</span> Déblocage FRP & Firmware (SamFw)
+                        </h1>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto space-y-8">
+                            
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div className="bg-blue-100 dark:bg-blue-900/50 p-4 border-b border-blue-200 dark:border-blue-800 flex items-center">
+                                    <span className="text-2xl mr-3">🔐</span>
+                                    <h2 className="font-bold text-lg text-blue-900 dark:text-blue-100">Contournement Compte Google (FRP)</h2>
+                                </div>
+                                <div className="p-6 space-y-6">
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">1</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Lancement du logiciel</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Ouvrez <strong>SamFw FRP Tool</strong> sur l'ordinateur de l'atelier.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">2</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Branchement du téléphone</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Allumez le Samsung bloqué sur l'écran "Compte Google" et branchez-le en USB à l'ordinateur.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-red-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">3</div>
+                                        <div className="w-full">
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Menu Secret Samsung (Mode Test)</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-2">Sur le téléphone, revenez au tout premier écran de démarrage. Cliquez sur <strong>Appel d'urgence</strong>.</p>
+                                            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                                                <p className="text-sm uppercase font-bold text-gray-500 mb-1">Tapez ce code sur le clavier :</p>
+                                                <p className="text-4xl tracking-widest font-black text-red-600 dark:text-red-400">*#0*#</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">4</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Lancer le déblocage sur PC</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Dans le logiciel SamFw, cliquez sur : 👉 <strong>Remove FRP</strong>.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">5</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Autoriser le Débogage USB</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Une popup va apparaître sur le téléphone. Cochez "Toujours autoriser" et appuyez sur OK.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <div className="bg-green-100 dark:bg-green-900/50 p-4 border-b border-green-200 dark:border-green-800 flex items-center">
+                                    <span className="text-2xl mr-3">⚡</span>
+                                    <h2 className="font-bold text-lg text-green-900 dark:text-green-100">Flasher / Changer le Firmware Samsung</h2>
+                                </div>
+                                <div className="p-6 space-y-6">
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">1</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Télécharger le firmware</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Allez sur le site <a href="https://samfw.com" target="_blank" className="text-blue-500 font-bold hover:underline">SamFw.com</a>. Entrez le modèle exact et choisissez le code région (ex: XEF).</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">2</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Préparer les fichiers</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Extrayez le fichier ZIP téléchargé. Vous obtiendrez 5 fichiers : AP, BL, CP, CSC, HOME_CSC.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-orange-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">3</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Mode Download (Odin Mode)</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Éteignez le téléphone. Maintenez <strong>Volume Haut + Volume Bas</strong> et branchez le câble USB.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">4</div>
+                                        <div className="w-full">
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Charger les fichiers</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-3">Dans l'onglet <strong>Odin Flash</strong>, mettez chaque fichier dans sa case :</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600"><strong>BL</strong> 👉 Fichier BL_...</div>
+                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600"><strong>AP</strong> 👉 Fichier AP_...</div>
+                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600"><strong>CP</strong> 👉 Fichier CP_...</div>
+                                                <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 col-span-1 sm:col-span-2">
+                                                    <strong>CSC</strong> 👉 Attention : <br/>
+                                                    <span className="inline-block mt-1">• <strong>CSC_...</strong> = Efface TOUT (Remise à zéro)</span><br/>
+                                                    <span className="inline-block mt-1">• <strong>HOME_CSC_...</strong> = Conserve les données</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">5</div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Flasher !</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Cliquez sur <strong>Flash</strong>. Ne débranchez surtout pas le téléphone avant la fin.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
         const ArchivesView = ({ repairs, setView, setActiveIntake, onOpenNav }) => {
@@ -764,6 +1071,651 @@
             );
         };
 
+        const ErrorCodesView = ({ setView, onOpenNav }) => {
+            const [searchTerm, setSearchTerm] = useState("");
+
+            const errorCodes = [
+                { code: "Erreur 9 / 4014 / 4005", source: "iTunes", type: "NAND / CPU / USB", desc: "Problème de communication avec la puce mémoire (NAND) ou le processeur. Sur iPhone X et supérieur, l'erreur 4014 peut aussi venir d'un court-circuit sur l'écran ou la nappe de proximité (Face ID)." },
+                { code: "Erreur 4013", source: "iTunes", type: "Nappe Face ID / NAND", desc: "Très souvent lié à la nappe de proximité (Face ID) en court-circuit (surtout iPhone X au 13). Débranchez la nappe frontale et réessayez de démarrer ou flasher. Sinon, la puce NAND est à remplacer/reprogrammer en micro-soudure." },
+                { code: "Erreur -1 / 50 / 47", source: "iTunes", type: "Baseband (Réseau)", desc: "Défaut de la puce réseau (Baseband) ou de l'EEPROM. Carte mère en cause, réparation complexe requise." },
+                { code: "Erreur 14", source: "iTunes", type: "Stockage saturé / USB", desc: "Le stockage de l'iPhone est complètement plein (le plus courant), ou le câble/port USB est défectueux. Flasher en mode 'Retain User Data' avec 3uTools peut parfois sauver les données, sinon restauration complète obligatoire." },
+                { code: "Erreur 21 / 1601 / 1611", source: "iTunes", type: "Batterie / Port de charge", desc: "La carte mère ne communique pas avec la batterie. Vérifiez le connecteur de batterie, la nappe de charge (dock) ou remplacez la batterie." },
+                { code: "Erreur 53", source: "iTunes", type: "Touch ID / Home", desc: "Bouton Home d'origine manquant ou défectueux (Erreur historique, souvent résolue par une simple mise à jour récente)." },
+                { code: "Erreur 4000", source: "iTunes", type: "Verrouillage Passcode", desc: "La mise à jour via iTunes est bloquée car l'iPhone est verrouillé par un code. Désactivez le code ou flashez l'appareil en mode Recovery/DFU." },
+                { code: "Bloqué à 19% / 20%", source: "3uTools", type: "NAND / Batterie", desc: "Souvent un problème d'écriture sur la mémoire (NAND) ou de lecture d'informations de la batterie. Vérifiez la batterie ou la nappe de charge avant de soupçonner la carte mère." },
+                { code: "Bloqué à 60% / 80%", source: "3uTools", type: "Baseband / NFC", desc: "60% correspond souvent au flashage du Baseband (Réseau). Si ça bloque ici, la puce réseau est HS. 80% peut concerner une puce secondaire comme le NFC." },
+                { code: "Erreur 1110", source: "iTunes / 3uTools", type: "Stockage Plein (Bootloop)", desc: "Boucle de redémarrage sur le logo Apple due à un stockage plein à 100%. Tentez l'option 'Fix Flash' sur 3uTools." }
+            ];
+
+            const filtered = errorCodes.filter(e => 
+                e.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                e.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                e.type.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center whitespace-nowrap">
+                                <span className="mr-2">🚨</span> Erreurs (iTunes/3uTools)
+                            </h1>
+                        </div>
+                        <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
+                            <span className="text-gray-500">🔍</span>
+                            <input 
+                                type="text" 
+                                placeholder="Recherche (ex: 4013, 20%, baseband)..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                            />
+                            {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2">&times;</button>}
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto">
+                            <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-red-500">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
+                                    Entrez un code d'erreur affiché par iTunes ou un pourcentage de blocage sur 3uTools. Ces erreurs apparaissent souvent lors d'une restauration et permettent de déduire le composant matériel défectueux.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filtered.length === 0 && <p className="text-gray-500 py-4 col-span-3 text-center font-bold">Aucun code trouvé pour cette recherche.</p>}
+                                {filtered.map((item, idx) => (
+                                    <div key={idx} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-bold text-lg text-red-600 dark:text-red-400">{item.code}</h3>
+                                            <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${item.source === 'iTunes' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'}`}>
+                                                {item.source}
+                                            </span>
+                                        </div>
+                                        <div className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
+                                            Panne : {item.type}
+                                        </div>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                            {item.desc}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const PanicLogsView = ({ setView, onOpenNav }) => {
+            const [selectedModel, setSelectedModel] = useState(null);
+
+            const olderModelsContent = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">TG0B ou TG0V</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Batterie / Connecteur de batterie</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>La batterie est défectueuse ou a échoué.</li>
+                            <li>Le connecteur de la batterie est endommagé ou déformé.</li>
+                            <li>Les lignes de données de la batterie sont manquantes.</li>
+                        </ul>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">Prs0 ou Mic1</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Testez avec une nappe de port de charge fonctionnelle.</li>
+                            <li>Vérifiez s'il manque des résistances autour du connecteur.</li>
+                        </ul>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">Mic2</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du bouton Power</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Généralement lié à la nappe d'alimentation.</p>
+                    </div>
+                </div>
+            );
+
+            const iphone12Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">TG0B ou TG0V</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Batterie / Connecteur</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Batterie ou connecteur défectueux.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">Prs0 ou Mic1</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-900/20 rounded-r-md">
+                        <h4 className="font-bold text-teal-700 dark:text-teal-400 text-lg">Eiger</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Assurez-vous que la nappe n'est pas déchirée ou endommagée par un liquide.</p>
+                    </div>
+                </div>
+            );
+
+            const iphone13Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x1000 (ou 4096)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Câble flex de proximité</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Souvent endommagé lors d'un remplacement d'écran.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x800 (ou 2048)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x1800</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Port de charge ET Nappe de proximité</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Les deux pièces posent problème, vérifiez les deux.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0x4000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Ligne de données de la batterie</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Le pourcentage de batterie peut fluctuer ou afficher un message non officiel.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">0x400 / 0xc00</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Séparation de carte mère (Sandwich) / Port de charge</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">0x400 indique une séparation des couches. 0xc00 indique un problème de carte mère ET de port de charge (surtout 13 Mini).</p>
+                    </div>
+                </div>
+            );
+
+            const iphone14Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x400000 (ou 4194304)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil (verre arrière)</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">Vitre arrière débranchée. Cela provoque un redémarrage de 3 minutes.</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Vérifiez qu'il est branché et que le câble flexible n'est pas déchiré.</li>
+                            <li>Vérifiez qu'aucun liquide n'est endommagé ou défectueux.</li>
+                            <li>Testez avec des pièces d'origine ou de qualité supérieure (les flexibles de rechange présentent un taux de défauts élevé).</li>
+                            <li>Mettez les connecteurs FPC en mode diode pour détecter tout défaut.</li>
+                            <li>Il pourrait s'agir d'un problème de sandwich.</li>
+                        </ul>
+                    </div>
+                    
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x100000 (ou 1048576)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">Nappe du port de charge débranchée. Cela provoque un redémarrage de 3 minutes.</p>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">0x500000 (ou 5242880)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Batterie OU Moteur haptique / Port de charge</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li><strong>Batterie :</strong> Problème de communication pendant la charge. Redémarre toutes les 3 min 30 s. Tester avec une autre batterie. Vérifiez les valeurs des diodes sur le connecteur de la carte mère.</li>
+                            <li className="mt-2 text-orange-800 dark:text-orange-300"><strong>Alternative (Moteur haptique / Port de charge) :</strong></li>
+                            <li>Assurez-vous que ce câble flexible est branché.</li>
+                            <li>Vérifiez qu'aucun câble flexible n'est déchiré, endommagé par un liquide ou défectueux.</li>
+                            <li>Testez avec des pièces d'origine (taux de défauts élevé sur les rechanges).</li>
+                            <li>Mettez les connecteurs FPC en mode diode.</li>
+                            <li>Il pourrait s'agir d'un problème de sandwich.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x200000 (ou 2097152)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Câble flexible de proximité (Prox Flex)</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">Capteur de proximité débranché. Cela provoque un redémarrage après 3 minutes.</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Assurez-vous que ce câble flexible est branché.</li>
+                            <li>Vérifiez qu'aucun câble flexible n'est déchiré, endommagé par un liquide ou défectueux.</li>
+                            <li>Testez avec des pièces d'origine ou de qualité supérieure.</li>
+                            <li>Mettez les connecteurs FPC en mode diode pour détecter tout défaut.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-900/20 rounded-r-md">
+                        <h4 className="font-bold text-teal-700 dark:text-teal-400 text-lg">0x600000 (ou 6291456)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil + Câble flex de proximité</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Vérifier avec un flexible d'origine en bon état.</li>
+                            <li>Les deux doivent être connectés à la carte mère.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-red-600 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0x20000 (ou 131072)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Carte Logique (Carte mère)</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Il s'agit probablement d'une déconnexion de l'interposeur de la carte logique (couche intermédiaire de la carte sandwich).</li>
+                            <li>Vérifiez les bords de la carte logique pour repérer les espaces entre les couches.</li>
+                            <li>Cela nécessitera probablement une réparation approfondie de la carte et des outils spécialisés pour la chauffer en toute sécurité.</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+
+            const iphone14ProContent = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x80000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Câble flex de proximité</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x40000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">0x10000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du bouton Power</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0x20000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Séparation de carte mère (Sandwich)</p>
+                    </div>
+                </div>
+            );
+
+            const iphone15Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x200000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil (Vitre arrière)</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x80000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x100000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Câble flex de proximité</p>
+                    </div>
+                </div>
+            );
+
+            const iphone15ProContent = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0xa1</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Capteur de batterie</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x300000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge (USB-C)</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x400000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-900/20 rounded-r-md">
+                        <h4 className="font-bold text-teal-700 dark:text-teal-400 text-lg">0x700000</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Port de charge + Nappe sans fil</p>
+                    </div>
+                </div>
+            );
+
+            const iphone16Content = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">1572864 (ou 524288 / 0x80000)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de charge / Capteur de pression d'air</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Très courant après un remplacement de vitre arrière ou si la nappe a été touchée.</li>
+                            <li>Vérifiez la connexion du module micro inférieur / capteur de pression d'air.</li>
+                            <li>Peut causer des redémarrages toutes les 3 minutes.</li>
+                        </ul>
+                    </div>
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">2097152 (ou 0x200000)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe de chargement sans fil</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">169 (ou 0xa9)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Ligne de données de la batterie</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">L'iPhone reste bloqué à 1% ou 0%. Tester avec une nouvelle batterie ou vérifier le connecteur FPC sur la carte mère.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">3670016</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Problème de "Sandwich" (Carte mère)</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Peut signifier que les ports de charge et sans fil sont tous les deux inactifs, souvent à cause d'une séparation des cartes.</p>
+                    </div>
+                </div>
+            );
+
+            const iphone16ProContent = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-teal-500 bg-teal-50 dark:bg-teal-900/20 rounded-r-md">
+                        <h4 className="font-bold text-teal-700 dark:text-teal-400 text-lg">0x300000 (ou 3145728)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Problème de communication Capteurs / USB-C</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Erreur de communication SMC. Vérifiez la nappe USB-C et ses connexions environnantes.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-r-md">
+                        <h4 className="font-bold text-gray-700 dark:text-gray-300 text-lg">Redémarrage lors de l'ouverture de l'appareil photo</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Module Caméra Avant en court-circuit</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">La caméra avant provoque un arrêt de l'ensemble du système de caméras. Remplacer la caméra avant et effectuer l'appairage via Apple Diagnostics.</p>
+                    </div>
+                </div>
+            );
+
+            const iphone17Content = (
+                <div className="space-y-4">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3 rounded text-sm text-yellow-800 dark:text-yellow-300 mb-4">
+                        💡 <strong>Série 17 (Classique, Plus, Pro, Pro Max et Air) :</strong> L'architecture standardise ces codes hexadécimaux. Vérifiez en priorité les nappes de proximité, l'USB-C et la charge sans fil.
+                    </div>
+                    <div className="p-4 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-md">
+                        <h4 className="font-bold text-green-700 dark:text-green-400 text-lg">0x200000 (ou 2097152) / 0x80000 (ou 524288)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Capteur de proximité / Nappe frontale</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Code très fréquent sur la série 17 (et particulièrement 17 Pro Max) lors d'un capteur de proximité défectueux ou mal branché.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">0x300000 (ou 3145728)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Port de charge USB-C</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Lié aux modèles Pro/Max/Air équipés du contrôleur USB-C avancé.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-r-md">
+                        <h4 className="font-bold text-orange-700 dark:text-orange-400 text-lg">0x100000 (ou 1048576)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du Bouton Power / Allumage</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-purple-500 bg-purple-50 dark:bg-purple-900/20 rounded-r-md">
+                        <h4 className="font-bold text-purple-700 dark:text-purple-400 text-lg">0x400000 (ou 4194304)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Bobine de chargement sans fil</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">0x500000 (ou 5242880)</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Problème de communication Batterie</p>
+                    </div>
+                </div>
+            );
+
+            const seContent = (
+                <div className="space-y-4">
+                    <div className="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-r-md">
+                        <h4 className="font-bold text-red-700 dark:text-red-400 text-lg">TG0B</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Batterie</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">Batterie défectueuse ou pourcentage non détecté.</p>
+                    </div>
+                    <div className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-md">
+                        <h4 className="font-bold text-blue-700 dark:text-blue-400 text-lg">Mic1</h4>
+                        <p className="font-bold text-gray-900 dark:text-white mt-1">Nappe du port de charge OU Carte Mère</p>
+                        <ul className="list-disc pl-5 mt-2 text-sm text-gray-800 dark:text-gray-200 space-y-1">
+                            <li>Peut être la nappe de charge.</li>
+                            <li>Si le problème persiste avec une nappe neuve, c'est une piste rompue sur la carte mère (I2C1_AP_SCL / SDA) nécessitant un pontage (jumper).</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+
+            const panicLogsData = [
+                { id: "x", model: "iPhone X", content: olderModelsContent },
+                { id: "xs", model: "iPhone XS et XS Max", content: olderModelsContent },
+                { id: "11", model: "iPhone 11", content: olderModelsContent },
+                { id: "11p", model: "iPhone 11 Pro et 11 Pro Max", content: olderModelsContent },
+                { id: "12", model: "iPhone 12 Series", content: iphone12Content },
+                { id: "13", model: "iPhone 13 Series", content: iphone13Content },
+                { id: "14", model: "iPhone 14 et 14 Plus", content: iphone14Content },
+                { id: "14p", model: "iPhone 14 Pro et 14 Pro Max", content: iphone14ProContent },
+                { id: "15", model: "iPhone 15 et 15 Plus", content: iphone15Content },
+                { id: "15p", model: "iPhone 15 Pro et 15 Pro Max", content: iphone15ProContent },
+                { id: "16", model: "iPhone 16 et 16 Plus", content: iphone16Content },
+                { id: "16p", model: "iPhone 16 Pro et 16 Pro Max", content: iphone16ProContent },
+                { id: "17", model: "Série 17 (17, Plus, Pro, Max, Air)", content: iphone17Content },
+                { id: "se", model: "iPhone SE 2020", content: seContent }
+            ];
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <span className="mr-2">🔍</span> {selectedModel ? `Diagnostic - ${selectedModel.model}` : 'Panic Logs iPhone'}
+                            </h1>
+                        </div>
+                        
+                        {selectedModel && (
+                            <button onClick={() => setSelectedModel(null)} className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-xs sm:text-sm flex items-center">
+                                <span className="mr-1">&larr;</span> Retour aux modèles
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto flex flex-col h-full">
+                            <div className="flex-1">
+                                {!selectedModel ? (
+                                    <>
+                                        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                                            <p className="text-gray-700 dark:text-gray-300 mb-5 text-base">
+                                                Sélectionnez un modèle d'iPhone pour voir la signification de ses codes de redémarrage (kernel panics).
+                                            </p>
+                                            
+                                            <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-5 rounded-md text-sm text-gray-800 dark:text-gray-200 mb-5 shadow-sm">
+                                                <h3 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-300 flex items-center">
+                                                    <span className="mr-2">📱</span> Comment trouver le journal d'erreur (Panic Log) :
+                                                </h3>
+                                                <ol className="list-decimal list-inside space-y-2 mb-4 ml-1">
+                                                    <li>Accédez aux <strong>Paramètres</strong> (ou Réglages) de l'iPhone.</li>
+                                                    <li>Allez dans <strong>Confidentialité</strong> (ou Confidentialité et sécurité).</li>
+                                                    <li>Touchez <strong>Analyses et améliorations</strong>.</li>
+                                                    <li>Ouvrez <strong>Données d'analyse</strong>.</li>
+                                                    <li>Écrivez <strong>"full"</strong> dans la barre de recherche.</li>
+                                                    <li>Défilez tout en bas et cliquez sur le fichier le plus récent.</li>
+                                                </ol>
+                                                <div className="bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-700">
+                                                    💡 <strong>À rechercher dans le texte :</strong> Les mentions <strong className="text-red-600 dark:text-red-400">« SMC PANIC - ASSERTION FAILED »</strong>, <strong className="text-red-600 dark:text-red-400">« Sensor Array »</strong> ou un code en <strong className="text-red-600 dark:text-red-400">« 0x… »</strong>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-gray-100 dark:bg-gray-700/50 border-l-4 border-gray-400 dark:border-gray-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200">
+                                                <p className="mb-2 leading-relaxed">
+                                                    <strong>Outils d'analyse automatiques :</strong> Vous pouvez également utiliser un outil comme <a href="https://github.com/waynebonc/iDeviceLogAnalyzer-public/archive/refs/heads/master.zip" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">iDevice Panic Log Analyzer</a>, qui téléchargera les journaux d'erreurs de l'appareil, les affichera sur votre ordinateur et vous proposera des solutions. Il facilite ainsi la consultation du fichier journal.
+                                                </p>
+                                                <p>
+                                                    Consultez également le site <a href="https://www.panicfull.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">www.PanicFull.com</a> qui vous permet de télécharger le fichier journal de panique et de le faire analyser gratuitement.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {panicLogsData.map((item) => (
+                                                <button 
+                                                    key={item.id} 
+                                                    onClick={() => setSelectedModel(item)}
+                                                    className="block w-full text-left p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition duration-200 hover:border-blue-500 dark:hover:border-blue-500 group relative overflow-hidden"
+                                                >
+                                                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
+                                                    <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center justify-between">
+                                                        {item.model}
+                                                        <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                                                    </h3>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 pb-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                            Diagnostic : {selectedModel.model}
+                                        </h2>
+                                        {selectedModel.content}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500 dark:text-gray-400 pb-4">
+                                Diagnostics et codes d'erreur basés sur la documentation communautaire de : <a href="https://repair.wiki/w/How_to_Troubleshoot_And_Fix_iPhone_Random_Restarts_Using_Panic_Logs" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline font-medium">repair.wiki (Troubleshoot iPhone Random Restarts)</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DiagnosticView = ({ setView, onOpenNav }) => {
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">⚡</span> Diagnostique de démarrage smartphone
+                        </h1>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto">
+                            <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                                <p className="text-gray-700 dark:text-gray-300 mb-4">
+                                    L'analyse de la consommation de courant via un testeur USB (sous 5V) permet d'identifier rapidement l'étape où la carte mère bloque lors de sa séquence d'allumage, avant même d'ouvrir l'appareil.
+                                </p>
+                                
+                                <div className="flex justify-center mb-6 mt-4">
+                                    <img src="image_3.png" alt="Tableau de diagnostic de démarrage" className="max-w-full h-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700" />
+                                </div>
+
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-8 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    Retranscription des étapes de consommation (5V)
+                                </h3>
+                                
+                                <div className="space-y-3">
+                                    <div className="p-3 rounded-md border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 text-sm">
+                                        <div className="font-bold text-red-700 dark:text-red-400 mb-1">🔴 0.00A à 0.05A : Détection VBUS par IF-PMIC</div>
+                                        <div className="text-gray-800 dark:text-gray-200">
+                                            <strong>Diagnostic :</strong> Connecteur de charge HS, Nappe Flex coupée, OVP grillée, Court-circuit VPH_PWR / VBAT.
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-md border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-sm">
+                                        <div className="font-bold text-orange-700 dark:text-orange-400 mb-1">🟠 0.08A à 0.15A : Activation PMIC principal</div>
+                                        <div className="text-gray-800 dark:text-gray-200">
+                                            <strong>Diagnostic :</strong> Billage CPU/RAM, UFS illisible, Boucle CPU (oscillation 0.08A - 0.12A).
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-md border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-sm">
+                                        <div className="font-bold text-yellow-700 dark:text-yellow-400 mb-1">🟡 0.20A à 0.40A : Lecture du Bootloader</div>
+                                        <div className="text-gray-800 dark:text-gray-200">
+                                            <strong>Diagnostic :</strong> Défaut ligne secondaire PMIC, Corruption logicielle sévère.
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-md border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20 text-sm">
+                                        <div className="font-bold text-green-700 dark:text-green-400 mb-1">🟢 0.40A à 0.60A : Initialisation de l'affichage</div>
+                                        <div className="text-gray-800 dark:text-gray-200">
+                                            <strong>Diagnostic :</strong> Problème FPC écran, Filtres EMI MIPI (L'écran s'apprête).
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-md border-l-4 border-green-600 bg-green-100 dark:bg-green-900/30 text-sm">
+                                        <div className="font-bold text-green-800 dark:text-green-300 mb-1">🟩 0.60A à 1.50A+ : Chargement de l'OS</div>
+                                        <div className="text-gray-800 dark:text-gray-200">
+                                            <strong>Diagnostic :</strong> Démarrage normal en cours (Allumage complet).
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ProposalsView = ({ setView, onOpenNav }) => {
+            const [proposals, setProposals] = useState([]);
+            const [name, setName] = useState('');
+            const [text, setText] = useState('');
+
+            useEffect(() => {
+                const { collection, onSnapshot } = window.FB_SDK;
+                const unsubscribe = onSnapshot(collection(window.db, "proposals"), (snapshot) => {
+                    const loadedProposals = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    })).sort((a, b) => b.createdAt - a.createdAt);
+                    setProposals(loadedProposals);
+                });
+                return unsubscribe;
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!name || !text) return;
+                const { collection, addDoc } = window.FB_SDK;
+                await addDoc(collection(window.db, "proposals"), {
+                    name, text, createdAt: Date.now()
+                });
+                setName('');
+                setText('');
+            };
+
+            const handleDelete = async (id, action) => {
+                const pwd = prompt(`Mot de passe administrateur requis pour marquer cette proposition comme "${action}" :`);
+                if (pwd !== "magretfrite") {
+                    if (pwd !== null) alert("Mot de passe incorrect.");
+                    return;
+                }
+                const { doc, deleteDoc } = window.FB_SDK;
+                await deleteDoc(doc(window.db, "proposals", id));
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span className="mr-2">💡</span> Propositions d'amélioration
+                        </h1>
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
+                        <div className="max-w-4xl mx-auto">
+                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                                <h2 className="text-lg font-bold mb-4">Nouvelle proposition</h2>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium mb-1">Votre Prénom / Nom</label>
+                                    <input required value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Thomas" className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500" />
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium mb-1">Votre idée ou problème rencontré</label>
+                                    <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Décrivez l'amélioration que vous aimeriez voir..." className="w-full h-24 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500"></textarea>
+                                </div>
+                                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition">Envoyer la proposition</button>
+                            </form>
+
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-bold mb-4">Propositions en attente ({proposals.length})</h2>
+                                {proposals.map(p => (
+                                    <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                                        <div>
+                                            <div className="font-bold text-gray-900 dark:text-white mb-1 flex items-center">
+                                                <span className="text-blue-600 mr-2">👤</span> {p.name}
+                                                <span className="text-xs font-normal text-gray-500 ml-3">{new Date(p.createdAt).toLocaleDateString('fr-FR')}</span>
+                                            </div>
+                                            <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">{p.text}</p>
+                                        </div>
+                                        <div className="flex gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                                            <button onClick={() => handleDelete(p.id, 'Fait')} className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition flex items-center justify-center text-sm shadow-sm">
+                                                ✅ Fait
+                                            </button>
+                                            <button onClick={() => handleDelete(p.id, 'Refusé')} className="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition flex items-center justify-center text-sm shadow-sm">
+                                                ❌ Non
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {proposals.length === 0 && (
+                                    <div className="text-center text-gray-500 dark:text-gray-400 py-8 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+                                        Aucune proposition pour le moment. L'application est parfaite ! ✨
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         function AppContent() {
           const [repairs, setRepairs] = useState([]);
           const [currentDate, setCurrentDate] = useState(new Date());
@@ -818,6 +1770,7 @@
                 setRepairs(loadedRepairs);
               });
 
+              // Écoute pour le compteur de messages d'équipe non lus
               const unsubscribeNotes = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
                   let count = 0;
                   snapshot.forEach(doc => {
@@ -1324,7 +2277,6 @@
                                         <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
                                           <div className="flex flex-col truncate pr-2 w-full">
                                             <span className="text-xs sm:text-sm truncate flex items-center">
-                                                {/* PASTILLE DE COULEUR VENDEUR */}
                                                 {repair.vendeur && (
                                                     <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 shrink-0 ${getVendeurColor(repair.vendeur)}`} title={`Vendeur: ${repair.vendeur}`}></span>
                                                 )}
@@ -1375,7 +2327,6 @@
                                             </div>
                                         )}
 
-                                        {/* CHAMP COMMENTAIRE DE RÉPARATION */}
                                         <textarea 
                                             className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white resize-none outline-none focus:border-blue-500" 
                                             rows="2" 
@@ -1385,7 +2336,6 @@
                                             title="Ce commentaire est sauvegardé automatiquement dès que vous cliquez ailleurs."
                                         />
 
-                                        {/* BOUTON D'OUVERTURE DE LA FICHE */}
                                         <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 text-[10px] sm:text-xs py-1.5 rounded font-bold shadow-sm transition">
                                             📝 Fiche Prise en charge
                                         </button>
@@ -1421,7 +2371,6 @@
                                           )}
                                         </div>
                                         
-                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
