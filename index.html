@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning Réparation Atelier</title>
     
-    <!-- LIAISON AVEC LES NOUVEAUX FICHIERS PWA POUR L'INSTALLATION -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     
-    <!-- LOGO SVG NÉON -->
-    <link rel="icon" type="image/svg+xml" href="logo.svg?v=9">
-    <link rel="apple-touch-icon" href="logo.svg?v=9">
+    <link rel="icon" type="image/svg+xml" href="logo.svg?v=10">
+    <link rel="apple-touch-icon" href="logo.svg?v=10">
 
-    <!-- Chargement des outils pour faire fonctionner l'application -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -22,7 +19,6 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- SDK FIREBASE (Firestore) AVEC SUPPORT HORS-LIGNE -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -73,19 +69,15 @@
 <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <div id="root"></div>
 
-    <!-- KILL SWITCH DE CACHE (Détruit la mémoire cassée du navigateur pour forcer la mise à jour) -->
+    <!-- KILL SWITCH DE CACHE -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister(); 
-                }
+                for(let registration of registrations) { registration.unregister(); }
             });
             if (window.caches) {
                 caches.keys().then(function(names) {
-                    for (let name of names) {
-                        caches.delete(name); 
-                    }
+                    for (let name of names) { caches.delete(name); }
                 });
             }
         }
@@ -157,6 +149,9 @@
             return <AppContent />;
         }
 
+        /* ==============================================================================
+           FONCTIONS UTILITAIRES
+           ============================================================================== */
         const getLocalISO = (d) => {
           const y = d.getFullYear();
           const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -184,7 +179,11 @@
           </div>
         );
 
-        /* === FICHE PRISE EN CHARGE MODIFIABLE === */
+        /* ==============================================================================
+           COMPOSANTS VUES SECONDAIRES
+           ============================================================================== */
+
+        /* --- 1. FICHE DE PRISE EN CHARGE --- */
         const FormHalf = ({ title, activeIntake, formSync, updateSync, updateCategorySync }) => (
           <div className="border-2 border-black p-4 bg-white text-black h-full flex flex-col justify-between shadow-sm">
             <div>
@@ -198,17 +197,12 @@
                 <div className="grid grid-cols-4 gap-0 border-l border-black text-xs text-center mb-4 text-black">
                   <div className="border-r border-b border-black p-1 bg-white flex justify-center items-center">{new Date(activeIntake.date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'})}</div>
                   
-                  {/* MODIFIABLE: Téléphone Client */}
                   <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="06..." value={formSync.clientPhone || ''} onChange={(e) => updateSync('clientPhone', e.target.value)} />
-                  
-                  {/* MODIFIABLE: Modèle de l'appareil */}
                   <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-blue-800 font-bold focus:bg-blue-50 w-full" placeholder="Modèle..." value={formSync.phone || ''} onChange={(e) => updateSync('phone', e.target.value)} />
-                  
                   <input className="border-r border-b border-black p-1 text-center outline-none bg-white text-black focus:bg-blue-50 w-full" value={formSync.accessoire || ''} onChange={(e) => updateSync('accessoire', e.target.value)} />
                 </div>
                 <div className="grid grid-cols-4 border border-black mb-4 text-xs">
                   <div className="p-1 font-bold border-r border-black bg-blue-200 text-black flex items-center">NOM DU CLIENT</div>
-                  {/* MODIFIABLE: Nom Client */}
                   <input className="col-span-3 p-1 font-bold bg-white text-blue-800 outline-none focus:bg-blue-50 w-full uppercase" value={formSync.client || ''} onChange={(e) => updateSync('client', e.target.value)} />
                 </div>
                 <div className="border-t border-l border-black mb-4">
@@ -261,7 +255,6 @@
                    </div>
                 </div>
                 
-                {/* MODIFICATION: LIGNE CODE DÉVERROUILLAGE AVEC SCHÉMA (PATTERN LOCK) */}
                 <div className="grid grid-cols-3 gap-0 border border-black mb-4 text-xs">
                   <div className="border-r border-black flex bg-white overflow-hidden">
                     <div className="bg-blue-200 p-1 font-bold border-r border-black text-black flex flex-col justify-center items-center gap-1 w-24 shrink-0">
@@ -315,24 +308,20 @@
                     </select>
                   </div>
                 </div>
-                
                 <div className="border-t border-l border-black mb-4">
                   <div className="bg-blue-300 font-bold text-center border-r border-b border-black p-1 text-sm text-black">DEVIS DE RÉPARATION</div>
                   <div className="grid grid-cols-2 border-b border-black text-xs font-bold text-center bg-blue-200 text-black">
                     <div className="border-r border-black p-1">RÉPARATION</div><div className="border-r border-black p-1">PRIX</div>
                   </div>
                   <div className="grid grid-cols-2 border-b border-black text-xs text-center text-black">
-                    {/* MODIFIABLE: Réparation */}
                     <input className="border-r border-black p-1 font-bold text-center bg-white text-blue-800 outline-none focus:bg-blue-50 w-full" value={formSync.repair || ''} onChange={(e) => updateSync('repair', e.target.value)} />
                     <div className="border-r border-black p-1 flex items-center justify-center bg-white"><input type="number" className="w-16 text-center outline-none border-b border-dashed border-gray-400 mr-1 bg-white text-black" value={formSync.prix || ''} onChange={e => updateSync('prix', e.target.value)} /> €</div>
                   </div>
                 </div>
                 
-                {/* --- MENTION RGPD --- */}
                 <div className="mt-2 mb-2 p-2 border border-gray-400 bg-gray-50 text-[9px] text-gray-700 leading-tight">
                     <p>En signant ce document, le client accepte que ses données personnelles (nom, numéro de téléphone) soient conservées par l'atelier dans le seul but de gérer le suivi de la réparation et l'éventuelle garantie (SAV) de l'appareil, conformément à la réglementation RGPD en vigueur.</p>
                 </div>
-
             </div>
             <div>
                 <div className="border-t border-l border-black mb-4 flex flex-col">
@@ -343,8 +332,6 @@
             </div>
           </div>
         );
-
-        /* === VUES SECONDAIRES DE L'APPLICATION === */
 
         const IntakeView = ({ activeIntake, setView }) => {
           const [formSync, setFormSync] = useState(() => {
@@ -377,7 +364,7 @@
                   prix: formSync.prix,
                   intakeData: formSync 
               })
-              .then(() => alert("✅ Fiche de prise en charge et données du planning sauvegardées avec succès !"))
+              .then(() => alert("✅ Fiche de prise en charge sauvegardée !"))
               .catch((err) => { console.error(err); alert("Erreur lors de la sauvegarde."); });
           };
 
@@ -396,11 +383,6 @@
                       </button>
                   </div>
                 </div>
-                
-                <div className="mb-4 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded text-sm text-blue-800 dark:text-blue-300 print:hidden">
-                    💡 <strong>Astuce :</strong> Vous pouvez modifier le nom du client, le téléphone, le modèle et la réparation directement sur ce bon. Vous pouvez également cliquer sur <strong>Schéma</strong> pour dessiner un code de déverrouillage Android. N'oubliez pas de <strong>Sauvegarder</strong> !
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full print:gap-4 print:h-screen print:grid-cols-2">
                   <FormHalf title="EXEMPLAIRE BOUTIQUE" activeIntake={activeIntake} formSync={formSync} updateSync={updateSync} updateCategorySync={updateCategorySync} />
                   <FormHalf title="EXEMPLAIRE CLIENT" activeIntake={activeIntake} formSync={formSync} updateSync={updateSync} updateCategorySync={updateCategorySync} />
@@ -410,307 +392,11 @@
           );
         };
 
-        const TeamMessagesView = ({ setView, onOpenNav }) => {
-            const [messages, setMessages] = useState([]);
-            const [text, setText] = useState('');
-            const [author, setAuthor] = useState('');
-            const [activeTab, setActiveTab] = useState('actifs');
-            const [searchTerm, setSearchTerm] = useState('');
-
-            useEffect(() => {
-                const { collection, onSnapshot } = window.FB_SDK;
-                const unsubscribe = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
-                    const loaded = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    })).sort((a, b) => b.createdAt - a.createdAt);
-                    setMessages(loaded);
-                });
-                return unsubscribe;
-            }, []);
-
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!author || !text) return;
-                const { collection, addDoc } = window.FB_SDK;
-                await addDoc(collection(window.db, "team_notes"), {
-                    author, text, createdAt: Date.now(), status: 'active'
-                });
-                setText('');
-            };
-
-            const markAsSeen = async (id) => {
-                const { doc, updateDoc } = window.FB_SDK;
-                await updateDoc(doc(window.db, "team_notes", id), {
-                    status: 'archived', seenAt: Date.now()
-                });
-            };
-
-            const unarchiveMessage = async (id) => {
-                const { doc, updateDoc } = window.FB_SDK;
-                await updateDoc(doc(window.db, "team_notes", id), {
-                    status: 'active', seenAt: null
-                });
-            };
-
-            const deleteMessage = async (id) => {
-                const pwd = prompt("Mot de passe administrateur requis pour supprimer définitivement ce message :");
-                if (pwd !== "magretfrite") {
-                    if (pwd !== null) alert("Mot de passe incorrect.");
-                    return;
-                }
-                const { doc, deleteDoc } = window.FB_SDK;
-                await deleteDoc(doc(window.db, "team_notes", id));
-            };
-
-            const activeMessages = messages.filter(m => m.status === 'active');
-            let archivedMessages = messages.filter(m => m.status === 'archived');
-
-            if (searchTerm) {
-                const term = searchTerm.toLowerCase();
-                archivedMessages = archivedMessages.filter(m => {
-                    const authorMatch = (m.author || '').toLowerCase().includes(term);
-                    const dateStr = new Date(m.createdAt).toLocaleDateString('fr-FR');
-                    const dateMatch = dateStr.includes(term);
-                    const textMatch = (m.text || '').toLowerCase().includes(term);
-                    return authorMatch || dateMatch || textMatch;
-                });
-            }
-
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
-                        <div className="flex items-center w-full sm:w-auto">
-                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                                <span className="mr-2">📝</span> Mots pour l'équipe
-                            </h1>
-                        </div>
-                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto">
-                            <button onClick={() => { setActiveTab('actifs'); setSearchTerm(''); }} className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition flex items-center justify-center gap-2 ${activeTab === 'actifs' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-                                En attente 
-                                {activeMessages.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{activeMessages.length}</span>}
-                            </button>
-                            <button onClick={() => setActiveTab('archives')} className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'archives' ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>Archives (Lus)</button>
-                        </div>
-                    </div>
-                    
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
-                        <div className="max-w-4xl mx-auto">
-                            {activeTab === 'actifs' && (
-                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500">
-                                    <h2 className="text-lg font-bold mb-4">Laisser un message</h2>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
-                                        <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
-                                            <option value="">- Choisir -</option>
-                                            <option value="Clément">Clément</option>
-                                            <option value="Bérénys">Bérénys</option>
-                                            <option value="Gérard">Gérard</option>
-                                        </select>
-                                    </div>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium mb-1">Message pour demain / plus tard</label>
-                                        <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Ex: Attention, le client pour le S23 passe demain matin à l'ouverture..." className="w-full h-24 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500"></textarea>
-                                    </div>
-                                    <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition w-full sm:w-auto">Épingler le message</button>
-                                </form>
-                            )}
-
-                            {activeTab === 'archives' && (
-                                <div className="mb-6 flex items-center bg-white dark:bg-gray-800 rounded-full px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm focus-within:border-blue-500 transition-colors">
-                                    <span className="text-gray-500">🔍</span>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Rechercher un mot archivé (par auteur, date ex: 28/09/2026, ou contenu)..." 
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                                    />
-                                    {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2 text-lg leading-none">&times;</button>}
-                                </div>
-                            )}
-
-                            <div className="space-y-4">
-                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
-                                    <div key={m.id} className={`p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center ${activeTab === 'actifs' ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-80'}`}>
-                                        <div className="w-full">
-                                            <div className="font-bold text-gray-900 dark:text-white mb-1 flex items-center">
-                                                <span className="text-xl mr-2">📌</span> {m.author}
-                                                <span className="text-xs font-normal text-gray-500 ml-3">Le {new Date(m.createdAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
-                                            </div>
-                                            <p className="text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap mt-2">{m.text}</p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                                            {activeTab === 'actifs' ? (
-                                                <div className="flex gap-2 w-full sm:w-auto">
-                                                    <button onClick={() => markAsSeen(m.id)} className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition flex items-center justify-center shadow-sm whitespace-nowrap">
-                                                        ✅ C'est vu !
-                                                    </button>
-                                                    <button onClick={() => deleteMessage(m.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-2 rounded-lg transition flex items-center justify-center" title="Supprimer définitivement">
-                                                        🗑️
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full">
-                                                    <span className="text-xs font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-full whitespace-nowrap">
-                                                        Vu le {new Date(m.seenAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}
-                                                    </span>
-                                                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                                        <button onClick={() => unarchiveMessage(m.id)} className="flex-1 sm:flex-none bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-3 py-1.5 rounded-lg transition text-xs font-bold border border-orange-200 dark:border-orange-800 flex items-center justify-center whitespace-nowrap">
-                                                            ↩ Remettre
-                                                        </button>
-                                                        <button onClick={() => deleteMessage(m.id)} className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded-lg transition flex items-center justify-center" title="Supprimer définitivement">
-                                                            🗑️
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).length === 0 && (
-                                    <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">
-                                        {activeTab === 'actifs' ? "Aucun message en attente pour l'équipe." : (searchTerm ? "Aucun message trouvé pour cette recherche." : "L'historique est vide.")}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const SamFwGuideView = ({ onOpenNav }) => {
-            return (
-                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
-                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                            <span className="mr-2">🔓</span> Déblocage FRP & Firmware (SamFw)
-                        </h1>
-                    </div>
-                    
-                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto space-y-8">
-                            
-                            {/* SECTION 1 : FRP */}
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div className="bg-blue-100 dark:bg-blue-900/50 p-4 border-b border-blue-200 dark:border-blue-800 flex items-center">
-                                    <span className="text-2xl mr-3">🔐</span>
-                                    <h2 className="font-bold text-lg text-blue-900 dark:text-blue-100">Contournement Compte Google (FRP)</h2>
-                                </div>
-                                <div className="p-6 space-y-6">
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">1</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Lancement du logiciel</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Ouvrez <strong>SamFw FRP Tool</strong> sur l'ordinateur de l'atelier.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">2</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Branchement du téléphone</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Allumez le Samsung bloqué sur l'écran "Compte Google" et branchez-le en USB à l'ordinateur.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-red-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">3</div>
-                                        <div className="w-full">
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Menu Secret Samsung (Mode Test)</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-2">Sur le téléphone, revenez au tout premier écran de démarrage. Cliquez sur <strong>Appel d'urgence</strong>.</p>
-                                            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-                                                <p className="text-sm uppercase font-bold text-gray-500 mb-1">Tapez ce code sur le clavier :</p>
-                                                <p className="text-4xl tracking-widest font-black text-red-600 dark:text-red-400">*#0*#</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">4</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Lancer le déblocage sur PC</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Dans le logiciel SamFw, cliquez sur : 👉 <strong>Remove FRP</strong>.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-green-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">5</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Autoriser le Débogage USB</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Une popup va apparaître sur le téléphone. Cochez "Toujours autoriser" et appuyez sur OK.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                <div className="bg-green-100 dark:bg-green-900/50 p-4 border-b border-green-200 dark:border-green-800 flex items-center">
-                                    <span className="text-2xl mr-3">⚡</span>
-                                    <h2 className="font-bold text-lg text-green-900 dark:text-green-100">Flasher / Changer le Firmware Samsung</h2>
-                                </div>
-                                <div className="p-6 space-y-6">
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">1</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Télécharger le firmware</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Allez sur le site <a href="https://samfw.com" target="_blank" className="text-blue-500 font-bold hover:underline">SamFw.com</a>. Entrez le modèle exact et choisissez le code région (ex: XEF).</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">2</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Préparer les fichiers</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Extrayez le fichier ZIP téléchargé. Vous obtiendrez 5 fichiers : AP, BL, CP, CSC, HOME_CSC.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-orange-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">3</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Mode Download (Odin Mode)</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Éteignez le téléphone. Maintenez <strong>Volume Haut + Volume Bas</strong> et branchez le câble USB.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">4</div>
-                                        <div className="w-full">
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Charger les fichiers</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-3">Dans l'onglet <strong>Odin Flash</strong>, mettez chaque fichier dans sa case :</p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600"><strong>BL</strong> 👉 Fichier BL_...</div>
-                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600"><strong>AP</strong> 👉 Fichier AP_...</div>
-                                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600"><strong>CP</strong> 👉 Fichier CP_...</div>
-                                                <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 col-span-1 sm:col-span-2">
-                                                    <strong>CSC</strong> 👉 Attention : <br/>
-                                                    <span className="inline-block mt-1">• <strong>CSC_...</strong> = Efface TOUT (Remise à zéro)</span><br/>
-                                                    <span className="inline-block mt-1">• <strong>HOME_CSC_...</strong> = Conserve les données</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">5</div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white text-lg">Flasher !</h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mt-1">Cliquez sur <strong>Flash</strong>. Ne débranchez surtout pas le téléphone avant la fin.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
+        /* --- 2. ARCHIVES --- */
         const ArchivesView = ({ repairs, setView, setActiveIntake, onOpenNav }) => {
             const [searchTerm, setSearchTerm] = useState("");
             
             const archived = repairs.filter(r => r.status === 'archived').sort((a,b) => new Date(b.archivedAt || b.date) - new Date(a.archivedAt || a.date));
-            
             const filteredArchives = searchTerm ? archived.filter(r => 
                 (r.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (r.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -726,12 +412,10 @@
                     alert("Mot de passe incorrect !");
                 }
             };
-
             const unarchiveRepair = (id) => {
                 const { doc, updateDoc } = window.FB_SDK;
                 updateDoc(doc(window.db, "repairs", id), { status: 'done', archivedAt: null, pickedUpAt: null }).catch(console.error);
             };
-
             const markPickedUp = (id) => {
                 const { doc, updateDoc } = window.FB_SDK;
                 updateDoc(doc(window.db, "repairs", id), { pickedUpAt: new Date().toISOString() }).catch(console.error);
@@ -748,7 +432,6 @@
                                 <span className="mr-2">🗄️</span> Archives
                             </h1>
                         </div>
-                        
                         <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                             <span className="text-gray-500">🔍</span>
                             <input 
@@ -771,20 +454,16 @@
                                         <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded font-bold shrink-0">Le {new Date(repair.archivedAt || repair.date).toLocaleDateString('fr-FR')}</span>
                                     </div>
                                     <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
-                                    
                                     <div className="font-medium text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-start">
                                         {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase shadow-sm mt-0.5 shrink-0">SAV</span>}
                                         <span>{repair.phone} - {repair.repair}</span>
                                     </div>
-
                                     {repair.techComment && (
                                         <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded text-xs text-gray-700 dark:text-gray-300 mb-3 border border-gray-200 dark:border-gray-600">
                                             <strong>📝 Note :</strong> {repair.techComment}
                                         </div>
                                     )}
-                                    
                                     <div className="mt-auto flex flex-col gap-2 border-t border-gray-100 dark:border-gray-700 pt-4">
-                                        
                                         {repair.pickedUpAt ? (
                                             <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-center py-2 rounded-lg text-sm font-bold border border-green-200 dark:border-green-800 w-full mb-2">
                                                 ✅ Récupéré le {new Date(repair.pickedUpAt).toLocaleDateString('fr-FR')}
@@ -794,7 +473,6 @@
                                                 📦 Marquer comme Récupéré
                                             </button>
                                         )}
-
                                         <div className="flex gap-2">
                                             <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="flex-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 py-1.5 rounded text-xs font-bold transition flex justify-center items-center">
                                                 📄 Fiche
@@ -815,38 +493,25 @@
             );
         };
 
+        /* --- 3. PIÈCES À COMMANDER --- */
         const PiecesToOrderView = ({ repairs, onOpenNav }) => {
-            const repairsWithPieces = repairs.filter(r => 
-                r.status !== 'archived' && 
-                r.status !== 'done' && 
-                r.piece && 
-                r.piece !== 'Aucune / En stock'
-            ).sort((a, b) => new Date(a.date) - new Date(b.date));
-
+            const repairsWithPieces = repairs.filter(r => r.status !== 'archived' && r.status !== 'done' && r.piece && r.piece !== 'Aucune / En stock').sort((a, b) => new Date(a.date) - new Date(b.date));
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
                         <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                            <span className="mr-2">🛒</span> Pièces à commander
-                        </h1>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">🛒</span> Pièces à commander</h1>
                     </div>
-                    
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-4xl mx-auto">
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                                <p className="text-gray-700 dark:text-gray-300 mb-2">
-                                    Voici la liste de toutes les pièces associées aux réparations <strong>En cours</strong> ou <strong>En attente</strong>.
-                                </p>
+                                <p className="text-gray-700 dark:text-gray-300 mb-2">Voici la liste de toutes les pièces associées aux réparations <strong>En cours</strong> ou <strong>En attente</strong>.</p>
                                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Une fois la réparation marquée comme "Terminée" dans le planning, elle disparaîtra de cette liste.</p>
                             </div>
-
                             {repairsWithPieces.length === 0 ? (
-                                <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">
-                                    Aucune pièce à commander pour le moment.
-                                </div>
+                                <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">Aucune pièce à commander pour le moment.</div>
                             ) : (
                                 <div className="space-y-4">
                                     {repairsWithPieces.map(repair => (
@@ -855,21 +520,15 @@
                                                 <div className="flex items-center gap-3 mb-1">
                                                     <span className="font-bold text-lg">{repair.client}</span>
                                                     <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 font-semibold">{repair.phone}</span>
-                                                    {repair.vendeur && (
-                                                        <span className={`${getVendeurColor(repair.vendeur)} text-white w-3 h-3 rounded-full inline-block`} title={`Pris en charge par ${repair.vendeur}`}></span>
-                                                    )}
+                                                    {repair.vendeur && <span className={`${getVendeurColor(repair.vendeur)} text-white w-3 h-3 rounded-full inline-block`} title={`Pris en charge par ${repair.vendeur}`}></span>}
                                                 </div>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">Prévu pour le : {new Date(repair.date).toLocaleDateString('fr-FR')}</p>
                                             </div>
-                                            
                                             <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 w-full sm:w-auto min-w-[250px]">
                                                 <h4 className="font-bold text-xs text-blue-800 dark:text-blue-300 uppercase tracking-wide border-b border-blue-200 dark:border-blue-800 pb-1 mb-2">À COMMANDER</h4>
                                                 <ul className="text-sm space-y-1">
                                                     {repair.piece.split(' + ').map((p, i) => (
-                                                        <li key={i} className="flex items-start">
-                                                            <span className="mr-2">👉</span>
-                                                            <span className="font-semibold text-gray-900 dark:text-gray-100">{p}</span>
-                                                        </li>
+                                                        <li key={i} className="flex items-start"><span className="mr-2">👉</span><span className="font-semibold text-gray-900 dark:text-gray-100">{p}</span></li>
                                                     ))}
                                                 </ul>
                                             </div>
@@ -883,6 +542,7 @@
             );
         };
 
+        /* --- 4. DASHBOARD --- */
         const DashboardView = ({ repairs, onOpenNav }) => {
             const [timeRange, setTimeRange] = useState('month');
             const [showIntakesDetails, setShowIntakesDetails] = useState(false);
@@ -890,7 +550,6 @@
 
             const stats = useMemo(() => {
                 const now = new Date();
-                
                 const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
                 const getWeekNumber = (d) => {
                     const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -903,57 +562,38 @@
                 const isSameMonth = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
                 const isSameYear = (d1, d2) => d1.getFullYear() === d2.getFullYear();
 
-                let totalIntakes = 0;
-                let totalCompleted = 0;
+                let totalIntakes = 0; let totalCompleted = 0;
                 let sellerCount = { 'Clément': 0, 'Bérénys': 0, 'Gérard': 0 };
-                let intakesList = [];
-                let completedList = [];
+                let intakesList = []; let completedList = [];
 
                 repairs.forEach(r => {
                     const repairDate = new Date(r.date);
                     let match = false;
-                    
                     if (timeRange === 'day') match = isSameDay(repairDate, now);
                     else if (timeRange === 'week') match = isSameWeek(repairDate, now);
                     else if (timeRange === 'month') match = isSameMonth(repairDate, now);
                     else if (timeRange === 'year') match = isSameYear(repairDate, now);
 
                     if (match) {
-                        totalIntakes++;
-                        intakesList.push(r);
-                        if (r.status === 'done' || r.status === 'archived') {
-                            totalCompleted++;
-                            completedList.push(r);
-                        }
-                        if (r.vendeur && sellerCount[r.vendeur] !== undefined) {
-                            sellerCount[r.vendeur]++;
-                        }
+                        totalIntakes++; intakesList.push(r);
+                        if (r.status === 'done' || r.status === 'archived') { totalCompleted++; completedList.push(r); }
+                        if (r.vendeur && sellerCount[r.vendeur] !== undefined) { sellerCount[r.vendeur]++; }
                     }
                 });
 
                 intakesList.sort((a, b) => new Date(b.date) - new Date(a.date));
                 completedList.sort((a, b) => new Date(b.archivedAt || b.date) - new Date(a.archivedAt || a.date));
 
-                let bestSeller = '-';
-                let maxSales = -1;
+                let bestSeller = '-'; let maxSales = -1;
                 Object.entries(sellerCount).forEach(([name, count]) => {
-                    if (count > maxSales && count > 0) {
-                        maxSales = count;
-                        bestSeller = name;
-                    } else if (count === maxSales && count > 0) {
-                        bestSeller += ` & ${name}`; 
-                    }
+                    if (count > maxSales && count > 0) { maxSales = count; bestSeller = name; } 
+                    else if (count === maxSales && count > 0) { bestSeller += ` & ${name}`; }
                 });
 
                 return { totalIntakes, totalCompleted, sellerCount, bestSeller, maxSales, intakesList, completedList };
             }, [repairs, timeRange]);
 
-            const timeLabels = {
-                day: "Aujourd'hui",
-                week: "Cette semaine",
-                month: "Ce mois-ci",
-                year: "Cette année"
-            };
+            const timeLabels = { day: "Aujourd'hui", week: "Cette semaine", month: "Ce mois-ci", year: "Cette année" };
 
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
@@ -962,146 +602,35 @@
                             <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                             </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                                <span className="mr-2">📊</span> Statistiques
-                            </h1>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">📊</span> Statistiques</h1>
                         </div>
-                        
                         <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
                             {['day', 'week', 'month', 'year'].map(t => (
-                                <button 
-                                    key={t}
-                                    onClick={() => setTimeRange(t)} 
-                                    className={`flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium rounded-md transition whitespace-nowrap ${timeRange === t ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-                                >
+                                <button key={t} onClick={() => setTimeRange(t)} className={`flex-1 sm:flex-none px-3 py-1.5 text-sm font-medium rounded-md transition whitespace-nowrap ${timeRange === t ? 'bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
                                     {t === 'day' ? 'Jour' : t === 'week' ? 'Sem' : t === 'month' ? 'Mois' : 'Année'}
                                 </button>
                             ))}
                         </div>
                     </div>
-                    
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-4xl mx-auto space-y-6">
-                            
-                            <h2 className="text-2xl font-black mb-6 text-gray-800 dark:text-gray-100 border-b border-gray-300 dark:border-gray-700 pb-2">
-                                Période : {timeLabels[timeRange]}
-                            </h2>
-                            
+                            <h2 className="text-2xl font-black mb-6 text-gray-800 dark:text-gray-100 border-b border-gray-300 dark:border-gray-700 pb-2">Période : {timeLabels[timeRange]}</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div 
-                                    onClick={() => setShowIntakesDetails(!showIntakesDetails)}
-                                    className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition relative"
-                                >
+                                <div onClick={() => setShowIntakesDetails(!showIntakesDetails)} className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-400 transition relative">
                                     <div className="text-5xl mb-2">📱</div>
                                     <div className="text-4xl font-black text-blue-600 dark:text-blue-400 mb-1">{stats.totalIntakes}</div>
                                     <div className="text-gray-600 dark:text-gray-400 font-medium">Téléphones pris en charge</div>
-                                    <div className="text-[10px] text-blue-500 mt-3 font-bold opacity-70 uppercase tracking-widest">Voir la liste 👇</div>
                                 </div>
-                                
-                                <div 
-                                    onClick={() => setShowCompletedDetails(!showCompletedDetails)}
-                                    className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-green-400 dark:hover:border-green-500 transition relative"
-                                >
+                                <div onClick={() => setShowCompletedDetails(!showCompletedDetails)} className="cursor-pointer bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-green-400 transition relative">
                                     <div className="text-5xl mb-2">✅</div>
                                     <div className="text-4xl font-black text-green-600 dark:text-green-400 mb-1">{stats.totalCompleted}</div>
                                     <div className="text-gray-600 dark:text-gray-400 font-medium">Réparations terminées</div>
-                                    <div className="text-[10px] text-green-500 mt-3 font-bold opacity-70 uppercase tracking-widest">Voir la liste 👇</div>
                                 </div>
                             </div>
-
-                            {showIntakesDetails && (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mt-6 animate-fade-in">
-                                    <div className="flex justify-between items-center border-b pb-2 mb-4 dark:border-gray-700">
-                                        <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">
-                                            Détail des {stats.totalIntakes} appareils pris en charge ({timeLabels[timeRange]})
-                                        </h3>
-                                        <button onClick={() => setShowIntakesDetails(false)} className="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
-                                    </div>
-                                    {stats.intakesList.length === 0 ? (
-                                        <p className="text-gray-500 text-center py-4">Aucun appareil sur cette période.</p>
-                                    ) : (
-                                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                                            {stats.intakesList.map(r => (
-                                                <div key={r.id} className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center p-3 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 gap-2">
-                                                    <div>
-                                                        <p className="font-bold text-gray-900 dark:text-white flex items-center">
-                                                            {r.client} 
-                                                            <span className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-normal ml-2">📞 {r.clientPhone}</span>
-                                                        </p>
-                                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{r.phone} - {r.repair}</p>
-                                                    </div>
-                                                    <div className="text-left sm:text-right w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end">
-                                                        <span className={`text-[10px] sm:text-xs px-2 py-1 rounded font-bold uppercase tracking-wider ${r.status === 'archived' ? 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200' : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400'}`}>
-                                                            {r.status === 'archived' ? 'Archivé' : 'En cours'}
-                                                        </span>
-                                                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 sm:mt-2 bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                                                            {new Date(r.date).toLocaleDateString('fr-FR')}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {showCompletedDetails && (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mt-6 animate-fade-in">
-                                    <div className="flex justify-between items-center border-b pb-2 mb-4 dark:border-gray-700">
-                                        <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">
-                                            Détail des {stats.totalCompleted} réparations terminées ({timeLabels[timeRange]})
-                                        </h3>
-                                        <button onClick={() => setShowCompletedDetails(false)} className="text-gray-500 hover:text-red-500 font-bold text-xl">&times;</button>
-                                    </div>
-                                    {stats.completedList.length === 0 ? (
-                                        <p className="text-gray-500 text-center py-4">Aucune réparation terminée sur cette période.</p>
-                                    ) : (
-                                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                                            {stats.completedList.map(r => (
-                                                <div key={r.id} className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center p-3 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700/50 gap-2">
-                                                    <div>
-                                                        <p className="font-bold text-gray-900 dark:text-white flex items-center">
-                                                            {r.client} 
-                                                            <span className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-normal ml-2">📞 {r.clientPhone}</span>
-                                                        </p>
-                                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{r.phone} - {r.repair}</p>
-                                                    </div>
-                                                    <div className="text-left sm:text-right w-full sm:w-auto flex flex-row sm:flex-col justify-between items-center sm:items-end">
-                                                        <span className={`text-[10px] sm:text-xs px-2 py-1 rounded font-bold uppercase tracking-wider ${r.status === 'archived' ? 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200' : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400'}`}>
-                                                            {r.status === 'archived' ? 'Archivé' : 'Terminé'}
-                                                        </span>
-                                                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 sm:mt-2 bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                                                            {new Date(r.archivedAt || r.date).toLocaleDateString('fr-FR')}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center flex flex-col items-center justify-center relative overflow-hidden mt-6">
-                                <div className="absolute top-0 right-0 -mt-4 -mr-4 text-9xl opacity-10">🏆</div>
+                            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-8 rounded-xl shadow-lg text-white text-center flex flex-col items-center justify-center relative mt-6">
                                 <h3 className="text-lg font-medium text-purple-100 uppercase tracking-widest mb-1 z-10">Meilleur(e) preneur(se) en charge</h3>
                                 <div className="text-4xl sm:text-5xl font-black mb-3 z-10">{stats.bestSeller}</div>
-                                {stats.maxSales > 0 && <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">{stats.maxSales} dossiers créés</div>}
-                                {stats.maxSales === 0 && <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">Aucun dossier sur cette période</div>}
-                            </div>
-
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                                <h3 className="font-bold text-lg mb-4 border-b pb-2 dark:border-gray-700 text-gray-800 dark:text-gray-200">Détail des prises en charge par collaborateur</h3>
-                                <div className="space-y-4">
-                                    {Object.entries(stats.sellerCount).map(([name, count]) => (
-                                        <div key={name} className="flex items-center justify-between">
-                                            <div className="flex items-center">
-                                                <div className={`w-4 h-4 rounded-full mr-3 ${getVendeurColor(name)}`}></div>
-                                                <span className="font-medium text-lg">{name}</span>
-                                            </div>
-                                            <span className="font-bold text-xl">{count}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-bold z-10">{stats.maxSales > 0 ? `${stats.maxSales} dossiers créés` : 'Aucun dossier'}</div>
                             </div>
                         </div>
                     </div>
@@ -1109,9 +638,9 @@
             );
         };
 
+        /* --- 5. CODES ERREUR ITUNES / 3UTOOLS --- */
         const ErrorCodesView = ({ setView, onOpenNav }) => {
             const [searchTerm, setSearchTerm] = useState("");
-
             const errorCodes = [
                 { code: "Erreur 9 / 4014 / 4005", source: "iTunes", type: "NAND / CPU / USB", desc: "Problème de communication avec la puce mémoire (NAND) ou le processeur. Sur iPhone X et supérieur, l'erreur 4014 peut aussi venir d'un court-circuit sur l'écran ou la nappe de proximité (Face ID)." },
                 { code: "Erreur 4013", source: "iTunes", type: "Nappe Face ID / NAND", desc: "Très souvent lié à la nappe de proximité (Face ID) en court-circuit (surtout iPhone X au 13). Débranchez la nappe frontale et réessayez de démarrer ou flasher. Sinon, la puce NAND est à remplacer/reprogrammer en micro-soudure." },
@@ -1144,41 +673,23 @@
                         </div>
                         <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                             <span className="text-gray-500">🔍</span>
-                            <input 
-                                type="text" 
-                                placeholder="Recherche (ex: 4013, 20%, baseband)..." 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                            />
-                            {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2">&times;</button>}
+                            <input type="text" placeholder="Recherche (ex: 4013, 20%, baseband)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white" />
                         </div>
                     </div>
-                    
                     <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                         <div className="max-w-5xl mx-auto">
                             <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-red-500">
-                                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
-                                    Entrez un code d'erreur affiché par iTunes ou un pourcentage de blocage sur 3uTools. Ces erreurs apparaissent souvent lors d'une restauration et permettent de déduire le composant matériel défectueux.
-                                </p>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">Entrez un code d'erreur affiché par iTunes ou un pourcentage de blocage sur 3uTools pour trouver le composant matériel souvent défectueux.</p>
                             </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filtered.length === 0 && <p className="text-gray-500 py-4 col-span-3 text-center font-bold">Aucun code trouvé pour cette recherche.</p>}
                                 {filtered.map((item, idx) => (
                                     <div key={idx} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition">
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="font-bold text-lg text-red-600 dark:text-red-400">{item.code}</h3>
-                                            <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${item.source === 'iTunes' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'}`}>
-                                                {item.source}
-                                            </span>
+                                            <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${item.source === 'iTunes' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{item.source}</span>
                                         </div>
-                                        <div className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
-                                            Panne : {item.type}
-                                        </div>
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                                            {item.desc}
-                                        </p>
+                                        <div className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">Panne : {item.type}</div>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.desc}</p>
                                     </div>
                                 ))}
                             </div>
@@ -1188,6 +699,266 @@
             );
         };
 
+        /* --- 6. PANIC LOGS --- */
+        const PanicLogsView = ({ setView, onOpenNav }) => {
+            const [selectedModel, setSelectedModel] = useState(null);
+            const PanicCard = ({color, title, subtitle, desc}) => (
+                <div className={`p-4 border-l-4 border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20 rounded-r-md`}>
+                    <h4 className={`font-bold text-${color}-700 dark:text-${color}-400 text-lg`}>{title}</h4>
+                    <p className="font-bold text-gray-900 dark:text-white mt-1">{subtitle}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{desc}</p>
+                </div>
+            );
+
+            const iphone13Content = (
+                <div className="space-y-4">
+                    <PanicCard color="green" title="0x1000 (ou 4096)" subtitle="Câble flex de proximité" desc="Souvent endommagé lors d'un remplacement d'écran." />
+                    <PanicCard color="blue" title="0x800 (ou 2048)" subtitle="Nappe du port de charge" desc="" />
+                    <PanicCard color="purple" title="0x1800" subtitle="Port de charge ET Nappe de proximité" desc="Les deux pièces posent problème." />
+                    <PanicCard color="red" title="0x4000" subtitle="Ligne de données de la batterie" desc="Affichage d'un message non officiel ou fluctuation." />
+                    <PanicCard color="orange" title="0x400 / 0xc00" subtitle="Séparation de carte mère / Port de charge" desc="0x400 indique une séparation des couches (13 Mini souvent)." />
+                </div>
+            );
+
+            const iphone14Content = (
+                <div className="space-y-4">
+                    <PanicCard color="purple" title="0x400000" subtitle="Nappe de chargement sans fil" desc="Vitre arrière débranchée. Redémarrage de 3 minutes." />
+                    <PanicCard color="blue" title="0x100000" subtitle="Nappe du port de charge" desc="Redémarrage de 3 minutes." />
+                    <PanicCard color="orange" title="0x500000" subtitle="Batterie OU Moteur haptique" desc="Problème de communication. Tester avec une autre batterie." />
+                    <PanicCard color="green" title="0x200000" subtitle="Prox Flex (Proximité)" desc="Capteur de proximité débranché ou endommagé." />
+                    <PanicCard color="red" title="0x20000" subtitle="Carte Logique (Carte mère)" desc="Déconnexion de l'interposeur (Sandwich)." />
+                </div>
+            );
+
+            const panicLogsData = [
+                { id: "13", model: "iPhone 13 Series", content: iphone13Content },
+                { id: "14", model: "iPhone 14 Series", content: iphone14Content },
+                { id: "15", model: "iPhone 15 Series", content: <div className="space-y-4"><PanicCard color="purple" title="0x200000" subtitle="Nappe sans fil (Vitre arrière)" desc="" /><PanicCard color="blue" title="0x80000" subtitle="Nappe du port de charge" desc="" /></div> },
+                { id: "16", model: "iPhone 16 Series", content: <div className="space-y-4"><PanicCard color="blue" title="1572864" subtitle="Nappe de charge / Capteur air" desc="Après remplacement vitre arrière." /><PanicCard color="red" title="169" subtitle="Données de batterie" desc="" /></div> }
+            ];
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">🔍</span> {selectedModel ? `Diagnostic - ${selectedModel.model}` : 'Panic Logs iPhone'}</h1>
+                        </div>
+                        {selectedModel && <button onClick={() => setSelectedModel(null)} className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 rounded-md font-bold text-sm">&larr; Retour</button>}
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto flex flex-col h-full">
+                            {!selectedModel ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {panicLogsData.map((item) => (
+                                        <button key={item.id} onClick={() => setSelectedModel(item)} className="block w-full text-left p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 shadow-sm hover:border-blue-500 transition font-bold text-lg">
+                                            {item.model}
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200">{selectedModel.content}</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- 7. DIAGNOSTIQUE DEMARRAGE --- */
+        const DiagnosticView = ({ setView, onOpenNav }) => (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 transition flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">⚡</span> Diagnostique de démarrage smartphone</h1>
+                </div>
+                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                            <h3 className="text-lg font-bold mt-4 mb-4 border-b border-gray-200 pb-2">Retranscription des étapes de consommation (5V)</h3>
+                            <div className="space-y-3">
+                                <div className="p-3 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 text-sm"><strong>🔴 0.00A à 0.05A :</strong> Connecteur de charge HS, Nappe coupée, OVP grillée.</div>
+                                <div className="p-3 border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-sm"><strong>🟠 0.08A à 0.15A :</strong> Billage CPU/RAM, Boucle CPU.</div>
+                                <div className="p-3 border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 text-sm"><strong>🟡 0.20A à 0.40A :</strong> Corruption logicielle, Défaut ligne PMIC.</div>
+                                <div className="p-3 border-l-4 border-green-400 bg-green-50 dark:bg-green-900/20 text-sm"><strong>🟢 0.40A à 0.60A :</strong> Problème FPC écran (L'écran s'apprête).</div>
+                                <div className="p-3 border-l-4 border-green-600 bg-green-100 dark:bg-green-900/30 text-sm"><strong>🟩 0.60A à 1.50A+ :</strong> Démarrage normal en cours.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        /* --- 8. PROPOSITIONS --- */
+        const ProposalsView = ({ setView, onOpenNav }) => {
+            const [proposals, setProposals] = useState([]);
+            const [name, setName] = useState('');
+            const [text, setText] = useState('');
+
+            useEffect(() => {
+                const { collection, onSnapshot } = window.FB_SDK;
+                return onSnapshot(collection(window.db, "proposals"), (snapshot) => {
+                    setProposals(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
+                });
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!name || !text) return;
+                const { collection, addDoc } = window.FB_SDK;
+                await addDoc(collection(window.db, "proposals"), { name, text, createdAt: Date.now() });
+                setName(''); setText('');
+            };
+
+            const handleDelete = async (id, action) => {
+                const pwd = prompt(`Mot de passe administrateur :`);
+                if (pwd === "magretfrite") {
+                    const { doc, deleteDoc } = window.FB_SDK;
+                    await deleteDoc(doc(window.db, "proposals", id));
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                        <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center"><span className="mr-2">💡</span> Propositions d'amélioration</h1>
+                    </div>
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto w-full">
+                        <div className="max-w-4xl mx-auto">
+                            <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+                                <h2 className="text-lg font-bold mb-4">Nouvelle proposition</h2>
+                                <input required value={name} onChange={e => setName(e.target.value)} placeholder="Prénom" className="w-full border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 outline-none" />
+                                <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Idée..." className="w-full h-24 border rounded-md p-2 mb-4 bg-white dark:bg-gray-700 outline-none resize-none"></textarea>
+                                <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md">Envoyer</button>
+                            </form>
+                            <div className="space-y-4">
+                                {proposals.map(p => (
+                                    <div key={p.id} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between">
+                                        <div><div className="font-bold mb-1">👤 {p.name}</div><p className="text-sm">{p.text}</p></div>
+                                        <div className="flex gap-2 mt-2 sm:mt-0"><button onClick={() => handleDelete(p.id, 'Fait')} className="bg-green-500 text-white px-4 py-2 rounded text-sm font-bold">✅ Fait</button></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        /* --- 9. GUIDE SAMFW --- */
+        const SamFwGuideView = ({ onOpenNav }) => (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+                    <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <h1 className="text-xl font-bold"><span className="mr-2">🔓</span> Déblocage FRP & Firmware (SamFw)</h1>
+                </div>
+                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto space-y-8">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="bg-blue-100 dark:bg-blue-900/50 p-4 border-b border-blue-200 font-bold text-lg text-blue-900 dark:text-blue-100">🔐 Contournement Compte Google (FRP)</div>
+                            <div className="p-6 space-y-4">
+                                <p>1. Lancez <strong>SamFw FRP Tool</strong> sur le PC.</p>
+                                <p>2. Branchez le Samsung bloqué en USB.</p>
+                                <p>3. Sur le téléphone, tapez <strong className="text-red-500">*#0*#</strong> dans l'appel d'urgence pour ouvrir le mode Test.</p>
+                                <p>4. Sur le PC, cliquez sur <strong>Remove FRP</strong>.</p>
+                                <p>5. Autorisez le débogage USB sur l'écran du téléphone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        /* --- 10. NOTES D'ÉQUIPE --- */
+        const TeamMessagesView = ({ setView, onOpenNav }) => {
+            const [messages, setMessages] = useState([]);
+            const [text, setText] = useState('');
+            const [author, setAuthor] = useState('');
+            const [activeTab, setActiveTab] = useState('actifs');
+            const [searchTerm, setSearchTerm] = useState('');
+
+            useEffect(() => {
+                const { collection, onSnapshot } = window.FB_SDK;
+                return onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
+                    setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => b.createdAt - a.createdAt));
+                });
+            }, []);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!author || !text) return;
+                const { collection, addDoc } = window.FB_SDK;
+                await addDoc(collection(window.db, "team_notes"), { author, text, createdAt: Date.now(), status: 'active' });
+                setText('');
+            };
+
+            const markAsSeen = async (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'archived', seenAt: Date.now() });
+            const unarchiveMessage = async (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "team_notes", id), { status: 'active', seenAt: null });
+            const deleteMessage = async (id) => {
+                if (prompt("Mot de passe administrateur :") === "magretfrite") window.FB_SDK.deleteDoc(window.FB_SDK.doc(window.db, "team_notes", id));
+            };
+
+            const activeMessages = messages.filter(m => m.status === 'active');
+            let archivedMessages = messages.filter(m => m.status === 'archived');
+            if (searchTerm) archivedMessages = archivedMessages.filter(m => (m.author+m.text+new Date(m.createdAt).toLocaleDateString()).toLowerCase().includes(searchTerm.toLowerCase()));
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center sticky top-0 z-10">
+                        <div className="flex items-center">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                            <h1 className="text-xl font-bold">📝 Mots pour l'équipe</h1>
+                        </div>
+                        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                            <button onClick={() => { setActiveTab('actifs'); setSearchTerm(''); }} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'actifs' ? 'bg-white text-blue-600' : 'text-gray-600'}`}>En attente {activeMessages.length > 0 && <span className="ml-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">{activeMessages.length}</span>}</button>
+                            <button onClick={() => setActiveTab('archives')} className={`px-4 py-2 text-sm font-bold rounded-md ${activeTab === 'archives' ? 'bg-white text-blue-600' : 'text-gray-600'}`}>Archives</button>
+                        </div>
+                    </div>
+                    <div className="flex-1 p-4 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto">
+                            {activeTab === 'actifs' && (
+                                <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 mb-8">
+                                    <h2 className="font-bold mb-2">Laisser un message</h2>
+                                    <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 outline-none rounded"><option value="">- Qui écrit ? -</option><option value="Clément">Clément</option><option value="Bérénys">Bérénys</option><option value="Gérard">Gérard</option></select>
+                                    <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Message..." className="w-full border p-2 mb-4 bg-white dark:bg-gray-700 outline-none rounded resize-none h-24"></textarea>
+                                    <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded">Épingler</button>
+                                </form>
+                            )}
+                            {activeTab === 'archives' && (
+                                <input type="text" placeholder="🔍 Rechercher (nom, date, mot)..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white dark:bg-gray-800 border p-3 rounded-full mb-6 outline-none" />
+                            )}
+                            <div className="space-y-4">
+                                {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
+                                    <div key={m.id} className="p-5 rounded-xl border flex flex-col sm:flex-row justify-between bg-white dark:bg-gray-800">
+                                        <div><div className="font-bold">📌 {m.author} <span className="text-xs text-gray-500 font-normal ml-2">{new Date(m.createdAt).toLocaleDateString('fr-FR')}</span></div><p className="mt-2">{m.text}</p></div>
+                                        <div className="flex gap-2 mt-4 sm:mt-0">
+                                            {activeTab === 'actifs' ? (
+                                                <><button onClick={() => markAsSeen(m.id)} className="bg-green-500 text-white font-bold px-4 py-2 rounded">✅ C'est vu !</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 text-red-600 px-3 py-2 rounded">🗑️</button></>
+                                            ) : (
+                                                <><button onClick={() => unarchiveMessage(m.id)} className="bg-orange-100 text-orange-700 px-3 py-2 rounded text-xs font-bold">↩ Remettre</button><button onClick={() => deleteMessage(m.id)} className="bg-red-100 text-red-600 px-3 py-2 rounded">🗑️</button></>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        /* ==============================================================================
+           APPLICATION PRINCIPALE / ROUTEUR
+           ============================================================================== */
         function AppContent() {
           const [repairs, setRepairs] = useState([]);
           const [currentDate, setCurrentDate] = useState(new Date());
@@ -1201,77 +972,29 @@
 
           const [formData, setFormData] = useState({ 
               client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
-              pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {},
-              isSAV: false, vendeur: ''
+              pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: ''
           });
           
           const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
           useEffect(() => {
-              const today = new Date();
-              let targetDate = new Date(today);
-
-              if (formData.pieces.length > 0) {
-                  if (today.getDay() === 6) { 
-                      targetDate.setDate(today.getDate() + 3); 
-                  } else {
-                      targetDate.setDate(today.getDate() + 1); 
-                  }
-              } else {
-                  targetDate = today; 
-              }
-
-              const newDateISO = getLocalISO(targetDate);
-              setFormData(prev => {
-                  if (prev.date !== newDateISO) {
-                      return { ...prev, date: newDateISO };
-                  }
-                  return prev;
-              });
-          }, [formData.pieces]);
-
-          useEffect(() => {
             const handleFirebaseReady = () => {
               const { collection, onSnapshot } = window.FB_SDK;
-              
-              const unsubscribeRepairs = onSnapshot(collection(window.db, "repairs"), (snapshot) => {
-                const loadedRepairs = snapshot.docs.map(doc => ({
-                  id: doc.id,
-                  ...doc.data()
-                }));
-                setRepairs(loadedRepairs);
+              const unSub1 = onSnapshot(collection(window.db, "repairs"), (snapshot) => {
+                setRepairs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
               });
-
-              // Écoute pour le compteur de messages d'équipe non lus
-              const unsubscribeNotes = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
-                  let count = 0;
-                  snapshot.forEach(doc => {
-                      if(doc.data().status === 'active') count++;
-                  });
-                  setActiveNotesCount(count);
+              const unSub2 = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
+                  let count = 0; snapshot.forEach(doc => { if(doc.data().status === 'active') count++; }); setActiveNotesCount(count);
               });
-
-              return () => {
-                  unsubscribeRepairs();
-                  unsubscribeNotes();
-              };
+              return () => { unSub1(); unSub2(); };
             };
-
-            if (window.FB_SDK) {
-              handleFirebaseReady();
-            } else {
-              window.addEventListener('firebase-ready', handleFirebaseReady);
-            }
+            if (window.FB_SDK) handleFirebaseReady();
+            else window.addEventListener('firebase-ready', handleFirebaseReady);
           }, []);
 
           useEffect(() => {
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
+            if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); } 
+            else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
           }, [isDarkMode]);
 
           const weekDates = (() => {
@@ -1280,11 +1003,7 @@
             const monday = new Date(curr);
             monday.setDate(curr.getDate() - day + 1); 
             const days = [];
-            for (let i = 0; i < 6; i++) { 
-              const d = new Date(monday);
-              d.setDate(monday.getDate() + i);
-              days.push(d);
-            }
+            for (let i = 0; i < 6; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); days.push(d); }
             return days;
           })();
 
@@ -1293,208 +1012,82 @@
             if (!formData.client || !formData.phone || !formData.repair) return;
             let submitDate = formData.date;
             const dCheck = new Date(submitDate);
-            if (dCheck.getDay() === 0) {
-                dCheck.setDate(dCheck.getDate() + 1); 
-                submitDate = getLocalISO(dCheck);
-            }
+            if (dCheck.getDay() === 0) { dCheck.setDate(dCheck.getDate() + 1); submitDate = getLocalISO(dCheck); }
             
-            let finalPieceStrings = [];
-            formData.pieces.forEach(p => {
-                let pName = p;
-                if (p === 'Autre' && formData.customPiece) {
-                    pName = formData.customPiece;
-                } else if (p === 'Autre') {
-                    return; 
-                }
-
-                let sup = formData.pieceSuppliers[p] || '';
-                if (sup === 'Autre') {
-                    sup = formData.customPieceSuppliers[p] || '';
-                }
-
-                if (sup) {
-                    finalPieceStrings.push(`${pName} (${sup})`);
-                } else {
-                    finalPieceStrings.push(pName);
-                }
+            let finalPieces = formData.pieces.map(p => {
+                let pName = p === 'Autre' ? formData.customPiece : p;
+                let sup = formData.pieceSuppliers[p] === 'Autre' ? formData.customPieceSuppliers[p] : formData.pieceSuppliers[p];
+                return sup ? `${pName} (${sup})` : pName;
             });
 
-            const pieceString = finalPieceStrings.length > 0 ? finalPieceStrings.join(' + ') : 'Aucune / En stock';
-            
             const newRepair = { 
                 client: formData.client, clientPhone: formData.clientPhone, phone: formData.phone, repair: formData.repair,
-                date: submitDate, 
-                piece: pieceString, 
-                supplier: '', 
-                status: 'pending',
-                order: Date.now(), 
-                isPriority: false,
-                isSAV: formData.isSAV,
-                vendeur: formData.vendeur 
+                date: submitDate, piece: finalPieces.length > 0 ? finalPieces.join(' + ') : 'Aucune / En stock', 
+                status: 'pending', order: Date.now(), isPriority: false, isSAV: formData.isSAV, vendeur: formData.vendeur 
             };
 
-            const { collection, addDoc } = window.FB_SDK;
-            addDoc(collection(window.db, "repairs"), newRepair).catch(console.error);
-
-            setFormData({ 
-                client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
-                pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: '' 
-            });
+            window.FB_SDK.addDoc(window.FB_SDK.collection(window.db, "repairs"), newRepair);
+            setFormData({ client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: '' });
             setActiveIntake({ id: "temp-" + Date.now(), ...newRepair });
             setView('intake');
           };
 
-          const updateRepairStatus = (id, newStatus) => {
-            const { doc, updateDoc } = window.FB_SDK;
-            updateDoc(doc(window.db, "repairs", id), { status: newStatus }).catch(console.error);
-          };
-
-          const archiveRepair = (id) => {
-            const { doc, updateDoc } = window.FB_SDK;
-            updateDoc(doc(window.db, "repairs", id), { 
-                status: 'archived', 
-                archivedAt: new Date().toISOString() 
-            }).catch(console.error);
-          };
-
-          const updateRepairDate = (id, newDate) => {
-            const { doc, updateDoc } = window.FB_SDK;
-            updateDoc(doc(window.db, "repairs", id), { date: newDate }).catch(console.error);
-          };
-
-          const togglePriority = (id, currentVal) => {
-            const { doc, updateDoc } = window.FB_SDK;
-            updateDoc(doc(window.db, "repairs", id), { isPriority: !currentVal }).catch(console.error);
-          };
-
-          const handleCommentBlur = (e, repair) => {
-              if (e.target.value !== (repair.techComment || '')) {
-                  const { doc, updateDoc } = window.FB_SDK;
-                  updateDoc(doc(window.db, "repairs", repair.id), { techComment: e.target.value }).catch(console.error);
-              }
-          };
+          const updateRepairStatus = (id, newStatus) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { status: newStatus });
+          const archiveRepair = (id) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { status: 'archived', archivedAt: new Date().toISOString() });
+          const togglePriority = (id, currentVal) => window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", id), { isPriority: !currentVal });
+          const handleCommentBlur = (e, repair) => { if (e.target.value !== (repair.techComment || '')) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", repair.id), { techComment: e.target.value }); };
 
           const handleDrop = (e, targetDateStr, targetRepairId = null) => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             const draggedId = e.dataTransfer.getData('repairId');
             if (!draggedId || draggedId === targetRepairId) return;
-
             const draggedRepair = repairs.find(r => r.id === draggedId);
             if (!draggedRepair) return;
 
-            let targetDayRepairs = repairs.filter(r => r.date === targetDateStr && r.status !== 'archived').sort((a, b) => {
-                if (a.isPriority && !b.isPriority) return -1;
-                if (!a.isPriority && b.isPriority) return 1;
-                return (a.order || 0) - (b.order || 0);
-            });
-
-            targetDayRepairs = targetDayRepairs.filter(r => r.id !== draggedId);
-
+            let targetDayRepairs = repairs.filter(r => r.date === targetDateStr && r.status !== 'archived').filter(r => r.id !== draggedId);
             if (targetRepairId) {
                 const targetIndex = targetDayRepairs.findIndex(r => r.id === targetRepairId);
-                if (targetIndex !== -1) {
-                    targetDayRepairs.splice(targetIndex, 0, draggedRepair);
-                } else {
-                    targetDayRepairs.push(draggedRepair);
-                }
-            } else {
-                targetDayRepairs.push(draggedRepair);
-            }
+                targetDayRepairs.splice(targetIndex !== -1 ? targetIndex : targetDayRepairs.length, 0, draggedRepair);
+            } else { targetDayRepairs.push(draggedRepair); }
 
-            const { doc, updateDoc } = window.FB_SDK;
             targetDayRepairs.forEach((rep, index) => {
                 const newOrder = index * 10;
-                if (rep.id === draggedId) {
-                    updateDoc(doc(window.db, "repairs", rep.id), { date: targetDateStr, order: newOrder }).catch(console.error);
-                } else if (rep.order !== newOrder) {
-                    updateDoc(doc(window.db, "repairs", rep.id), { order: newOrder }).catch(console.error);
-                }
+                if (rep.id === draggedId) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", rep.id), { date: targetDateStr, order: newOrder });
+                else if (rep.order !== newOrder) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", rep.id), { order: newOrder });
             });
           };
-
-          const togglePieces = (id) => {
-              setExpandedPieces(prev => ({ ...prev, [id]: !prev[id] }));
-          };
-
-          const getStatusColors = (repair) => {
-            if(repair.status === 'done') return 'bg-green-100 dark:bg-green-900/40 border-green-500 text-green-900 dark:text-green-100';
-            if(repair.status === 'waiting') return 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-500 text-yellow-900 dark:text-yellow-100';
-            if(repair.isPriority) return 'bg-red-100 dark:bg-red-900/40 border-red-500 text-red-900 dark:text-red-100 border-2 shadow-[0_0_8px_rgba(239,68,68,0.4)]';
-            return 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 shadow-sm'; 
-          };
-
-          const filteredRepairs = searchTerm ? repairs.filter(r => 
-              (r.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (r.phone || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-              (r.clientPhone || '').includes(searchTerm)
-          ) : [];
 
           return (
             <div className="flex w-full min-h-screen">
-              {isNavOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 transition-opacity print:hidden" onClick={() => setIsNavOpen(false)}></div>
-              )}
+              {isNavOpen && <div className="fixed inset-0 bg-black/50 z-40 print:hidden" onClick={() => setIsNavOpen(false)}></div>}
               
               <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl z-50 transform transition-transform duration-300 print:hidden ${isNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                   <div className="p-6 flex flex-col h-full">
                       <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-gray-700 pb-4 shrink-0">
-                          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
-                          <button onClick={() => setIsNavOpen(false)} className="text-gray-500 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
+                          <h2 className="text-xl font-bold dark:text-white">Menu</h2>
+                          <button onClick={() => setIsNavOpen(false)} className="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
                       </div>
                       <div className="space-y-3 overflow-y-auto pb-4">
-                          <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'planning' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">📅</span> Planning
+                          <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">📅</span> Planning</button>
+                          <button onClick={() => { setView('pieces'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🛒</span> Pièces à commander</button>
+                          <button onClick={() => { setView('archives'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🗄️</span> Archives</button>
+                          <button onClick={() => { setView('team_notes'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between">
+                              <div><span className="mr-3">📝</span> Mots d'équipe</div>
+                              {activeNotesCount > 0 && <span className="bg-red-500 text-white text-[10px] px-2 rounded-full">{activeNotesCount}</span>}
                           </button>
-                          
-                          <button onClick={() => { setView('pieces'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'pieces' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🛒</span> Pièces à commander
-                          </button>
-
-                          <button onClick={() => { setView('archives'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'archives' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🗄️</span> Archives
-                          </button>
-
-                          {/* MENU AVEC PASTILLE DE NOTIFICATION */}
-                          <button onClick={() => { setView('team_notes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center justify-between ${view === 'team_notes' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <div className="flex items-center"><span className="mr-3">📝</span> Mots de l'équipe</div>
-                              {activeNotesCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">{activeNotesCount}</span>}
-                          </button>
-
-                          <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🔍</span> Logs iPhone (Panic)
-                          </button>
-                          
-                          <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">⚡</span> Diagnostique de démarrage
-                          </button>
-
-                          {/* MENU SAMFW TOOL */}
-                          <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'samfw_guide' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🔓</span> Déblocage FRP (SamFw)
-                          </button>
-
-                          <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'error_codes' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🚨</span> Erreurs (iTunes/3u)
-                          </button>
-
-                          <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" rel="noopener noreferrer" className="w-full text-left p-3 rounded-md font-bold transition flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
-                              <span className="mr-3">💶</span> Reprise Smartphone <span className="ml-auto text-xs opacity-50">↗</span>
-                          </a>
+                          <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🔍</span> Logs iPhone</button>
+                          <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">⚡</span> Diag. démarrage</button>
+                          <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🔓</span> SamFw (FRP)</button>
+                          <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">🚨</span> Erreurs (iTunes)</button>
+                          <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700 block"><span className="mr-3">💶</span> Reprise Mobile</a>
                       </div>
-
-                      <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
-                          <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">📊</span> Statistiques
-                          </button>
-                          <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'proposals' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">💡</span> Proposition d'amélioration
-                          </button>
+                      <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">📊</span> Statistiques</button>
+                          <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className="w-full text-left p-3 rounded-md font-bold hover:bg-gray-100 dark:hover:bg-gray-700"><span className="mr-3">💡</span> Propositions</button>
                       </div>
                   </div>
               </div>
 
-              {/* GESTION DE L'AFFICHAGE DES VUES PRINCIPALES */}
               {view === 'intake' && activeIntake ? (
                   <IntakeView activeIntake={activeIntake} setView={setView} />
               ) : view === 'panic_logs' ? (
@@ -1516,359 +1109,71 @@
               ) : view === 'dashboard' ? (
                   <DashboardView repairs={repairs} onOpenNav={() => setIsNavOpen(true)} />
               ) : (
-                <div className="flex flex-col lg:flex-row w-full font-sans text-black dark:text-white transition-colors duration-200">
-                  <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 flex flex-col shadow-sm z-10 transition-colors duration-200 overflow-y-auto">
+                <div className="flex flex-col lg:flex-row w-full font-sans">
+                  <div className="w-full lg:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 shadow-sm z-10 overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center" title="Ouvrir le menu">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
+                            <button onClick={() => setIsNavOpen(true)} className="mr-3 p-2 bg-gray-100 dark:bg-gray-700 rounded-md"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+                            <h1 className="text-xl font-bold">Planning</h1>
                         </div>
-                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Changer de thème">
-                            {isDarkMode ? '☀️' : '🌙'}
-                        </button>
+                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full">{isDarkMode ? '☀️' : '🌙'}</button>
                     </div>
-                    
-                    <form onSubmit={handleSubmit} className="flex-1 space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Nom du client</label>
-                        <input type="text" required value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">N° de téléphone (Client)</label>
-                        <input type="tel" required value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} placeholder="06..." className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Modèle de l'appareil</label>
-                        <input type="text" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Réparation ou panne</label>
-                        <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
-                      </div>
-                      
-                      <div className="pt-1">
-                          <label className="flex items-center space-x-2 text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer bg-red-50 dark:bg-red-900/20 p-2.5 rounded-md border border-red-200 dark:border-red-800 transition hover:bg-red-100 dark:hover:bg-red-900/40">
-                              <input 
-                                  type="checkbox" 
-                                  checked={formData.isSAV} 
-                                  onChange={(e) => setFormData({...formData, isSAV: e.target.checked})}
-                                  className="rounded border-red-300 text-red-600 w-5 h-5 cursor-pointer focus:ring-red-500"
-                              />
-                              <span className="text-red-700 dark:text-red-400 font-bold tracking-wide">⚠️ SAV (Garantie)</span>
-                          </label>
-                      </div>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div><label className="block text-sm font-medium mb-1">Nom du client</label><input required value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} className="w-full border rounded-md p-2 outline-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600" /></div>
+                      <div><label className="block text-sm font-medium mb-1">N° de téléphone</label><input type="tel" required value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} className="w-full border rounded-md p-2 outline-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600" /></div>
+                      <div><label className="block text-sm font-medium mb-1">Modèle de l'appareil</label><input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full border rounded-md p-2 outline-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600" /></div>
+                      <div><label className="block text-sm font-medium mb-1">Réparation ou panne</label><input required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border rounded-md p-2 outline-none bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600" /></div>
+                      <label className="flex items-center space-x-2 text-sm font-medium bg-red-50 dark:bg-red-900/20 p-2.5 rounded-md border border-red-200 cursor-pointer text-red-700 dark:text-red-400">
+                          <input type="checkbox" checked={formData.isSAV} onChange={(e) => setFormData({...formData, isSAV: e.target.checked})} className="w-5 h-5"/><span>⚠️ SAV (Garantie)</span>
+                      </label>
+                      <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700">+ Ajouter au planning</button>
+                    </form>
+                  </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 mt-2">Pièce(s) Commandée(s)</label>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre Arrière'].map(p => (
-                                <label key={p} className="flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={formData.pieces.includes(p)} 
-                                        onChange={(e) => {
-                                            const newPieces = e.target.checked 
-                                                ? [...formData.pieces, p] 
-                                                : formData.pieces.filter(x => x !== p);
-                                            setFormData({...formData, pieces: newPieces});
-                                        }}
-                                        className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
-                                    />
-                                    <span className="truncate">{p}</span>
-                                </label>
-                            ))}
-                            <label className="col-span-2 flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
-                                <input 
-                                    type="checkbox" 
-                                    checked={formData.pieces.includes('Autre')} 
-                                    onChange={(e) => {
-                                        const newPieces = e.target.checked 
-                                            ? [...formData.pieces, 'Autre'] 
-                                            : formData.pieces.filter(x => x !== 'Autre');
-                                        setFormData({...formData, pieces: newPieces});
-                                    }}
-                                    className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
-                                />
-                                <span className="truncate">Autre chose (préciser)...</span>
-                            </label>
+                  <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center shadow-sm">
+                        <div className="flex gap-2">
+                            <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&larr;</button>
+                            <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&rarr;</button>
+                            <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-md text-sm">Auj.</button>
                         </div>
-                      </div>
-
-                      {formData.pieces.includes('Autre') && (
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez la pièce</label>
-                            <input type="text" required value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
-                          </div>
-                      )}
-                      
-                      {formData.pieces.length > 0 && (
-                        <div className="space-y-3 mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                            <label className="block text-sm font-bold text-gray-800 dark:text-gray-200">Fournisseur(s) optionnel(s)</label>
-                            {formData.pieces.map(p => {
-                                const displayName = p === 'Autre' ? (formData.customPiece || 'Autre pièce') : p;
+                    </div>
+                    <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
+                        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 min-h-[500px] lg:min-h-0">
+                            {weekDates.map((date, idx) => {
+                                const dateStr = getLocalISO(date);
+                                const isToday = dateStr === getLocalISO(new Date());
+                                const dayRepairs = repairs.filter(r => r.date === dateStr && r.status !== 'archived').sort((a, b) => (a.isPriority===b.isPriority ? (a.order||0)-(b.order||0) : (a.isPriority ? -1 : 1)));
                                 return (
-                                    <div key={p} className="flex flex-col bg-gray-50 dark:bg-gray-700/30 p-2 rounded border border-gray-200 dark:border-gray-600">
-                                        <span className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">{displayName}</span>
-                                        <select 
-                                            value={formData.pieceSuppliers[p] || ''} 
-                                            onChange={e => setFormData({...formData, pieceSuppliers: { ...formData.pieceSuppliers, [p]: e.target.value }})}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm"
-                                        >
-                                            <option value="">-- Aucun --</option>
-                                            <option value="Utopya">Utopya</option>
-                                            <option value="Mobilax">Mobilax</option>
-                                            <option value="Amazon">Amazon</option>
-                                            <option value="Autre">Autre (préciser)...</option>
-                                        </select>
-                                        
-                                        {formData.pieceSuppliers[p] === 'Autre' && (
-                                            <input 
-                                                type="text" 
-                                                placeholder="Nom du fournisseur..." 
-                                                required 
-                                                value={formData.customPieceSuppliers[p] || ''} 
-                                                onChange={e => setFormData({...formData, customPieceSuppliers: { ...formData.customPieceSuppliers, [p]: e.target.value }})}
-                                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm mt-2" 
-                                            />
-                                        )}
+                                    <div key={idx} onDragOver={e=>e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr)} className={`flex flex-col rounded-lg border ${isToday ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-500 shadow-md' : 'bg-gray-100 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700'}`}>
+                                        <div className={`p-2 text-center border-b font-bold text-sm ${isToday ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                                            {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][date.getDay()]} <br/> {String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                                            {dayRepairs.map(repair => (
+                                                <div key={repair.id} draggable onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, dateStr, repair.id)} className={`p-3 rounded-md border text-sm cursor-grab ${repair.status === 'done' ? 'bg-green-100 border-green-500 text-green-900' : repair.status === 'waiting' ? 'bg-yellow-100 border-yellow-500 text-yellow-900' : repair.isPriority ? 'bg-red-100 border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-white dark:bg-gray-700 border-gray-200'} relative`}>
+                                                    <div className="font-bold flex justify-between mb-1">
+                                                        <div className="truncate pr-2">{repair.client}</div>
+                                                    </div>
+                                                    <div className="font-medium text-xs mb-1 truncate">{repair.phone}</div>
+                                                    <div className="text-xs mb-2">{repair.isSAV && <span className="bg-red-600 text-white px-1.5 rounded mr-1 font-bold text-[9px] uppercase">SAV</span>}{repair.repair}</div>
+                                                    
+                                                    <textarea className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 resize-none outline-none" rows="2" placeholder="Note réparation..." defaultValue={repair.techComment || ''} onBlur={(e) => handleCommentBlur(e, repair)} />
+                                                    
+                                                    <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 text-blue-800 text-xs py-1.5 rounded font-bold shadow-sm">📝 Fiche</button>
+                                                    
+                                                    <div className="flex gap-1 mt-2">
+                                                        {repair.status !== 'done' && <button onClick={() => updateRepairStatus(repair.id, 'done')} className="flex-1 bg-green-500 text-white text-xs py-1 rounded font-bold">Terminé</button>}
+                                                        {repair.status === 'done' && <button onClick={() => updateRepairStatus(repair.id, 'pending')} className="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded font-bold">↩</button>}
+                                                        <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-gray-800 text-white text-xs py-1 rounded font-bold">🗄️ Archiver</button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 );
                             })}
                         </div>
-                      )}
-
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Vendeur</label>
-                            <select 
-                                required
-                                className="w-full p-2 outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md" 
-                                value={formData.vendeur} 
-                                onChange={e => setFormData({...formData, vendeur: e.target.value})}
-                            >
-                              <option value="">- CHOISIR -</option>
-                              <option value="Clément">CLÉMENT</option>
-                              <option value="Bérénys">BÉRÉNYS</option>
-                              <option value="Gérard">GÉRARD</option>
-                            </select>
-                        </div>
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Date prévue</label>
-                            <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
-                        </div>
-                      </div>
-                      <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">+ Ajouter au planning</button>
-                    </form>
-                  </div>
-
-                  <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4">
-                      <div className="flex items-center space-x-2 sm:space-x-4">
-                        <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-black dark:text-white">&larr;</button>
-                        <h2 className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white text-center whitespace-nowrap hidden lg:block">
-                            Du {weekDates[0].toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})} au {weekDates[5].toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})}
-                        </h2>
-                        <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-black dark:text-white">&rarr;</button>
-                        <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/60 transition text-sm">Auj.</button>
-                      </div>
-
-                      <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
-                          <span className="text-gray-500">🔍</span>
-                          <input 
-                              type="text" 
-                              placeholder="Recherche client, modèle, tel..." 
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                          />
-                          {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2">&times;</button>}
-                      </div>
-                      
-                      <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition shrink-0">
-                          {isDarkMode ? '☀️' : '🌙'}
-                      </button>
-                    </div>
-
-                    <div className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
-                      {searchTerm ? (
-                          <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                              <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Résultats pour "{searchTerm}"</h2>
-                              {filteredRepairs.length === 0 ? (
-                                  <p className="text-gray-500 text-center py-8">Aucune fiche ne correspond à cette recherche.</p>
-                              ) : (
-                                  <div className="space-y-3">
-                                      {filteredRepairs.map(r => (
-                                          <div key={r.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition gap-4">
-                                              <div>
-                                                  <p className="font-bold text-lg text-gray-900 dark:text-white">{r.client} <span className="text-blue-600 dark:text-blue-400 text-base font-normal ml-2">📞 {r.clientPhone}</span></p>
-                                                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{r.phone} : {r.repair}</p>
-                                                  <span className={`text-xs px-2 py-1 rounded font-bold mt-2 inline-block ${r.status === 'archived' ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' : 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-400'}`}>
-                                                      {r.status === 'archived' ? 'Archivé' : 'En cours'}
-                                                  </span>
-                                              </div>
-                                              <button onClick={() => { setActiveIntake(r); setView('intake'); setSearchTerm(''); }} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-bold shadow-sm transition">
-                                                  Ouvrir
-                                              </button>
-                                          </div>
-                                      ))}
-                                  </div>
-                              )}
-                          </div>
-                      ) : (
-                          <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 h-auto lg:h-full min-h-[500px] lg:min-h-0">
-                            {weekDates.map((date, idx) => {
-                              const dateStr = getLocalISO(date);
-                              const isToday = dateStr === getLocalISO(new Date());
-                              
-                              const dayRepairs = repairs.filter(r => r.date === dateStr && r.status !== 'archived').sort((a, b) => {
-                                  if (a.isPriority && !b.isPriority) return -1;
-                                  if (!a.isPriority && b.isPriority) return 1;
-                                  return (a.order || 0) - (b.order || 0);
-                              });
-
-                              return (
-                                <div key={idx} 
-                                     onDragOver={e=>e.preventDefault()} 
-                                     onDrop={(e) => handleDrop(e, dateStr)} 
-                                     className={`flex flex-col rounded-lg overflow-hidden transition-all duration-200 min-h-[300px] lg:min-h-0
-                                     ${isToday ? 'bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-500 shadow-md' : 'bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700'}`}>
-                                  
-                                  <div className={`p-1 sm:p-2 text-center border-b font-bold text-xs sm:text-sm 
-                                                  ${isToday ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600'}`}>
-                                    {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][date.getDay()]} <br className="lg:hidden" /> {String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}
-                                  </div>
-                                  
-                                  <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
-                                    {dayRepairs.map(repair => (
-                                      <div key={repair.id} 
-                                           draggable 
-                                           onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} 
-                                           onDragOver={(e) => e.preventDefault()}
-                                           onDrop={(e) => handleDrop(e, dateStr, repair.id)}
-                                           className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab border-opacity-50 ${getStatusColors(repair)} relative`}
-                                      >
-                                        <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
-                                          <div className="flex flex-col truncate pr-2 w-full">
-                                            <span className="text-xs sm:text-sm truncate flex items-center">
-                                                {repair.vendeur && (
-                                                    <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 shrink-0 ${getVendeurColor(repair.vendeur)}`} title={`Vendeur: ${repair.vendeur}`}></span>
-                                                )}
-                                                {repair.client}
-                                            </span>
-                                          </div>
-                                          <div className="flex space-x-1 flex-shrink-0">
-                                              {repair.status !== 'done' && (
-                                                  <button 
-                                                      onClick={() => togglePriority(repair.id, repair.isPriority)}
-                                                      className={`text-[10px] px-1.5 py-0.5 rounded shadow-sm transition ${repair.isPriority ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'}`}
-                                                      title="Mettre en priorité"
-                                                  >
-                                                      {repair.isPriority ? '🔥 Urgent' : '⭐'}
-                                                  </button>
-                                              )}
-                                              {repair.status === 'done' && <span className="text-green-700 dark:text-green-400 font-bold ml-1">✓</span>}
-                                              {repair.status === 'waiting' && <span className="text-yellow-700 dark:text-yellow-400 font-bold ml-1">⏳</span>}
-                                          </div>
-                                        </div>
-                                        
-                                        {repair.clientPhone && <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</div>}
-                                        <div className="text-gray-900 dark:text-gray-200 font-medium mb-1 text-xs sm:text-sm truncate">{repair.phone}</div>
-                                        
-                                        <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">
-                                            {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-1 font-bold text-[9px] uppercase shadow-sm">SAV</span>}
-                                            {repair.repair}
-                                        </div>
-                                        
-                                        {repair.piece !== 'Aucune / En stock' && (
-                                            <div 
-                                                onClick={(e) => { e.stopPropagation(); togglePieces(repair.id); }}
-                                                className={`bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1.5 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold w-full cursor-pointer transition-all`}
-                                                title="Cliquez pour afficher/masquer toutes les pièces"
-                                            >
-                                                {expandedPieces[repair.id] ? (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <span className="border-b border-blue-200 dark:border-blue-700 pb-1 mb-1">🛒 Pièces à commander :</span>
-                                                        {repair.piece.split(' + ').map((pItem, i) => (
-                                                            <span key={i} className="whitespace-normal pl-1">👉 {pItem}</span>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="truncate w-full">
-                                                        🛒 {repair.piece}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        <textarea 
-                                            className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white resize-none outline-none focus:border-blue-500" 
-                                            rows="2" 
-                                            placeholder="Détail réparation / Note..." 
-                                            defaultValue={repair.techComment || ''} 
-                                            onBlur={(e) => handleCommentBlur(e, repair)}
-                                            title="Ce commentaire est sauvegardé automatiquement dès que vous cliquez ailleurs."
-                                        />
-
-                                        <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 text-[10px] sm:text-xs py-1.5 rounded font-bold shadow-sm transition">
-                                            📝 Fiche Prise en charge
-                                        </button>
-                                        
-                                        <div className="flex flex-col lg:flex-row justify-between items-stretch mt-2 pt-2 border-t border-black/10 dark:border-white/10 gap-2 lg:gap-1">
-                                          {repair.status !== 'done' && (
-                                            <button onClick={() => updateRepairStatus(repair.id, 'done')} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
-                                          )}
-                                          
-                                          {repair.status === 'waiting' && (
-                                            <button onClick={async () => {
-                                                const { doc, updateDoc } = window.FB_SDK;
-                                                const revertDate = repair.previousDate || dateStr;
-                                                await updateDoc(doc(window.db, "repairs", repair.id), { status: 'pending', date: revertDate });
-                                            }} className="w-full lg:flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">
-                                                ↩ Annuler
-                                            </button>
-                                          )}
-
-                                          {repair.status !== 'waiting' && repair.status !== 'done' && (
-                                            <button onClick={async () => { 
-                                                const tm = new Date(date); 
-                                                tm.setDate(tm.getDate() + 1); 
-                                                if (tm.getDay() === 0) tm.setDate(tm.getDate() + 1); 
-                                                
-                                                const { doc, updateDoc } = window.FB_SDK;
-                                                await updateDoc(doc(window.db, "repairs", repair.id), { 
-                                                    status: 'waiting', 
-                                                    date: getLocalISO(tm),
-                                                    previousDate: dateStr
-                                                });
-                                            }} className="w-full lg:flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Attente</button>
-                                          )}
-                                        </div>
-                                        
-                                        {repair.status === 'done' ? (
-                                            <div className="flex gap-2 mt-2">
-                                                <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
-                                                    ↩
-                                                </button>
-                                                <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-gray-800 hover:bg-gray-900 dark:bg-gray-600 dark:hover:bg-gray-500 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
-                                                    🗄️ Archiver
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button onClick={() => archiveRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
-                                                🗄️ Archiver direct
-                                            </button>
-                                        )}
-
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                      )}
                     </div>
                   </div>
                 </div>
