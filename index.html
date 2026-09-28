@@ -9,9 +9,9 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     
-    <!-- LOGO SVG (Fabriqué en code) -->
-    <link rel="icon" type="image/svg+xml" href="logo.svg?v=6">
-    <link rel="apple-touch-icon" href="logo.svg?v=6">
+    <!-- LOGO LOCAL HÉBERGÉ SUR VOTRE GITHUB -->
+    <link rel="icon" type="image/png" href="logo.png?v=5">
+    <link rel="apple-touch-icon" href="logo.png?v=5">
 
     <!-- Chargement des outils pour faire fonctionner l'application -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -685,6 +685,86 @@
                                 </div>
                             </div>
 
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- PAGE CODES ERREUR ITUNES / 3UTOOLS ---
+        const ErrorCodesView = ({ setView, onOpenNav }) => {
+            const [searchTerm, setSearchTerm] = useState("");
+
+            const errorCodes = [
+                { code: "Erreur 9 / 4014 / 4005", source: "iTunes", type: "NAND / CPU / USB", desc: "Problème de communication avec la puce mémoire (NAND) ou le processeur. Sur iPhone X et supérieur, l'erreur 4014 peut aussi venir d'un court-circuit sur l'écran ou la nappe de proximité (Face ID)." },
+                { code: "Erreur 4013", source: "iTunes", type: "Nappe Face ID / NAND", desc: "Très souvent lié à la nappe de proximité (Face ID) en court-circuit (surtout iPhone X au 13). Débranchez la nappe frontale et réessayez de démarrer ou flasher. Sinon, la puce NAND est à remplacer/reprogrammer en micro-soudure." },
+                { code: "Erreur -1 / 50 / 47", source: "iTunes", type: "Baseband (Réseau)", desc: "Défaut de la puce réseau (Baseband) ou de l'EEPROM. Carte mère en cause, réparation complexe requise." },
+                { code: "Erreur 14", source: "iTunes", type: "Stockage saturé / USB", desc: "Le stockage de l'iPhone est complètement plein (le plus courant), ou le câble/port USB est défectueux. Flasher en mode 'Retain User Data' avec 3uTools peut parfois sauver les données, sinon restauration complète obligatoire." },
+                { code: "Erreur 21 / 1601 / 1611", source: "iTunes", type: "Batterie / Port de charge", desc: "La carte mère ne communique pas avec la batterie. Vérifiez le connecteur de batterie, la nappe de charge (dock) ou remplacez la batterie." },
+                { code: "Erreur 53", source: "iTunes", type: "Touch ID / Home", desc: "Bouton Home d'origine manquant ou défectueux (Erreur historique, souvent résolue par une simple mise à jour récente)." },
+                { code: "Erreur 4000", source: "iTunes", type: "Verrouillage Passcode", desc: "La mise à jour via iTunes est bloquée car l'iPhone est verrouillé par un code. Désactivez le code ou flashez l'appareil en mode Recovery/DFU." },
+                { code: "Bloqué à 19% / 20%", source: "3uTools", type: "NAND / Batterie", desc: "Souvent un problème d'écriture sur la mémoire (NAND) ou de lecture d'informations de la batterie. Vérifiez la batterie ou la nappe de charge avant de soupçonner la carte mère." },
+                { code: "Bloqué à 60% / 80%", source: "3uTools", type: "Baseband / NFC", desc: "60% correspond souvent au flashage du Baseband (Réseau). Si ça bloque ici, la puce réseau est HS. 80% peut concerner une puce secondaire comme le NFC." },
+                { code: "Erreur 1110", source: "iTunes / 3uTools", type: "Stockage Plein (Bootloop)", desc: "Boucle de redémarrage sur le logo Apple due à un stockage plein à 100%. Tentez l'option 'Fix Flash' sur 3uTools." }
+            ];
+
+            const filtered = errorCodes.filter(e => 
+                e.code.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                e.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                e.type.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center whitespace-nowrap">
+                                <span className="mr-2">🚨</span> Erreurs (iTunes/3uTools)
+                            </h1>
+                        </div>
+                        <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
+                            <span className="text-gray-500">🔍</span>
+                            <input 
+                                type="text" 
+                                placeholder="Recherche (ex: 4013, 20%, baseband)..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                            />
+                            {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2">&times;</button>}
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto">
+                            <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-red-500">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
+                                    Entrez un code d'erreur affiché par iTunes ou un pourcentage de blocage sur 3uTools. Ces erreurs apparaissent souvent lors d'une restauration et permettent de déduire le composant matériel défectueux.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {filtered.length === 0 && <p className="text-gray-500 py-4 col-span-3 text-center font-bold">Aucun code trouvé pour cette recherche.</p>}
+                                {filtered.map((item, idx) => (
+                                    <div key={idx} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-bold text-lg text-red-600 dark:text-red-400">{item.code}</h3>
+                                            <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${item.source === 'iTunes' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'}`}>
+                                                {item.source}
+                                            </span>
+                                        </div>
+                                        <div className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
+                                            Panne : {item.type}
+                                        </div>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                            {item.desc}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1492,7 +1572,7 @@
                           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
                           <button onClick={() => setIsNavOpen(false)} className="text-gray-500 hover:text-red-500 text-2xl font-bold leading-none">&times;</button>
                       </div>
-                      <div className="space-y-3 overflow-y-auto">
+                      <div className="space-y-3 overflow-y-auto pb-4">
                           <button onClick={() => { setView('planning'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'planning' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">📅</span> Planning
                           </button>
@@ -1508,9 +1588,20 @@
                           <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🔍</span> Logs iPhone (Panic)
                           </button>
+                          
                           <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">⚡</span> Diagnostique de démarrage
                           </button>
+
+                          {/* NOUVEAU BOUTON : CODES ERREUR ITUNES */}
+                          <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'error_codes' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">🚨</span> Erreurs (iTunes/3u)
+                          </button>
+
+                          {/* NOUVEAU BOUTON : REPRISE SMARTPHONE (LIEN EXTERNE) */}
+                          <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" rel="noopener noreferrer" className="w-full text-left p-3 rounded-md font-bold transition flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
+                              <span className="mr-3">💶</span> Reprise Smartphone <span className="ml-auto text-xs opacity-50">↗</span>
+                          </a>
                       </div>
 
                       <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
@@ -1530,6 +1621,8 @@
                   <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'diagnostic' ? (
                   <DiagnosticView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'error_codes' ? (
+                  <ErrorCodesView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'proposals' ? (
                   <ProposalsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'archives' ? (
