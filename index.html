@@ -8,7 +8,10 @@
     <!-- LIAISON AVEC LES NOUVEAUX FICHIERS PWA POUR L'INSTALLATION -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/maintenance.png">
+    
+    <!-- NOUVEAU LOGO : TICKET D'ASSISTANCE DÉGRADÉ BLEU -->
+    <link rel="icon" type="image/png" href="https://img.icons8.com/nolan/512/technical-support.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/nolan/512/technical-support.png">
 
     <!-- Chargement des outils pour faire fonctionner l'application -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -328,6 +331,7 @@
                             </h1>
                         </div>
                         
+                        {/* Barre de recherche des archives */}
                         <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
                             <span className="text-gray-500">🔍</span>
                             <input 
@@ -352,6 +356,7 @@
                                     <p className="text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</p>
                                     
                                     <div className="font-medium text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-start">
+                                        {/* INDICATEUR SAV DANS LES ARCHIVES */}
                                         {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-2 font-bold text-[9px] uppercase shadow-sm mt-0.5 shrink-0">SAV</span>}
                                         <span>{repair.phone} - {repair.repair}</span>
                                     </div>
@@ -1528,6 +1533,9 @@
                             </button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">Planning</h1>
                         </div>
+                        <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Changer de thème">
+                            {isDarkMode ? '☀️' : '🌙'}
+                        </button>
                     </div>
                     
                     <form onSubmit={handleSubmit} className="flex-1 space-y-4">
@@ -1834,7 +1842,6 @@
                                           )}
                                         </div>
                                         
-                                        {/* BOUTONS AVEC TEXTE D'ORIGINE QUI ARCHIVENT (Modifié avec le mot de passe en minuscules) */}
                                         {repair.status === 'done' ? (
                                             <div className="flex gap-2 mt-2">
                                                 <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
