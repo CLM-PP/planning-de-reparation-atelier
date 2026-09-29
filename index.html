@@ -1775,6 +1775,8 @@
           
           const [searchTerm, setSearchTerm] = useState("");
           const [activeNotesCount, setActiveNotesCount] = useState(0);
+          const [editingRepairId, setEditingRepairId] = useState(null);
+          const [editFormData, setEditFormData] = useState({});
           const [planningMode, setPlanningMode] = useState('week');
           const [formData, setFormData] = useState({ 
               client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
@@ -2333,138 +2335,154 @@
                                   <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
                                     {dayRepairs.map(repair => (
                                       <div key={repair.id} 
-                                           draggable 
+                                           draggable={editingRepairId !== repair.id} 
                                            onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} 
                                            onDragOver={(e) => e.preventDefault()}
                                            onDrop={(e) => handleDrop(e, dateStr, repair.id)}
-                                           className={`p-2 sm:p-3 rounded-md border text-sm cursor-grab border-opacity-50 ${getStatusColors(repair)} relative`}
+                                           className={`p-2 sm:p-3 rounded-md border text-sm ${editingRepairId === repair.id ? 'cursor-default' : 'cursor-grab'} border-opacity-50 ${getStatusColors(repair)} relative`}
                                       >
-                                        <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
-                                          <div className="flex flex-col truncate pr-2 w-full">
-                                            <span className="text-xs sm:text-sm truncate flex items-center">
-                                                {repair.vendeur && (
-                                                    <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 shrink-0 ${getVendeurColor(repair.vendeur)}`} title={`Vendeur: ${repair.vendeur}`}></span>
-                                                )}
-                                                {repair.client}
-                                            </span>
-                                          </div>
-                                          <div className="flex space-x-1 flex-shrink-0">
-                                              <button 
-                                                  onClick={(e) => { 
-                                                      e.stopPropagation();
-                                                      const newClient = prompt("Modifier le nom du client :", repair.client);
-                                                      if (newClient === null) return;
-                                                      const newPhone = prompt("Modifier le numéro de téléphone :", repair.clientPhone);
-                                                      if (newPhone === null) return;
-                                                      if (window.FB_SDK) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", repair.id), { client: newClient, clientPhone: newPhone });
-                                                  }}
-                                                  className="text-[10px] px-1.5 py-0.5 rounded shadow-sm transition bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200"
-                                                  title="Modifier Nom / Numéro"
-                                              >
-                                                  ✏️
-                                              </button>
-                                              {repair.status !== 'done' && (
-                                                  <button 
-                                                      onClick={() => togglePriority(repair.id, repair.isPriority)}
-                                                      className={`text-[10px] px-1.5 py-0.5 rounded shadow-sm transition ${repair.isPriority ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'}`}
-                                                      title="Mettre en priorité"
-                                                  >
-                                                      {repair.isPriority ? '🔥 Urgent' : '⭐'}
-                                                  </button>
-                                              )}
-                                              {repair.status === 'done' && <span className="text-green-700 dark:text-green-400 font-bold ml-1">✓</span>}
-                                              {repair.status === 'waiting' && <span className="text-yellow-700 dark:text-yellow-400 font-bold ml-1">⏳</span>}
-                                          </div>
-                                        </div>
-                                        
-                                        {repair.clientPhone && <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</div>}
-                                        <div className="text-gray-900 dark:text-gray-200 font-medium mb-1 text-xs sm:text-sm truncate">{repair.phone}</div>
-                                        
-                                        <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">
-                                            {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-1 font-bold text-[9px] uppercase shadow-sm">SAV</span>}
-                                            {repair.repair}
-                                        </div>
-                                        
-                                        {repair.piece !== 'Aucune / En stock' && (
-                                            <div 
-                                                onClick={(e) => { e.stopPropagation(); togglePieces(repair.id); }}
-                                                className={`bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1.5 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold w-full cursor-pointer transition-all`}
-                                                title="Cliquez pour afficher/masquer toutes les pièces"
-                                            >
-                                                {expandedPieces[repair.id] ? (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <span className="border-b border-blue-200 dark:border-blue-700 pb-1 mb-1">🛒 Pièces à commander :</span>
-                                                        {repair.piece.split(' + ').map((pItem, i) => (
-                                                            <span key={i} className="whitespace-normal pl-1">👉 {pItem}</span>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="truncate w-full">
-                                                        🛒 {repair.piece}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        <textarea 
-                                            className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white resize-none outline-none focus:border-blue-500" 
-                                            rows="2" 
-                                            placeholder="Détail réparation / Note..." 
-                                            defaultValue={repair.techComment || ''} 
-                                            onBlur={(e) => handleCommentBlur(e, repair)}
-                                            title="Ce commentaire est sauvegardé automatiquement dès que vous cliquez ailleurs."
-                                        />
-
-                                        <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 text-[10px] sm:text-xs py-1.5 rounded font-bold shadow-sm transition">
-                                            📝 Fiche Prise en charge
-                                        </button>
-                                        
-                                        <div className="flex flex-col lg:flex-row justify-between items-stretch mt-2 pt-2 border-t border-black/10 dark:border-white/10 gap-2 lg:gap-1">
-                                          {repair.status !== 'done' && (
-                                            <button onClick={() => updateRepairStatus(repair.id, 'done')} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
-                                          )}
-                                          
-                                          {repair.status === 'waiting' && (
-                                            <button onClick={async () => {
-                                                const { doc, updateDoc } = window.FB_SDK;
-                                                const revertDate = repair.previousDate || dateStr;
-                                                await updateDoc(doc(window.db, "repairs", repair.id), { status: 'pending', date: revertDate });
-                                            }} className="w-full lg:flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">
-                                                ↩ Annuler
-                                            </button>
-                                          )}
-
-                                          {repair.status !== 'waiting' && repair.status !== 'done' && (
-                                            <button onClick={async () => { 
-                                                const tm = new Date(date); 
-                                                tm.setDate(tm.getDate() + 1); 
-                                                if (tm.getDay() === 0) tm.setDate(tm.getDate() + 1); 
-                                                
-                                                const { doc, updateDoc } = window.FB_SDK;
-                                                await updateDoc(doc(window.db, "repairs", repair.id), { 
-                                                    status: 'waiting', 
-                                                    date: getLocalISO(tm),
-                                                    previousDate: dateStr
-                                                });
-                                            }} className="w-full lg:flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Attente</button>
-                                          )}
-                                        </div>
-                                        
-                                        {repair.status === 'done' ? (
-                                            <div className="flex gap-2 mt-2">
-                                                <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
-                                                    ↩
-                                                </button>
-                                                <button onClick={() => archiveRepair(repair.id)} className="w-full mt-1.5 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[11px] py-1.5 rounded font-bold transition">
-                                                    {repair.status === 'done' ? '📞 Appelé' : '🗄️ Archiver'}
-                                                </button>
+                                        {editingRepairId === repair.id ? (
+                                            <div className="flex flex-col space-y-2 text-black dark:text-white">
+                                                <input className="p-1.5 text-sm border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 outline-none" value={editFormData.client || ''} onChange={e => setEditFormData({...editFormData, client: e.target.value})} placeholder="Nom du client" />
+                                                <input type="tel" className="p-1.5 text-sm border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 outline-none" value={editFormData.clientPhone || ''} onChange={e => setEditFormData({...editFormData, clientPhone: e.target.value})} placeholder="Téléphone" />
+                                                <input className="p-1.5 text-sm border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 outline-none" value={editFormData.phone || ''} onChange={e => setEditFormData({...editFormData, phone: e.target.value})} placeholder="Modèle" />
+                                                <input className="p-1.5 text-sm border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 outline-none" value={editFormData.repair || ''} onChange={e => setEditFormData({...editFormData, repair: e.target.value})} placeholder="Panne / Réparation" />
+                                                <div className="flex gap-2 mt-2">
+                                                    <button onClick={() => {
+                                                        if(window.FB_SDK) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", repair.id), {
+                                                            client: editFormData.client, clientPhone: editFormData.clientPhone, phone: editFormData.phone, repair: editFormData.repair
+                                                        });
+                                                        setEditingRepairId(null);
+                                                    }} className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded p-1.5 font-bold text-xs transition shadow-sm">💾 Enregistrer</button>
+                                                    <button onClick={() => setEditingRepairId(null)} className="flex-1 bg-gray-400 hover:bg-gray-500 text-white rounded p-1.5 font-bold text-xs transition shadow-sm">❌ Annuler</button>
+                                                </div>
                                             </div>
                                         ) : (
-                                            <button onClick={() => archiveRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
-                                                🗄️ Archiver direct
-                                            </button>
-                                        )}
+                                            <>
+                                                <div className="font-bold flex justify-between items-start mb-1 text-black dark:text-white">
+                                                  <div className="flex flex-col truncate pr-2 w-full">
+                                                    <span className="text-xs sm:text-sm truncate flex items-center">
+                                                        {repair.vendeur && (
+                                                            <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 shrink-0 ${getVendeurColor(repair.vendeur)}`} title={`Vendeur: ${repair.vendeur}`}></span>
+                                                        )}
+                                                        {repair.client}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex space-x-1 flex-shrink-0">
+                                                      <button 
+                                                          onClick={(e) => { 
+                                                              e.stopPropagation();
+                                                              setEditingRepairId(repair.id);
+                                                              setEditFormData({ client: repair.client, clientPhone: repair.clientPhone, phone: repair.phone, repair: repair.repair });
+                                                          }}
+                                                          className="text-[10px] px-1.5 py-0.5 rounded shadow-sm transition bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200"
+                                                          title="Modifier la fiche en direct"
+                                                      >
+                                                          ✏️
+                                                      </button>
+                                                      {repair.status !== 'done' && (
+                                                          <button 
+                                                              onClick={() => togglePriority(repair.id, repair.isPriority)}
+                                                              className={`text-[10px] px-1.5 py-0.5 rounded shadow-sm transition ${repair.isPriority ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'}`}
+                                                              title="Mettre en priorité"
+                                                          >
+                                                              {repair.isPriority ? '🔥 Urgent' : '⭐'}
+                                                          </button>
+                                                      )}
+                                                      {repair.status === 'done' && <span className="text-green-700 dark:text-green-400 font-bold ml-1">✓</span>}
+                                                      {repair.status === 'waiting' && <span className="text-yellow-700 dark:text-yellow-400 font-bold ml-1">⏳</span>}
+                                                  </div>
+                                                </div>
+                                                
+                                                {repair.clientPhone && <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">📞 {repair.clientPhone}</div>}
+                                                <div className="text-gray-900 dark:text-gray-200 font-medium mb-1 text-xs sm:text-sm truncate">{repair.phone}</div>
+                                                
+                                                <div className="text-[10px] sm:text-xs text-gray-800 dark:text-gray-300 mb-2 truncate">
+                                                    {repair.isSAV && <span className="bg-red-600 text-white px-1.5 py-0.5 rounded mr-1 font-bold text-[9px] uppercase shadow-sm">SAV</span>}
+                                                    {repair.repair}
+                                                </div>
+                                                
+                                                {repair.piece !== 'Aucune / En stock' && (
+                                                    <div 
+                                                        onClick={(e) => { e.stopPropagation(); togglePieces(repair.id); }}
+                                                        className={`bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 py-1.5 rounded border border-blue-300 dark:border-blue-700 mb-2 font-bold w-full cursor-pointer transition-all`}
+                                                        title="Cliquez pour afficher/masquer toutes les pièces"
+                                                    >
+                                                        {expandedPieces[repair.id] ? (
+                                                            <div className="flex flex-col space-y-1">
+                                                                <span className="border-b border-blue-200 dark:border-blue-700 pb-1 mb-1">🛒 Pièces à commander :</span>
+                                                                {repair.piece.split(' + ').map((pItem, i) => (
+                                                                    <span key={i} className="whitespace-normal pl-1">👉 {pItem}</span>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="truncate w-full">
+                                                                🛒 {repair.piece}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
 
+                                                <textarea 
+                                                    className="w-full text-xs p-1.5 mt-2 rounded border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white resize-none outline-none focus:border-blue-500" 
+                                                    rows="2" 
+                                                    placeholder="Détail réparation / Note..." 
+                                                    defaultValue={repair.techComment || ''} 
+                                                    onBlur={(e) => handleCommentBlur(e, repair)}
+                                                    title="Ce commentaire est sauvegardé automatiquement dès que vous cliquez ailleurs."
+                                                />
+
+                                                <button onClick={() => { setActiveIntake(repair); setView('intake'); }} className="w-full mt-2 bg-blue-100 dark:bg-blue-900/40 hover:bg-blue-200 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 text-[10px] sm:text-xs py-1.5 rounded font-bold shadow-sm transition">
+                                                    📝 Fiche Prise en charge
+                                                </button>
+                                                
+                                                <div className="flex flex-col lg:flex-row justify-between items-stretch mt-2 pt-2 border-t border-black/10 dark:border-white/10 gap-2 lg:gap-1">
+                                                  {repair.status !== 'done' && (
+                                                    <button onClick={() => updateRepairStatus(repair.id, 'done')} className="w-full lg:flex-1 bg-green-500 hover:bg-green-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Terminé</button>
+                                                  )}
+                                                  
+                                                  {repair.status === 'waiting' && (
+                                                    <button onClick={async () => {
+                                                        const { doc, updateDoc } = window.FB_SDK;
+                                                        const revertDate = repair.previousDate || dateStr;
+                                                        await updateDoc(doc(window.db, "repairs", repair.id), { status: 'pending', date: revertDate });
+                                                    }} className="w-full lg:flex-1 bg-blue-500 hover:bg-blue-600 text-white text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">
+                                                        ↩ Annuler
+                                                    </button>
+                                                  )}
+
+                                                  {repair.status !== 'waiting' && repair.status !== 'done' && (
+                                                    <button onClick={async () => { 
+                                                        const tm = new Date(date); 
+                                                        tm.setDate(tm.getDate() + 1); 
+                                                        if (tm.getDay() === 0) tm.setDate(tm.getDate() + 1); 
+                                                        
+                                                        const { doc, updateDoc } = window.FB_SDK;
+                                                        await updateDoc(doc(window.db, "repairs", repair.id), { 
+                                                            status: 'waiting', 
+                                                            date: getLocalISO(tm),
+                                                            previousDate: dateStr
+                                                        });
+                                                    }} className="w-full lg:flex-1 bg-yellow-400 hover:bg-yellow-500 text-black text-[11px] sm:text-sm lg:text-xs py-2 lg:py-1 rounded font-bold shadow-sm transition">Attente</button>
+                                                  )}
+                                                </div>
+                                                
+                                                {repair.status === 'done' ? (
+                                                    <div className="flex gap-2 mt-2">
+                                                        <button onClick={() => updateRepairStatus(repair.id, 'pending')} title="Annuler le statut Terminé" className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs px-3 py-1.5 rounded font-bold shadow-sm transition flex items-center justify-center">
+                                                            ↩
+                                                        </button>
+                                                        <button onClick={() => archiveRepair(repair.id)} className="flex-1 bg-gray-800 hover:bg-gray-900 dark:bg-gray-600 dark:hover:bg-gray-500 text-white text-xs sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition flex justify-center items-center">
+                                                            📞 Appelé
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button onClick={() => archiveRepair(repair.id)} className="w-full mt-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-900 dark:hover:bg-gray-500 text-white text-[10px] sm:text-sm lg:text-xs py-2 lg:py-1.5 rounded font-bold shadow-sm transition">
+                                                        🗄️ Archiver direct
+                                                    </button>
+                                                )}
+                                            </>
+                                        )}
                                       </div>
                                     ))}
                                   </div>
