@@ -1911,14 +1911,19 @@
             };
 
             const { collection, addDoc } = window.FB_SDK;
-            addDoc(collection(window.db, "repairs"), newRepair).catch(console.error);
+            
+            // On attend que Firebase crée le VRAI identifiant avant d'ouvrir la fiche
+            addDoc(collection(window.db, "repairs"), newRepair)
+            .then((docRef) => {
+                setActiveIntake({ id: docRef.id, ...newRepair });
+                setView('intake');
+            })
+            .catch(console.error);
 
             setFormData({ 
                 client: '', clientPhone: '', phone: '', repair: '', date: getLocalISO(new Date()), 
                 pieces: [], customPiece: '', pieceSuppliers: {}, customPieceSuppliers: {}, isSAV: false, vendeur: '' 
             });
-            setActiveIntake({ id: "temp-" + Date.now(), ...newRepair });
-            setView('intake');
           };
 
           const updateRepairStatus = (id, newStatus) => {
