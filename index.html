@@ -2349,6 +2349,20 @@
                                             </span>
                                           </div>
                                           <div className="flex space-x-1 flex-shrink-0">
+                                              <button 
+                                                  onClick={(e) => { 
+                                                      e.stopPropagation();
+                                                      const newClient = prompt("Modifier le nom du client :", repair.client);
+                                                      if (newClient === null) return;
+                                                      const newPhone = prompt("Modifier le numéro de téléphone :", repair.clientPhone);
+                                                      if (newPhone === null) return;
+                                                      if (window.FB_SDK) window.FB_SDK.updateDoc(window.FB_SDK.doc(window.db, "repairs", repair.id), { client: newClient, clientPhone: newPhone });
+                                                  }}
+                                                  className="text-[10px] px-1.5 py-0.5 rounded shadow-sm transition bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200"
+                                                  title="Modifier Nom / Numéro"
+                                              >
+                                                  ✏️
+                                              </button>
                                               {repair.status !== 'done' && (
                                                   <button 
                                                       onClick={() => togglePriority(repair.id, repair.isPriority)}
