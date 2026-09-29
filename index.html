@@ -2392,9 +2392,14 @@
                                      className={`flex flex-col rounded-lg overflow-hidden transition-all duration-200 min-h-[300px] lg:min-h-0
                                      ${isToday ? 'bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-500 shadow-md' : 'bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700'}`}>
                                   
-                                  <div className={`p-1 sm:p-2 text-center border-b font-bold text-xs sm:text-sm 
+                                  <div className={`p-1 sm:p-2 text-center border-b font-bold text-xs sm:text-sm flex flex-col items-center
                                                   ${isToday ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600'}`}>
-                                    {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][date.getDay()]} <br className="lg:hidden" /> {String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}
+                                      <span>{['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][date.getDay()]} <span className="lg:hidden"> {String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}</span></span>
+                                      <span className="hidden lg:inline">{String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}</span>
+                                      
+                                      <span className={`text-[10px] mt-1 px-2 py-0.5 rounded-full font-bold inline-block shadow-sm ${isToday ? 'bg-white/20 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'}`}>
+                                          {dayRepairs.length} Rép.
+                                      </span>
                                   </div>
                                   
                                   <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
