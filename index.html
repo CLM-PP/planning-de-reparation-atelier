@@ -2316,11 +2316,11 @@
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                           <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() - (planningMode === 'day' ? 1 : 7)); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&larr;</button>
                           <h2 className={`font-bold text-center capitalize p-2 z-10 border-b shadow-sm flex flex-col items-center ${isToday ? 'bg-blue-500 text-white border-blue-600' : 'bg-gray-200 dark:bg-gray-700 dark:border-gray-600 text-black dark:text-white'}`}>
-                                          <span>{date.toLocaleDateString('fr-FR', {weekday: 'long', day: '2-digit', month: '2-digit'})}</span>
-                                          <span className={`text-[10px] mt-0.5 px-2 py-0.5 rounded-full font-bold ${isToday ? 'bg-white/20 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'}`}>
-                                              {dayRepairs.length} Rép.
-                                          </span>
-                                      </h2>
+                              <span>{date.toLocaleDateString('fr-FR', {weekday: 'long', day: '2-digit', month: '2-digit'})}</span>
+                              <span className={`text-[10px] mt-0.5 px-2 py-0.5 rounded-full font-bold ${isToday ? 'bg-white/20 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'}`}>
+                                  {dayRepairs.length} Rép.
+                              </span>
+                           </h2>
                           <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() + (planningMode === 'day' ? 1 : 7)); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&rarr;</button>
                           <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-md text-sm sm:ml-2">Auj.</button>
                           
