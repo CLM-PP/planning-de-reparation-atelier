@@ -2099,21 +2099,28 @@
                               {activeNotesCount > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">{activeNotesCount}</span>}
                           </button>
 
-                          <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🔍</span> Logs iPhone (Panic)
-                          </button>
-                          
-                          <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">⚡</span> Diagnostique de démarrage
-                          </button>
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                              <h3 className="px-3 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                                  🛠️ Espace Tech
+                              </h3>
+                              <div className="space-y-1">
+                                  <button onClick={() => { setView('panic_logs'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'panic_logs' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                                      <span className="mr-3">🔍</span> Logs iPhone (Panic)
+                                  </button>
+                                  
+                                  <button onClick={() => { setView('diagnostic'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'diagnostic' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                                      <span className="mr-3">⚡</span> Diagnostique de démarrage
+                                  </button>
 
-                          <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'samfw_guide' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🔓</span> Déblocage FRP (SamFw)
-                          </button>
+                                  <button onClick={() => { setView('samfw_guide'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'samfw_guide' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                                      <span className="mr-3">🔓</span> Déblocage FRP (SamFw)
+                                  </button>
 
-                          <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'error_codes' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                              <span className="mr-3">🚨</span> Erreurs (iTunes/3u)
-                          </button>
+                                  <button onClick={() => { setView('error_codes'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'error_codes' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                                      <span className="mr-3">🚨</span> Erreurs (iTunes/3u)
+                                  </button>
+                              </div>
+                          </div>
                           
                           <button onClick={() => { setView('imei_checker'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'imei_checker' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🔎</span> Vérification IMEI / iCloud
