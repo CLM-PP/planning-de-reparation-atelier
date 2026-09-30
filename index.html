@@ -165,9 +165,19 @@
         };
 
         const getVendeurColor = (vendeurName) => {
+            // 1. On cherche d'abord si une couleur personnalisée existe dans la mémoire
+            const savedColors = localStorage.getItem('teamColors');
+            if (savedColors) {
+                try {
+                    const colors = JSON.parse(savedColors);
+                    if (colors[vendeurName]) return colors[vendeurName];
+                } catch (e) {}
+            }
+            
+            // 2. Sinon, on met des couleurs par défaut modernes
             switch(vendeurName) {
-                case 'Clément': return 'bg-amber-500';
-                case 'Bérénys': return 'bg-purple-500';
+                case 'Clément': return 'bg-indigo-500';
+                case 'Bérénys': return 'bg-rose-500';
                 case 'Gérard': return 'bg-emerald-500';
                 default: return 'bg-gray-400';
             }
