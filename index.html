@@ -1590,6 +1590,43 @@
                 { id: "se", model: "iPhone SE 2020", content: seContent }
             ];
 
+            // NOUVEAU : Fonction d'analyse du Panic Log
+            const [rawLog, setRawLog] = useState('');
+            const [analysisResult, setAnalysisResult] = useState(null);
+
+            const analyzeLog = () => {
+                if (!rawLog) return;
+                
+                const log = rawLog.toLowerCase();
+                let results = [];
+
+                if (log.includes('tg0b') || log.includes('tg0v')) results.push({ name: 'Batterie / Connecteur Batterie', color: 'red', desc: 'La batterie est défectueuse, mal connectée, ou la nappe de données est rompue.' });
+                if (log.includes('prs0') || log.includes('mic1') || log.includes('0x100000') || log.includes('1048576')) results.push({ name: 'Nappe du Port de Charge', color: 'blue', desc: 'Problème de communication avec le port de charge ou le micro inférieur.' });
+                if (log.includes('mic2') || log.includes('0x10000')) results.push({ name: 'Nappe Bouton Power / Flash', color: 'orange', desc: 'Problème lié au micro de la nappe power.' });
+                if (log.includes('eiger')) results.push({ name: 'Nappe du Port de Charge', color: 'teal', desc: 'Connecteur endommagé ou déchirure sur la nappe.' });
+                if (log.includes('0x1000') || log.includes('4096') || log.includes('0x200000') || log.includes('2097152')) results.push({ name: 'Nappe Proximité / Écouteur interne', color: 'green', desc: 'Capteur de proximité ou nappe arrachée (très fréquent après un remplacement d\'écran).' });
+                if (log.includes('0x800') || log.includes('2048') || log.includes('0x80000') || log.includes('524288')) results.push({ name: 'Nappe du Port de Charge', color: 'blue', desc: 'Problème de communication avec le port de charge.' });
+                if (log.includes('0x4000') || log.includes('16384') || log.includes('0xa1') || log.includes('169')) results.push({ name: 'Ligne de données Batterie (SWI)', color: 'red', desc: 'Le pourcentage de batterie fluctue ou affiche "Pièce inconnue".' });
+                if (log.includes('0x400000') || log.includes('4194304')) results.push({ name: 'Nappe de Charge Sans-Fil (Vitre Arrière)', color: 'purple', desc: 'Nappe débranchée ou endommagée. Provoque un redémarrage toutes les 3 minutes.' });
+                if (log.includes('0x500000') || log.includes('5242880')) results.push({ name: 'Batterie OU Moteur Haptique', color: 'orange', desc: 'Problème de communication pendant la charge. Testez avec une autre batterie ou vérifiez la nappe du port de charge.' });
+                if (log.includes('0x600000') || log.includes('6291456')) results.push({ name: 'Charge Sans-Fil + Nappe Proximité', color: 'teal', desc: 'Vérifiez que les deux nappes sont bien connectées à la carte mère.' });
+                if (log.includes('0x300000') || log.includes('3145728')) results.push({ name: 'Port de Charge USB-C', color: 'blue', desc: 'Erreur de communication SMC liée à l\'USB-C.' });
+                if (log.includes('0x700000') || log.includes('7340032')) results.push({ name: 'Port de Charge + Sans Fil', color: 'teal', desc: 'Plusieurs nappes en défaut simultanément.' });
+                if (log.includes('0x400') || log.includes('1024') || log.includes('0xc00') || log.includes('3072') || log.includes('0x20000') || log.includes('131072') || log.includes('3670016')) results.push({ name: 'Séparation de Carte Mère (Sandwich)', color: 'red', desc: 'Défaut majeur : séparation des couches de la carte mère. Nécessite de la microsoudure complexe.' });
+                
+                // Codes génériques si rien de précis n'est trouvé
+                if (results.length === 0) {
+                    if (log.includes('i2c')) results.push({ name: 'Ligne I2C en court-circuit', color: 'gray', desc: 'Problème générique sur une ligne de communication. Difficile à diagnostiquer sans équipement.' });
+                    if (log.includes('wdog') || log.includes('watchdog')) results.push({ name: 'Watchdog Timeout', color: 'gray', desc: 'Le processeur a arrêté le système car un composant ne répondait pas dans le temps imparti (généralement 3 minutes).' });
+                }
+
+                if (results.length === 0) {
+                    setAnalysisResult([{ name: 'Panne inconnue ou non répertoriée', color: 'gray', desc: 'Aucun mot-clé habituel (Prs0, Mic1, TG0B, 0x...) n\'a été trouvé dans ce texte.' }]);
+                } else {
+                    setAnalysisResult(results);
+                }
+            };
+
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
                     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
@@ -1614,34 +1651,70 @@
                             <div className="flex-1">
                                 {!selectedModel ? (
                                     <>
+                                        {/* NOUVEAU : Analyseur Automatique */}
+                                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-t-4 border-t-blue-500">
+                                            <h2 className="text-xl font-black mb-2 text-gray-900 dark:text-white flex items-center">
+                                                <span className="mr-2">⚡</span> Analyseur Rapide de Panic Log
+                                            </h2>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                                Collez tout le texte du rapport (ou juste le début) ci-dessous. L'outil cherchera les mots-clés de panne (Prs0, TG0B, 0x100000...) à votre place.
+                                            </p>
+                                            
+                                            <textarea 
+                                                className="w-full h-32 p-3 text-sm font-mono border rounded-lg outline-none bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:border-blue-500 resize-none mb-3" 
+                                                placeholder="Collez le texte du Panic Log ici (ex: SMC BSC failure, WDT timeout, 0x400000...)"
+                                                value={rawLog}
+                                                onChange={(e) => { setRawLog(e.target.value); setAnalysisResult(null); }}
+                                            />
+                                            
+                                            <div className="flex gap-2">
+                                                <button onClick={analyzeLog} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition shadow-sm flex items-center">
+                                                    🔎 Analyser le texte
+                                                </button>
+                                                {rawLog && (
+                                                    <button onClick={() => { setRawLog(''); setAnalysisResult(null); }} className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition">
+                                                        Effacer
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {analysisResult && (
+                                                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 animate-fade-in">
+                                                    <h3 className="font-bold text-lg mb-3 text-gray-900 dark:text-white">Résultat de l'analyse :</h3>
+                                                    <div className="space-y-3">
+                                                        {analysisResult.map((res, idx) => (
+                                                            <div key={idx} className={`p-4 rounded-lg border-l-4 shadow-sm bg-${res.color}-50 dark:bg-${res.color}-900/20 border-${res.color}-500`}>
+                                                                <h4 className={`font-black text-lg text-${res.color}-700 dark:text-${res.color}-400 mb-1`}>{res.name}</h4>
+                                                                <p className="text-gray-800 dark:text-gray-200 font-medium">{res.desc}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-                                            <p className="text-gray-700 dark:text-gray-300 mb-5 text-base">
-                                                Sélectionnez un modèle d'iPhone pour voir la signification de ses codes de redémarrage (kernel panics).
+                                            <p className="text-gray-700 dark:text-gray-300 mb-5 text-base font-bold">
+                                                📚 Ou consultez manuellement la liste des codes par modèle d'iPhone :
                                             </p>
                                             
                                             <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-5 rounded-md text-sm text-gray-800 dark:text-gray-200 mb-5 shadow-sm">
                                                 <h3 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-300 flex items-center">
                                                     <span className="mr-2">📱</span> Comment trouver le journal d'erreur (Panic Log) :
                                                 </h3>
-                                                <ol className="list-decimal list-inside space-y-2 mb-4 ml-1">
-                                                    <li>Accédez aux <strong>Paramètres</strong> (ou Réglages) de l'iPhone.</li>
-                                                    <li>Allez dans <strong>Confidentialité</strong> (ou Confidentialité et sécurité).</li>
-                                                    <li>Touchez <strong>Analyses et améliorations</strong>.</li>
+                                                <ol className="list-decimal list-inside space-y-2 mb-4 ml-1 font-medium">
+                                                    <li>Accédez aux <strong>Réglages</strong> de l'iPhone.</li>
+                                                    <li>Allez dans <strong>Confidentialité et sécurité</strong>.</li>
+                                                    <li>Touchez <strong>Analyse et améliorations</strong>.</li>
                                                     <li>Ouvrez <strong>Données d'analyse</strong>.</li>
                                                     <li>Écrivez <strong>"full"</strong> dans la barre de recherche.</li>
-                                                    <li>Défilez tout en bas et cliquez sur le fichier le plus récent.</li>
+                                                    <li>Ouvrez le fichier le plus récent.</li>
                                                 </ol>
-                                                <div className="bg-white dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-700">
-                                                    💡 <strong>À rechercher dans le texte :</strong> Les mentions <strong className="text-red-600 dark:text-red-400">« SMC PANIC - ASSERTION FAILED »</strong>, <strong className="text-red-600 dark:text-red-400">« Sensor Array »</strong> ou un code en <strong className="text-red-600 dark:text-red-400">« 0x… »</strong>
-                                                </div>
                                             </div>
 
                                             <div className="bg-gray-100 dark:bg-gray-700/50 border-l-4 border-gray-400 dark:border-gray-500 p-4 rounded-md text-sm text-gray-800 dark:text-gray-200">
                                                 <p className="mb-2 leading-relaxed">
-                                                    <strong>Outils d'analyse automatiques :</strong> Vous pouvez également utiliser un outil comme <a href="https://github.com/waynebonc/iDeviceLogAnalyzer-public/archive/refs/heads/master.zip" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">iDevice Panic Log Analyzer</a>, qui téléchargera les journaux d'erreurs de l'appareil, les affichera sur votre ordinateur et vous proposera des solutions. Il facilite ainsi la consultation du fichier journal.
-                                                </p>
-                                                <p>
-                                                    Consultez également le site <a href="https://www.panicfull.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">www.PanicFull.com</a> qui vous permet de télécharger le fichier journal de panique et de le faire analyser gratuitement.
+                                                    <strong>Outils d'analyse externes sur PC :</strong> Vous pouvez utiliser un outil comme <a href="https://github.com/waynebonc/iDeviceLogAnalyzer-public/archive/refs/heads/master.zip" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">iDevice Panic Log Analyzer</a> pour lire le téléphone en USB, ou consulter le site <a href="https://www.panicfull.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">www.PanicFull.com</a>.
                                                 </p>
                                             </div>
                                         </div>
