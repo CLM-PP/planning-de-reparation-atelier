@@ -2013,8 +2013,9 @@
 
           useEffect(() => {
             const handleFirebaseReady = () => {
-              const { collection, onSnapshot } = window.FB_SDK;
+              const { collection, onSnapshot, doc, getDoc, setDoc } = window.FB_SDK;
               
+              // 1. Écoute des réparations (existant)
               const unsubscribeRepairs = onSnapshot(collection(window.db, "repairs"), (snapshot) => {
                 const loadedRepairs = snapshot.docs.map(doc => ({
                   id: doc.id,
@@ -2023,7 +2024,7 @@
                 setRepairs(loadedRepairs);
               });
 
-              // Écoute pour le compteur de messages d'équipe non lus
+              // 2. Écoute pour le compteur de messages d'équipe (existant)
               const unsubscribeNotes = onSnapshot(collection(window.db, "team_notes"), (snapshot) => {
                   let count = 0;
                   snapshot.forEach(doc => {
@@ -2032,9 +2033,20 @@
                   setActiveNotesCount(count);
               });
 
+              // 3. NOUVEAU : Écoute des réglages d'équipe (couleurs)
+              const unsubscribeSettings = onSnapshot(doc(window.db, "settings", "teamColors"), (snapshot) => {
+                  if (snapshot.exists()) {
+                      // Si des couleurs existent sur Firebase, on met à jour la mémoire du PC !
+                      localStorage.setItem('teamColors', JSON.stringify(snapshot.data()));
+                      // On force un mini-rafraîchissement pour que les nouvelles couleurs s'affichent
+                      window.dispatchEvent(new Event('colors-updated'));
+                  }
+              });
+
               return () => {
                   unsubscribeRepairs();
                   unsubscribeNotes();
+                  unsubscribeSettings();
               };
             };
 
@@ -2043,6 +2055,15 @@
             } else {
               window.addEventListener('firebase-ready', handleFirebaseReady);
             }
+          }, []);
+
+          // NOUVEAU : Un petit état factice juste pour forcer la page à se redessiner 
+          // quand Firebase nous prévient d'un changement de couleur
+          const [forceRender, setForceRender] = useState(0);
+          useEffect(() => {
+              const handleColorsUpdate = () => setForceRender(prev => prev + 1);
+              window.addEventListener('colors-updated', handleColorsUpdate);
+              return () => window.removeEventListener('colors-updated', handleColorsUpdate);
           }, []);
 
           useEffect(() => {
