@@ -407,6 +407,7 @@
             const [messages, setMessages] = useState([]);
             const [text, setText] = useState('');
             const [author, setAuthor] = useState('');
+            const [recipient, setRecipient] = useState('Tout le monde');
             const [activeTab, setActiveTab] = useState('actifs');
             const [searchTerm, setSearchTerm] = useState('');
 
@@ -427,9 +428,10 @@
                 if (!author || !text) return;
                 const { collection, addDoc } = window.FB_SDK;
                 await addDoc(collection(window.db, "team_notes"), {
-                    author, text, createdAt: Date.now(), status: 'active'
+                    author, recipient, text, createdAt: Date.now(), status: 'active'
                 });
                 setText('');
+                setRecipient('Tout le monde');
             };
 
             const markAsSeen = async (id) => {
@@ -463,10 +465,11 @@
                 const term = searchTerm.toLowerCase();
                 archivedMessages = archivedMessages.filter(m => {
                     const authorMatch = (m.author || '').toLowerCase().includes(term);
+                    const recipientMatch = (m.recipient || '').toLowerCase().includes(term);
                     const dateStr = new Date(m.createdAt).toLocaleDateString('fr-FR');
                     const dateMatch = dateStr.includes(term);
                     const textMatch = (m.text || '').toLowerCase().includes(term);
-                    return authorMatch || dateMatch || textMatch;
+                    return authorMatch || recipientMatch || dateMatch || textMatch;
                 });
             }
 
@@ -495,15 +498,28 @@
                             {activeTab === 'actifs' && (
                                 <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500">
                                     <h2 className="text-lg font-bold mb-4">Laisser un message</h2>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
-                                        <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
-                                            <option value="">- Choisir -</option>
-                                            <option value="Clément">Clément</option>
-                                            <option value="Bérénys">Bérénys</option>
-                                            <option value="Gérard">Gérard</option>
-                                        </select>
+                                    
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
+                                            <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
+                                                <option value="">- Choisir -</option>
+                                                <option value="Clément">Clément</option>
+                                                <option value="Bérénys">Bérénys</option>
+                                                <option value="Gérard">Gérard</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Pour qui ?</label>
+                                            <select required value={recipient} onChange={e => setRecipient(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
+                                                <option value="Tout le monde">Tout le monde</option>
+                                                <option value="Clément">Clément</option>
+                                                <option value="Bérénys">Bérénys</option>
+                                                <option value="Gérard">Gérard</option>
+                                            </select>
+                                        </div>
                                     </div>
+
                                     <div className="mb-4">
                                         <label className="block text-sm font-medium mb-1">Message pour demain / plus tard</label>
                                         <textarea required value={text} onChange={e => setText(e.target.value)} placeholder="Ex: Attention, le client pour le S23 passe demain matin à l'ouverture..." className="w-full h-24 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none resize-none border-gray-300 dark:border-gray-600 focus:border-blue-500"></textarea>
@@ -517,7 +533,7 @@
                                     <span className="text-gray-500">🔍</span>
                                     <input 
                                         type="text" 
-                                        placeholder="Rechercher un mot archivé (par auteur, date ex: 28/09/2026, ou contenu)..." 
+                                        placeholder="Rechercher (par auteur, destinataire, date ou contenu)..." 
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
@@ -530,9 +546,13 @@
                                 {(activeTab === 'actifs' ? activeMessages : archivedMessages).map(m => (
                                     <div key={m.id} className={`p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center ${activeTab === 'actifs' ? 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700' : 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-80'}`}>
                                         <div className="w-full">
-                                            <div className="font-bold text-gray-900 dark:text-white mb-1 flex items-center">
-                                                <span className="text-xl mr-2">📌</span> {m.author}
-                                                <span className="text-xs font-normal text-gray-500 ml-3">Le {new Date(m.createdAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
+                                            <div className="font-bold text-gray-900 dark:text-white mb-2 flex items-center flex-wrap gap-2">
+                                                <span className="flex items-center"><span className="text-xl mr-2">📌</span> {m.author}</span>
+                                                <span className="text-gray-400 mx-1">👉</span>
+                                                <span className={`text-xs px-2.5 py-1 rounded-md shadow-sm ${(!m.recipient || m.recipient === 'Tout le monde') ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'}`}>
+                                                    À : {m.recipient || 'Tout le monde'}
+                                                </span>
+                                                <span className="text-xs font-normal text-gray-500 ml-auto sm:ml-3">Le {new Date(m.createdAt).toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</span>
                                             </div>
                                             <p className="text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap mt-2">{m.text}</p>
                                         </div>
