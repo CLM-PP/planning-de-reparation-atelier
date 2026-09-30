@@ -25,7 +25,7 @@
     <!-- SDK FIREBASE (Firestore) AVEC SUPPORT HORS-LIGNE -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyAxzefDnbYT4KTTiDm4S_okltTehCwM6SM",
@@ -44,7 +44,7 @@
       });
 
       window.db = db;
-      window.FB_SDK = { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc };
+      window.FB_SDK = { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc };
       window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
@@ -917,11 +917,22 @@
                 return saved ? JSON.parse(saved) : { 'Clément': 'bg-indigo-500', 'Bérénys': 'bg-rose-500', 'Gérard': 'bg-emerald-500' };
             });
 
-            const updateColor = (name, color) => {
-                const newColors = { ...localColors, [name]: color };
-                setLocalColors(newColors);
-                localStorage.setItem('teamColors', JSON.stringify(newColors));
-            };
+            const updateColor = async (name, color) => {
+            // 1. On change la couleur instantanément sur l'écran actuel
+            const newColors = { ...localColors, [name]: color };
+            setLocalColors(newColors);
+            localStorage.setItem('teamColors', JSON.stringify(newColors));
+
+            // 2. On l'envoie à Firebase pour mettre à jour le reste de l'équipe !
+            if (window.FB_SDK && window.FB_SDK.setDoc) {
+                const { doc, setDoc } = window.FB_SDK;
+                try {
+                    await setDoc(doc(window.db, "settings", "teamColors"), newColors);
+                } catch (error) {
+                    console.error("Erreur lors de la synchronisation des couleurs :", error);
+                }
+            }
+        };
 
             const colorPalette = [
                 { name: 'Indigo', value: 'bg-indigo-500' },
