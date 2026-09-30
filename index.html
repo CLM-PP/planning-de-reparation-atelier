@@ -21,6 +21,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     
     <!-- SDK FIREBASE (Firestore) AVEC SUPPORT HORS-LIGNE -->
     <script type="module">
@@ -1590,14 +1591,17 @@
                 { id: "se", model: "iPhone SE 2020", content: seContent }
             ];
 
-            // NOUVEAU : Fonction d'analyse du Panic Log
+            // NOUVEAU : Fonction d'analyse du Panic Log avec OCR (Image)
             const [rawLog, setRawLog] = useState('');
             const [analysisResult, setAnalysisResult] = useState(null);
+            const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
 
-            const analyzeLog = () => {
-                if (!rawLog) return;
+            const analyzeLog = (textToAnalyze) => {
+                // On accepte soit le texte cliqué, soit le texte lu par l'image
+                const text = typeof textToAnalyze === 'string' ? textToAnalyze : rawLog;
+                if (!text) return;
                 
-                const log = rawLog.toLowerCase();
+                const log = text.toLowerCase();
                 let results = [];
 
                 if (log.includes('tg0b') || log.includes('tg0v')) results.push({ name: 'Batterie / Connecteur Batterie', color: 'red', desc: 'La batterie est défectueuse, mal connectée, ou la nappe de données est rompue.' });
@@ -1614,16 +1618,37 @@
                 if (log.includes('0x700000') || log.includes('7340032')) results.push({ name: 'Port de Charge + Sans Fil', color: 'teal', desc: 'Plusieurs nappes en défaut simultanément.' });
                 if (log.includes('0x400') || log.includes('1024') || log.includes('0xc00') || log.includes('3072') || log.includes('0x20000') || log.includes('131072') || log.includes('3670016')) results.push({ name: 'Séparation de Carte Mère (Sandwich)', color: 'red', desc: 'Défaut majeur : séparation des couches de la carte mère. Nécessite de la microsoudure complexe.' });
                 
-                // Codes génériques si rien de précis n'est trouvé
                 if (results.length === 0) {
                     if (log.includes('i2c')) results.push({ name: 'Ligne I2C en court-circuit', color: 'gray', desc: 'Problème générique sur une ligne de communication. Difficile à diagnostiquer sans équipement.' });
-                    if (log.includes('wdog') || log.includes('watchdog')) results.push({ name: 'Watchdog Timeout', color: 'gray', desc: 'Le processeur a arrêté le système car un composant ne répondait pas dans le temps imparti (généralement 3 minutes).' });
+                    if (log.includes('wdog') || log.includes('watchdog')) results.push({ name: 'Watchdog Timeout', color: 'gray', desc: 'Le processeur a arrêté le système car un composant ne répondait pas dans le temps imparti.' });
                 }
 
                 if (results.length === 0) {
-                    setAnalysisResult([{ name: 'Panne inconnue ou non répertoriée', color: 'gray', desc: 'Aucun mot-clé habituel (Prs0, Mic1, TG0B, 0x...) n\'a été trouvé dans ce texte.' }]);
+                    setAnalysisResult([{ name: 'Panne inconnue ou non répertoriée', color: 'gray', desc: 'Aucun mot-clé habituel n\'a été trouvé. Vérifiez que la capture est nette.' }]);
                 } else {
                     setAnalysisResult(results);
+                }
+            };
+
+            const handleImageUpload = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                setIsAnalyzingImage(true);
+                setRawLog('Lecture de l\'image en cours... Cela peut prendre 3 à 5 secondes. ⏳');
+                setAnalysisResult(null);
+
+                try {
+                    // Tesseract lit le texte sur l'image
+                    const { data: { text } } = await window.Tesseract.recognize(file, 'eng');
+                    setRawLog(text);
+                    analyzeLog(text); // Analyse automatiquement après la lecture !
+                } catch (err) {
+                    console.error("Erreur OCR:", err);
+                    setRawLog('Erreur lors de la lecture de l\'image. Essayez avec une capture d\'écran plus nette.');
+                } finally {
+                    setIsAnalyzingImage(false);
+                    e.target.value = ''; // Réinitialise le bouton pour la prochaine fois
                 }
             };
 
@@ -1651,28 +1676,34 @@
                             <div className="flex-1">
                                 {!selectedModel ? (
                                     <>
-                                        {/* NOUVEAU : Analyseur Automatique */}
                                         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-t-4 border-t-blue-500">
                                             <h2 className="text-xl font-black mb-2 text-gray-900 dark:text-white flex items-center">
                                                 <span className="mr-2">⚡</span> Analyseur Rapide de Panic Log
                                             </h2>
                                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                                Collez tout le texte du rapport (ou juste le début) ci-dessous. L'outil cherchera les mots-clés de panne (Prs0, TG0B, 0x100000...) à votre place.
+                                                Collez le texte du rapport, ou insérez directement une capture d'écran de l'erreur !
                                             </p>
                                             
                                             <textarea 
                                                 className="w-full h-32 p-3 text-sm font-mono border rounded-lg outline-none bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:border-blue-500 resize-none mb-3" 
-                                                placeholder="Collez le texte du Panic Log ici (ex: SMC BSC failure, WDT timeout, 0x400000...)"
+                                                placeholder="Collez le texte ici (ex: SMC BSC failure...) ou utilisez le bouton 'Importer une image' ci-dessous."
                                                 value={rawLog}
+                                                disabled={isAnalyzingImage}
                                                 onChange={(e) => { setRawLog(e.target.value); setAnalysisResult(null); }}
                                             />
                                             
-                                            <div className="flex gap-2">
-                                                <button onClick={analyzeLog} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition shadow-sm flex items-center">
+                                            <div className="flex flex-wrap gap-3">
+                                                <button onClick={analyzeLog} disabled={isAnalyzingImage} className={`font-bold py-2 px-6 rounded-lg transition shadow-sm flex items-center ${isAnalyzingImage ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
                                                     🔎 Analyser le texte
                                                 </button>
-                                                {rawLog && (
-                                                    <button onClick={() => { setRawLog(''); setAnalysisResult(null); }} className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition">
+                                                
+                                                <input type="file" id="panic-image-upload" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                                <label htmlFor="panic-image-upload" className={`cursor-pointer font-bold py-2 px-6 rounded-lg transition shadow-sm flex items-center ${isAnalyzingImage ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}>
+                                                    {isAnalyzingImage ? '⏳ Lecture de l\'image...' : '📸 Importer une image'}
+                                                </label>
+
+                                                {rawLog && !isAnalyzingImage && (
+                                                    <button onClick={() => { setRawLog(''); setAnalysisResult(null); }} className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition ml-auto">
                                                         Effacer
                                                     </button>
                                                 )}
