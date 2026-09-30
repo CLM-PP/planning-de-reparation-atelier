@@ -2118,18 +2118,15 @@
                           <button onClick={() => { setView('imei_checker'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'imei_checker' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">🔎</span> Vérification IMEI / iCloud
                           </button>
-                      </div>
-
-                      {/* BLOC DU BAS (Collé en bas de l'écran) */}
-                      <div className="mt-auto shrink-0 w-full">
                           
-                          <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" rel="noopener noreferrer" className="w-full text-left p-3 rounded-md font-bold transition flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 mb-4">
+                          <a href="http://78.112.90.27/rachat-mobile.html" target="_blank" rel="noopener noreferrer" className="w-full text-left p-3 rounded-md font-bold transition flex items-center hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200">
                              <span className="mr-3">💶</span> Reprise Mobile <span className="ml-auto text-xs opacity-50">↗</span>
                           </a>
+                      </div>
 
-                          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                              <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                                  <span className="mr-3">📊</span> Statistiques
+                      <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700 shrink-0 space-y-2">
+                          <button onClick={() => { setView('dashboard'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'dashboard' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                              <span className="mr-3">📊</span> Statistiques
                           </button>
                           <button onClick={() => { setView('proposals'); setIsNavOpen(false); }} className={`w-full text-left p-3 rounded-md font-bold transition flex items-center ${view === 'proposals' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
                               <span className="mr-3">💡</span> Proposition d'amélioration
