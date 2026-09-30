@@ -2557,7 +2557,7 @@
               ) : view === 'panic_logs' ? (
                   <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'blacklist' ? (
-                  <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
+                  <EndemicFailuresView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'diagnostic' ? (
                   <DiagnosticView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'error_codes' ? (
