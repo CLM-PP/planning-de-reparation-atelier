@@ -1785,6 +1785,147 @@
             );
         };
 
+        const EndemicFailuresView = ({ setView, onOpenNav }) => {
+            const [searchTerm, setSearchTerm] = useState('');
+
+            const blacklistData = [
+                {
+                    device: "iPhone 7 & 7 Plus",
+                    issues: [
+                        { name: "Maladie de l'Audio IC", type: "Microsoudure", desc: "Symptômes : Démarrage très long sur la pomme (bootloop long), logo haut-parleur grisé en appel, dictaphone inopérant. Cause : Piste C12 arrachée sous la puce Audio. Réparation : Rebillages + Jumper." },
+                        { name: "Recherche réseau infinie", type: "Microsoudure", desc: "Symptômes : 'Aucun service' ou 'Recherche...' permanent même sans SIM. Cause : Défaut de la puce Baseband (souvent modèle Qualcomm). Parfois irréparable si la puce est en court-circuit." }
+                    ]
+                },
+                {
+                    device: "iPhone X",
+                    issues: [
+                        { name: "Bootloop sur la pomme (Nappe interne)", type: "Pièce", desc: "Symptômes : L'iPhone s'allume, affiche la pomme et redémarre en boucle. Cause : Court-circuit sur le capteur de luminosité/proximité (infiltrations d'eau). Action : Débrancher la nappe de l'écouteur interne pour tester." },
+                        { name: "Tactile Fantôme (Ghost Touch)", type: "Microsoudure / Écran", desc: "Symptômes : L'écran clique tout seul. Cause : Soit l'écran, soit une séparation des deux couches de la carte mère (Sandwich) au niveau des pistes du tactile." }
+                    ]
+                },
+                {
+                    device: "iPhone 11 Series",
+                    issues: [
+                        { name: "Perte totale de Baseband", type: "Microsoudure", desc: "Symptômes : Plus d'IMEI en tapant *#06#, pas de réseau. Cause : Court-circuit fréquent sur l'alimentation du Baseband. Nécessite une séparation des cartes." },
+                        { name: "Écran qui ne répond plus", type: "Rappel Apple / Pièce", desc: "Symptômes : Le tactile fige complètement. Problème connu sur les 11 (nappe écran défectueuse)." }
+                    ]
+                },
+                {
+                    device: "iPhone 12 Series",
+                    issues: [
+                        { name: "Aucun son à l'oreille (12 & 12 Pro)", type: "Rappel Apple / Pièce", desc: "Symptômes : Le client n'entend rien en appel. Cause : Défaillance du module récepteur sur la nappe supérieure." },
+                        { name: "Mort subite (VCC_MAIN en C.C)", type: "Microsoudure", desc: "Symptômes : L'appareil s'éteint et ne se rallume plus, ne tire rien à la charge. Cause : Court-circuit sur la ligne d'alimentation principale (souvent un condensateur près du Wi-Fi ou de l'audio)." }
+                    ]
+                },
+                {
+                    device: "iPhone 13 Pro & 13 Pro Max",
+                    issues: [
+                        { name: "Écran Blanc / Écran Vert de la mort", type: "Microsoudure (Écran)", desc: "Symptômes : L'écran devient soudainement totalement blanc ou vert fluo (le téléphone vibre et sonne toujours). Cause : Défaut de conception du circuit 120Hz de l'écran. Réparation : Faisable sans changer l'écran en posant un fil de cuivre (jumper) directement sur la nappe de l'écran OLED." },
+                        { name: "Appareil photo qui tremble violemment", type: "Pièce", desc: "Symptômes : Bruit de grincement mécanique et image qui tremble. Cause : Stabilisateur optique (OIS) cassé, souvent à cause des vibrations de moto." }
+                    ]
+                },
+                {
+                    device: "Samsung S20, S21 & S22 (Ultra)",
+                    issues: [
+                        { name: "Ligne Rose / Écran Vert", type: "Écran", desc: "Symptômes : Ligne verticale rose ou écran qui devient vert à faible luminosité. Cause : Flex bonding (nappe de l'écran qui se décolle de la dalle OLED à cause de la chauffe du processeur). Changement d'écran obligatoire." }
+                    ]
+                },
+                {
+                    device: "Nintendo Switch (Toutes générations)",
+                    issues: [
+                        { name: "Ne s'allume plus / Erreur 2101-0001", type: "Microsoudure", desc: "Symptômes : Console morte. Cause : Puce de gestion de charge M92T36 HS (très fréquent si utilisation d'un chargeur non officiel). À remplacer." },
+                        { name: "Ne s'affiche plus sur la TV", type: "Microsoudure", desc: "Symptômes : Charge ok mais pas d'image sur le Dock. Cause : Puce P13USB HS ou filtres EMI arrachés près du port USB-C." },
+                        { name: "Joy-Con Drift", type: "Pièce", desc: "Symptômes : Le personnage avance tout seul. Cause : Usure des pistes carbone du joystick. Nettoyage au WD40 Contact ou remplacement du stick." }
+                    ]
+                }
+            ];
+
+            const filteredData = blacklistData.map(group => ({
+                ...group,
+                issues: group.issues.filter(issue => 
+                    issue.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    issue.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    group.device.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+            })).filter(group => group.issues.length > 0);
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white flex-1 w-full transition-colors duration-200">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
+                        <div className="flex items-center w-full sm:w-auto">
+                            <button onClick={onOpenNav} className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <span className="mr-2">☠️</span> Blacklist des Pannes Connues
+                            </h1>
+                        </div>
+                        <div className="w-full sm:w-96 relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                            <input 
+                                type="text" 
+                                placeholder="Chercher un modèle ou une panne (ex: Écran blanc, M92T36)..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-red-500 transition shadow-inner"
+                            />
+                            {searchTerm && (
+                                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 font-bold">&times;</button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                        <div className="max-w-4xl mx-auto space-y-8">
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-5 shadow-sm">
+                                <h2 className="text-red-800 dark:text-red-400 font-bold text-lg mb-2 flex items-center">
+                                    <span className="mr-2">⚠️</span> À lire avant diagnostic
+                                </h2>
+                                <p className="text-sm text-red-700 dark:text-red-300">
+                                    Cette liste répertorie les défauts de fabrication (maladies) fréquents à l'atelier. Avant de chercher une panne complexe, vérifiez toujours si l'appareil ne souffre pas d'une de ces maladies chroniques.
+                                </p>
+                            </div>
+
+                            {filteredData.length === 0 ? (
+                                <div className="text-center text-gray-500 py-10 font-bold bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-dashed border-gray-300 dark:border-gray-700">
+                                    Aucune panne endémique trouvée pour "{searchTerm}".
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {filteredData.map((group, idx) => (
+                                        <div key={idx} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in">
+                                            <div className="bg-gray-100 dark:bg-gray-700/80 px-5 py-3 border-b border-gray-200 dark:border-gray-700">
+                                                <h3 className="font-black text-lg text-gray-800 dark:text-white">{group.device}</h3>
+                                            </div>
+                                            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                                                {group.issues.map((issue, i) => (
+                                                    <div key={i} className="p-5 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h4 className="font-bold text-gray-900 dark:text-white text-base">{issue.name}</h4>
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full whitespace-nowrap ml-3 ${
+                                                                issue.type.includes('Microsoudure') 
+                                                                    ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800'
+                                                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                                                            }`}>
+                                                                {issue.type}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                                            {issue.desc}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
         const DiagnosticView = ({ setView, onOpenNav }) => {
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
@@ -1989,6 +2130,14 @@
                                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Analyse des redémarrages (Panic Full)</p>
                                         </div>
                                         <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">🔍</span>
+                                    </button>
+
+                                    <button onClick={() => setView('blacklist')} className="p-5 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-red-400 transition flex items-center justify-between group">
+                                        <div>
+                                            <h3 className="font-bold text-lg text-red-600 dark:text-red-400">Blacklist Pannes</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Maladies chroniques et défauts de série</p>
+                                        </div>
+                                        <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">☠️️</span>
                                     </button>
                                     
                                     <button onClick={() => setView('diagnostic')} className="p-5 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-yellow-400 transition flex items-center justify-between group">
@@ -2406,6 +2555,8 @@
               ) : view === 'tech_hub' ? (
                   <TechHubView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'panic_logs' ? (
+                  <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
+              ) : view === 'blacklist' ? (
                   <PanicLogsView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
               ) : view === 'diagnostic' ? (
                   <DiagnosticView setView={setView} onOpenNav={() => setIsNavOpen(true)} />
