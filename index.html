@@ -446,6 +446,21 @@
                 return unsubscribe;
             }, []);
 
+            const toggleRecipient = (name) => {
+                if (name === 'Tout le monde') {
+                    setRecipients(['Tout le monde']);
+                } else {
+                    let newRecipients = recipients.filter(r => r !== 'Tout le monde');
+                    if (newRecipients.includes(name)) {
+                        newRecipients = newRecipients.filter(r => r !== name);
+                    } else {
+                        newRecipients.push(name);
+                    }
+                    if (newRecipients.length === 0) newRecipients = ['Tout le monde'];
+                    setRecipients(newRecipients);
+                }
+            };
+            
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 if (!author || !text) return;
@@ -532,14 +547,20 @@
                                                 <option value="Gérard">Gérard</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">Pour qui ?</label>
-                                            <select required value={recipient} onChange={e => setRecipient(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
-                                                <option value="Tout le monde">Tout le monde</option>
-                                                <option value="Clément">Clément</option>
-                                                <option value="Bérénys">Bérénys</option>
-                                                <option value="Gérard">Gérard</option>
-                                            </select>
+                                        <div className="mb-4">
+                                        <label className="block text-sm font-medium mb-2">Pour qui ? (Plusieurs choix possibles)</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['Tout le monde', 'Clément', 'Bérénys', 'Gérard'].map(person => (
+                                                <label key={person} className={`flex items-center space-x-2 px-3 py-2 border rounded-md cursor-pointer transition ${recipients.includes(person) ? 'bg-blue-100 border-blue-500 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200' : 'bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={recipients.includes(person)} 
+                                                        onChange={() => toggleRecipient(person)}
+                                                        className="rounded text-blue-600 focus:ring-blue-500"
+                                                    />
+                                                    <span className="font-medium text-sm">{person}</span>
+                                                </label>
+                                            ))}
                                         </div>
                                     </div>
 
@@ -1974,7 +1995,11 @@
                 e.preventDefault();
                 if (!name || !text) return;
                 const { collection, addDoc } = window.FB_SDK;
-                await addDoc(collection(window.db, "proposals"), {
+                await addDoc(collection(window.db, "team_notes"), {
+                    author, recipient: recipients.join(', '), text, createdAt: Date.now(), status: 'active'
+                });
+                setText('');
+                setRecipients(['Tout le monde']);
                     name, text, createdAt: Date.now()
                 });
                 setName('');
@@ -2357,6 +2382,7 @@
                 isPriority: false,
                 isSAV: formData.isSAV,
                 vendeur: formData.vendeur,
+                // AJOUTEZ CES 4 LIGNES CI-DESSOUS
                 intakeData: {
                     telephoneDepose: formData.telephoneDepose !== false ? 'oui' : 'non',
                     pieceCommande: formData.pieces && formData.pieces.length > 0
@@ -2588,6 +2614,7 @@
                         <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       
+                      {/* BOUTONS TELEPHONE ET SAV */}
                       <div className="pt-1 space-y-2 mb-2 mt-4">
                           <label className="flex items-center space-x-2 text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer bg-purple-50 dark:bg-purple-900/20 p-2.5 rounded-md border border-purple-200 dark:border-purple-800 transition hover:bg-purple-100 dark:hover:bg-purple-900/40">
                               <input 
@@ -2609,7 +2636,6 @@
                               <span className="text-red-700 dark:text-red-400 font-bold tracking-wide">⚠️ SAV (Garantie)</span>
                           </label>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 mt-2">Pièce(s) Commandée(s)</label>
                         <div className="grid grid-cols-2 gap-2 mb-2">
