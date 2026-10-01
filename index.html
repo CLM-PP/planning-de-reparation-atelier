@@ -2805,6 +2805,7 @@
                                         let badge = null;
                                         let isWaitingPieces = autoStatus === 'wait_piece'; 
 
+                                        // Logique propre : Téléphone non déposé = Attente Tél, sinon si pièce commandée avant 13h = Attente Pièce, sinon = En cours
                                         if (autoStatus !== 'done' && autoStatus !== 'archived' && autoStatus !== 'transfert_hs') {
                                             if (!isTelDepose) {
                                                 autoStatus = 'wait_phone';
