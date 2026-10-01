@@ -2793,7 +2793,8 @@
                                           {dayRepairs.length} Rép.
                                       </span>
                                   </div>
-                                  <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
+                                  
+                                    <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
                                     {dayRepairs.map(repair => {
                                         const now = new Date();
                                         const isPast13h = now.getHours() >= 13;
@@ -2804,7 +2805,6 @@
                                         let badge = null;
                                         let isWaitingPieces = autoStatus === 'wait_piece'; 
 
-                                        // Logique propre : Téléphone non déposé = Attente Tél, sinon si pièce commandée avant 13h = Attente Pièce, sinon = En cours
                                         if (autoStatus !== 'done' && autoStatus !== 'archived' && autoStatus !== 'transfert_hs') {
                                             if (!isTelDepose) {
                                                 autoStatus = 'wait_phone';
@@ -2829,11 +2829,11 @@
 
                                         return (
                                             <div key={repair.id} 
-                                                 draggable={editingRepairId !== repair.id} 
-                                                 onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} 
-                                                 onDragOver={(e) => e.preventDefault()}
-                                                 onDrop={(e) => handleDrop(e, dateStr, repair.id)}
-                                                 className={`p-2 sm:p-3 rounded-md border-l-4 text-sm ${editingRepairId === repair.id ? 'cursor-default' : 'cursor-grab'} border-opacity-50 ${cardColor} relative shadow-sm hover:shadow-md transition-all mb-2`}
+                                                draggable={editingRepairId !== repair.id} 
+                                                onDragStart={(e) => e.dataTransfer.setData('repairId', repair.id)} 
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onDrop={(e) => handleDrop(e, dateStr, repair.id)}
+                                                className={`p-2 sm:p-3 rounded-md border-l-4 text-sm ${editingRepairId === repair.id ? 'cursor-default' : 'cursor-grab'} border-opacity-50 ${cardColor} relative shadow-sm hover:shadow-md transition-all mb-2`}
                                             >
                                                 {editingRepairId === repair.id ? (
                                                     <div className="flex flex-col space-y-2 text-black dark:text-white">
