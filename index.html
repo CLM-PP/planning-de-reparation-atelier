@@ -2805,6 +2805,7 @@
                                         let badge = null;
                                         let isWaitingPieces = autoStatus === 'wait_piece'; 
 
+                                        // Logique propre : Téléphone déposé = En cours (ou Pièce si avant 13h), non déposé = Attente Tél
                                         if (autoStatus !== 'done' && autoStatus !== 'archived' && autoStatus !== 'transfert_hs') {
                                             if (!isTelDepose) {
                                                 autoStatus = 'wait_phone';
@@ -2821,7 +2822,7 @@
                                             if (autoStatus === 'done') {
                                                 badge = <span className="text-[10px] bg-green-100 text-green-800 border border-green-300 px-2 py-1 rounded font-bold uppercase w-full block text-center mb-2 shadow-sm">✅ Terminé</span>;
                                             } else if (autoStatus === 'transfert_hs') {
-                                                badge = <span className="text-[10px] bg-pink-100 text-pink-800 border border-pink-300 px-2 py-1 rounded font-bold uppercase w-full block text-center mb-2 shadow-sm">🔧 Transfert HS</span>;
+                                                badge = <span className="text-[10px] bg-pink-100 text-pink-800 border border-pink-300 px-2 py-1 rounded font-bold uppercase w-full block text-center mb-2 shadow-sm">🔧 Transfert HS (À tester)</span>;
                                             } else if (autoStatus === 'archived') {
                                                 badge = <span className="text-[10px] bg-gray-200 text-gray-800 border border-gray-300 px-2 py-1 rounded font-bold uppercase w-full block text-center mb-2 shadow-sm">📁 Archivé</span>;
                                             }
