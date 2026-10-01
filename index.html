@@ -430,8 +430,7 @@
             const [messages, setMessages] = useState([]);
             const [text, setText] = useState('');
             const [author, setAuthor] = useState('');
-            // NOUVEAU: Un tableau pour stocker plusieurs destinataires
-            const [recipients, setRecipients] = useState(['Tout le monde']);
+            const [recipient, setRecipient] = useState('Tout le monde');
             const [activeTab, setActiveTab] = useState('actifs');
             const [searchTerm, setSearchTerm] = useState('');
 
@@ -447,32 +446,15 @@
                 return unsubscribe;
             }, []);
 
-            // NOUVEAU: Gère les clics sur les cases à cocher des destinataires
-            const toggleRecipient = (name) => {
-                if (name === 'Tout le monde') {
-                    setRecipients(['Tout le monde']);
-                } else {
-                    let newRecipients = recipients.filter(r => r !== 'Tout le monde');
-                    if (newRecipients.includes(name)) {
-                        newRecipients = newRecipients.filter(r => r !== name);
-                    } else {
-                        newRecipients.push(name);
-                    }
-                    if (newRecipients.length === 0) newRecipients = ['Tout le monde'];
-                    setRecipients(newRecipients);
-                }
-            };
-
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 if (!author || !text) return;
                 const { collection, addDoc } = window.FB_SDK;
                 await addDoc(collection(window.db, "team_notes"), {
-                    // On fusionne les destinataires avec une virgule
-                    author, recipient: recipients.join(', '), text, createdAt: Date.now(), status: 'active'
+                    author, recipient, text, createdAt: Date.now(), status: 'active'
                 });
                 setText('');
-                setRecipients(['Tout le monde']);
+                setRecipient('Tout le monde');
             };
 
             const markAsSeen = async (id) => {
@@ -540,31 +522,24 @@
                                 <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-blue-500">
                                     <h2 className="text-lg font-bold mb-4">Laisser un message</h2>
                                     
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
-                                        <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full sm:w-1/2 border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
-                                            <option value="">- Choisir -</option>
-                                            <option value="Clément">Clément</option>
-                                            <option value="Bérénys">Bérénys</option>
-                                            <option value="Gérard">Gérard</option>
-                                        </select>
-                                    </div>
-
-                                    {/* NOUVEAU: Checkboxes pour les destinataires */}
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium mb-2">Pour qui ? (Plusieurs choix possibles)</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {['Tout le monde', 'Clément', 'Bérénys', 'Gérard'].map(person => (
-                                                <label key={person} className={`flex items-center space-x-2 px-3 py-2 border rounded-md cursor-pointer transition ${recipients.includes(person) ? 'bg-blue-100 border-blue-500 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200' : 'bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'}`}>
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={recipients.includes(person)} 
-                                                        onChange={() => toggleRecipient(person)}
-                                                        className="rounded text-blue-600 focus:ring-blue-500"
-                                                    />
-                                                    <span className="font-medium text-sm">{person}</span>
-                                                </label>
-                                            ))}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Qui écrit ce mot ?</label>
+                                            <select required value={author} onChange={e => setAuthor(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
+                                                <option value="">- Choisir -</option>
+                                                <option value="Clément">Clément</option>
+                                                <option value="Bérénys">Bérénys</option>
+                                                <option value="Gérard">Gérard</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">Pour qui ?</label>
+                                            <select required value={recipient} onChange={e => setRecipient(e.target.value)} className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500">
+                                                <option value="Tout le monde">Tout le monde</option>
+                                                <option value="Clément">Clément</option>
+                                                <option value="Bérénys">Bérénys</option>
+                                                <option value="Gérard">Gérard</option>
+                                            </select>
                                         </div>
                                     </div>
 
@@ -643,6 +618,7 @@
                 </div>
             );
         };
+
         const SamFwGuideView = ({ onOpenNav }) => {
             return (
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
@@ -2608,7 +2584,7 @@
                         <input type="text" required value={formData.repair} onChange={e => setFormData({...formData, repair: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                       </div>
                       
-                      <div className="pt-1 space-y-2 mb-2">
+                      <div className="pt-1 space-y-2">
                           <label className="flex items-center space-x-2 text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer bg-purple-50 dark:bg-purple-900/20 p-2.5 rounded-md border border-purple-200 dark:border-purple-800 transition hover:bg-purple-100 dark:hover:bg-purple-900/40">
                               <input 
                                   type="checkbox" 
