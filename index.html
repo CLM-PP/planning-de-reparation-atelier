@@ -2607,7 +2607,83 @@
                               <span className="text-red-700 dark:text-red-400 font-bold tracking-wide">⚠️ SAV (Garantie)</span>
                           </label>
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 mt-2">Pièce(s) Commandée(s)</label>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre Arrière'].map(p => (
+                                <label key={p} className="flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={formData.pieces?.includes(p)} 
+                                        onChange={(e) => {
+                                            const newPieces = e.target.checked 
+                                                ? [...(formData.pieces || []), p] 
+                                                : (formData.pieces || []).filter(x => x !== p);
+                                            setFormData({...formData, pieces: newPieces});
+                                        }}
+                                        className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
+                                    />
+                                    <span className="truncate">{p}</span>
+                                </label>
+                            ))}
+                            <label className="col-span-2 flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
+                                <input 
+                                    type="checkbox" 
+                                    checked={formData.pieces?.includes('Autre')} 
+                                    onChange={(e) => {
+                                        const newPieces = e.target.checked 
+                                            ? [...(formData.pieces || []), 'Autre'] 
+                                            : (formData.pieces || []).filter(x => x !== 'Autre');
+                                        setFormData({...formData, pieces: newPieces});
+                                    }}
+                                    className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
+                                />
+                                <span className="truncate">Autre chose (préciser)...</span>
+                            </label>
+                        </div>
+                      </div>
 
+                      {formData.pieces?.includes('Autre') && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez la pièce</label>
+                            <input type="text" value={formData.customPiece || ''} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
+                          </div>
+                      )}
+                      
+                      {formData.pieces?.length > 0 && (
+                        <div className="space-y-3 mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <label className="block text-sm font-bold text-gray-800 dark:text-gray-200">Fournisseur(s) optionnel(s)</label>
+                            {formData.pieces.map(p => {
+                                const displayName = p === 'Autre' ? (formData.customPiece || 'Autre pièce') : p;
+                                return (
+                                    <div key={p} className="flex flex-col bg-gray-50 dark:bg-gray-700/30 p-2 rounded border border-gray-200 dark:border-gray-600">
+                                        <span className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">{displayName}</span>
+                                        <select 
+                                            value={(formData.pieceSuppliers || {})[p] || ''} 
+                                            onChange={e => setFormData({...formData, pieceSuppliers: { ...(formData.pieceSuppliers || {}), [p]: e.target.value }})}
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm"
+                                        >
+                                            <option value="">-- Aucun --</option>
+                                            <option value="Utopya">Utopya</option>
+                                            <option value="Mobilax">Mobilax</option>
+                                            <option value="Amazon">Amazon</option>
+                                            <option value="Autre">Autre (préciser)...</option>
+                                        </select>
+                                        
+                                        {(formData.pieceSuppliers || {})[p] === 'Autre' && (
+                                            <input 
+                                                type="text" 
+                                                placeholder="Nom du fournisseur..." 
+                                                value={(formData.customPieceSuppliers || {})[p] || ''} 
+                                                onChange={e => setFormData({...formData, customPieceSuppliers: { ...(formData.customPieceSuppliers || {}), [p]: e.target.value }})}
+                                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm mt-2" 
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Vendeur</label>
