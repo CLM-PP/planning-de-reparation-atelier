@@ -2598,7 +2598,7 @@
                           <label className="flex items-center space-x-2 text-sm font-medium text-gray-800 dark:text-gray-200 cursor-pointer bg-red-50 dark:bg-red-900/20 p-2.5 rounded-md border border-red-200 dark:border-red-800 transition hover:bg-red-100 dark:hover:bg-red-900/40">
                               <input 
                                   type="checkbox" 
-                                  checked={formData.isSAV || false} 
+                                  checked={formData.isSAV} 
                                   onChange={(e) => setFormData({...formData, isSAV: e.target.checked})}
                                   className="rounded border-red-300 text-red-600 w-5 h-5 cursor-pointer focus:ring-red-500"
                               />
@@ -2606,84 +2606,88 @@
                           </label>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2 mt-2">Pièce(s) Commandée(s)</label>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                            {['Écran', 'Batterie', 'Dock de charge', 'Nappe', 'Caméra Avant', 'Caméra Arrière', 'Lentille Caméra', 'Vitre Arrière'].map(p => (
-                                <label key={p} className="flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={formData.pieces.includes(p)} 
-                                        onChange={(e) => {
-                                            const newPieces = e.target.checked 
-                                                ? [...formData.pieces, p] 
-                                                : formData.pieces.filter(x => x !== p);
-                                            setFormData({...formData, pieces: newPieces});
-                                        }}
-                                        className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
-                                    />
-                                    <span className="truncate">{p}</span>
-                                </label>
-                            ))}
-                            <label className="col-span-2 flex items-center space-x-2 text-sm text-gray-800 dark:text-gray-200 cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2 rounded-md border border-gray-200 dark:border-gray-600">
-                                <input 
-                                    type="checkbox" 
-                                    checked={formData.pieces.includes('Autre')} 
-                                    onChange={(e) => {
-                                        const newPieces = e.target.checked 
-                                            ? [...formData.pieces, 'Autre'] 
-                                            : formData.pieces.filter(x => x !== 'Autre');
-                                        setFormData({...formData, pieces: newPieces});
-                                    }}
-                                    className="rounded border-gray-300 text-blue-600 w-4 h-4 cursor-pointer"
-                                />
-                                <span className="truncate">Autre chose (préciser)...</span>
-                            </label>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Vendeur</label>
+                            <select 
+                                required
+                                className="w-full p-2 outline-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md" 
+                                value={formData.vendeur} 
+                                onChange={e => setFormData({...formData, vendeur: e.target.value})}
+                            >
+                              <option value="">- CHOISIR -</option>
+                              <option value="Clément">CLÉMENT</option>
+                              <option value="Bérénys">BÉRÉNYS</option>
+                              <option value="Gérard">GÉRARD</option>
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1 mt-4">Date prévue</label>
+                            <input type="date" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
                         </div>
                       </div>
+                      <button type="submit" className="w-full mt-6 bg-blue-600 text-white font-medium py-3 rounded-md hover:bg-blue-700 transition">+ Ajouter au planning</button>
+                    </form>
+                  </div>
 
-                      {formData.pieces.includes('Autre') && (
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">Précisez la pièce</label>
-                            <input type="text" required value={formData.customPiece} onChange={e => setFormData({...formData, customPiece: e.target.value})} className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-2 outline-none bg-white dark:bg-gray-700 text-black dark:text-white" />
+                  <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+                    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row justify-between items-center shadow-sm gap-4">
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                          <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() - (planningMode === 'day' ? 1 : 7)); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&larr;</button>
+                          <h2 className="text-sm font-bold text-center whitespace-nowrap self-center hidden sm:block mx-2">
+                              {planningMode === 'day' ? currentDate.toLocaleDateString('fr-FR', {weekday: 'long', day:'2-digit', month:'2-digit'}) : `Du ${weekDates[0].toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})} au ${weekDates[5].toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})}`}
+                          </h2>
+                          <button onClick={() => {const d = new Date(currentDate); d.setDate(d.getDate() + (planningMode === 'day' ? 1 : 7)); setCurrentDate(d);}} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-xl leading-none">&rarr;</button>
+                          <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-md text-sm sm:ml-2">Auj.</button>
+                          
+                          <div className="flex bg-gray-200 dark:bg-gray-800 rounded-lg p-1 ml-2">
+                              <button onClick={() => setPlanningMode('day')} className={`px-2 py-1 text-xs font-bold rounded-md ${planningMode === 'day' ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-300'}`}>Jour</button>
+                              <button onClick={() => setPlanningMode('week')} className={`px-2 py-1 text-xs font-bold rounded-md ${planningMode === 'week' ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-300'}`}>Semaine</button>
                           </div>
-                      )}
+                          
+                      </div>
+
+                      <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
+                          <span className="text-gray-500">🔍</span>
+                          <input 
+                              type="text" 
+                              placeholder="Recherche client, modèle, tel..." 
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                          />
+                          {searchTerm && <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-red-500 font-bold ml-2">&times;</button>}
+                      </div>
                       
-                      {formData.pieces.length > 0 && (
-                        <div className="space-y-3 mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                            <label className="block text-sm font-bold text-gray-800 dark:text-gray-200">Fournisseur(s) optionnel(s)</label>
-                            {formData.pieces.map(p => {
-                                const displayName = p === 'Autre' ? (formData.customPiece || 'Autre pièce') : p;
-                                return (
-                                    <div key={p} className="flex flex-col bg-gray-50 dark:bg-gray-700/30 p-2 rounded border border-gray-200 dark:border-gray-600">
-                                        <span className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">{displayName}</span>
-                                        <select 
-                                            value={formData.pieceSuppliers[p] || ''} 
-                                            onChange={e => setFormData({...formData, pieceSuppliers: { ...formData.pieceSuppliers, [p]: e.target.value }})}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm"
-                                        >
-                                            <option value="">-- Aucun --</option>
-                                            <option value="Utopya">Utopya</option>
-                                            <option value="Mobilax">Mobilax</option>
-                                            <option value="Amazon">Amazon</option>
-                                            <option value="Autre">Autre (préciser)...</option>
-                                        </select>
-                                        
-                                        {formData.pieceSuppliers[p] === 'Autre' && (
-                                            <input 
-                                                type="text" 
-                                                placeholder="Nom du fournisseur..." 
-                                                required 
-                                                value={formData.customPieceSuppliers[p] || ''} 
-                                                onChange={e => setFormData({...formData, customPieceSuppliers: { ...formData.customPieceSuppliers, [p]: e.target.value }})}
-                                                className="w-full border border-gray-300 dark:border-gray-600 rounded-md p-1.5 outline-none bg-white dark:bg-gray-700 text-black dark:text-white text-sm mt-2" 
-                                            />
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                      )}
+                      <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition shrink-0">
+                          {isDarkMode ? '☀️' : '🌙'}
+                      </button>
+                    </div>
+
+                    <div className="flex-1 p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
+                      {searchTerm ? (
+                          <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                              <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Résultats pour "{searchTerm}"</h2>
+                              {filteredRepairs.length === 0 ? (
+                                  <p className="text-gray-500 text-center py-8">Aucune fiche ne correspond à cette recherche.</p>
+                              ) : (
+                                  <div className="space-y-3">
+                                      {filteredRepairs.map(r => (
+                                          <div key={r.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition gap-4">
+                                              <div>
+                                                  <p className="font-bold text-lg text-gray-900 dark:text-white">{r.client} <span className="text-blue-600 dark:text-blue-400 text-base font-normal ml-2">📞 {r.clientPhone}</span></p>
+                                                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">{r.phone} : {r.repair}</p>
+                                                  <span className={`text-xs px-2 py-1 rounded font-bold mt-2 inline-block ${r.status === 'archived' ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' : 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-400'}`}>
+                                                      {r.status === 'archived' ? 'Archivé' : 'En cours'}
+                                                  </span>
+                                              </div>
+                                              <button onClick={() => { setActiveIntake(r); setView('intake'); setSearchTerm(''); }} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-bold shadow-sm transition">
+                                                  Ouvrir
+                                              </button>
+                                          </div>
+                                      ))}
+                                  </div>
+                              )}
                           </div>
                       ) : (
                           <div className={`grid ${planningMode === 'day' ? 'grid-cols-1 max-w-md mx-auto w-full' : 'grid-cols-3 lg:grid-cols-6'} gap-2 min-h-[500px] lg:min-h-0`}>
