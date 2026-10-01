@@ -2827,6 +2827,15 @@
                                             }
                                         }
 
+                                        let cardColor = 'bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700';
+                                        if (autoStatus === 'archived') cardColor = 'bg-gray-200 dark:bg-gray-800 opacity-60';
+                                        else if (isWaitingPieces) cardColor = 'bg-orange-50 border-orange-400 dark:bg-orange-900/20';
+                                        else if (autoStatus === 'wait_phone') cardColor = 'bg-purple-50 border-purple-400 dark:bg-purple-900/20';
+                                        else if (autoStatus === 'transfert_hs') cardColor = 'bg-pink-50 border-pink-400 dark:bg-pink-900/20';
+                                        else if (autoStatus === 'done') cardColor = 'bg-green-50 border-green-400 dark:bg-green-900/20';
+                                        else if (autoStatus === 'in_progress' || autoStatus === 'pending') cardColor = 'bg-blue-50 border-blue-400 dark:bg-blue-900/20';
+                                        if (repair.isPriority && autoStatus !== 'done' && autoStatus !== 'archived') cardColor = 'bg-red-50 border-red-500 dark:bg-red-900/20';
+
                                         return (
                                             <div key={repair.id} 
                                                 draggable={editingRepairId !== repair.id} 
