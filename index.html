@@ -2725,7 +2725,7 @@
                                     {dayRepairs.map(repair => {
                                         const now = new Date();
                                         const isPast13h = now.getHours() >= 13;
-                                        const isTelDepose = repair.intakeData?.telephoneDepose === 'oui';
+                                        const isTelDepose = repair.telephoneDepose !== false && repair.intakeData?.telephoneDepose !== false;
                                         const isPieceCmd = repair.intakeData?.pieceCommande === true || (repair.piece && repair.piece !== 'Aucune / En stock');
                                         
                                         let autoStatus = repair.status || 'pending';
