@@ -2795,13 +2795,13 @@
                                   </div>
                                   
                                     <div className="flex-1 overflow-y-auto p-1 sm:p-2 space-y-2">
-                                    {dayRepairs.map(repair => {
+                                    {dayRepairs && dayRepairs.map(repair => {
                                         const now = new Date();
                                         const isPast13h = now.getHours() >= 13;
-                                        const isTelDepose = repair.telephoneDepose !== false && repair.intakeData?.telephoneDepose !== false;
-                                        const isPieceCmd = repair.intakeData?.pieceCommande === true || (repair.piece && repair.piece !== 'Aucune / En stock');
+                                        const isTelDepose = repair?.telephoneDepose !== false && repair?.intakeData?.telephoneDepose !== false;
+                                        const isPieceCmd = repair?.intakeData?.pieceCommande === true || (repair?.piece && repair?.piece !== 'Aucune / En stock');
                                         
-                                        let autoStatus = repair.status || 'pending';
+                                        let autoStatus = repair?.status || 'pending';
                                         let badge = null;
                                         let isWaitingPieces = autoStatus === 'wait_piece'; 
 
@@ -2834,7 +2834,7 @@
                                         else if (autoStatus === 'transfert_hs') cardColor = 'bg-pink-50 border-pink-400 dark:bg-pink-900/20';
                                         else if (autoStatus === 'done') cardColor = 'bg-green-50 border-green-400 dark:bg-green-900/20';
                                         else if (autoStatus === 'in_progress' || autoStatus === 'pending') cardColor = 'bg-blue-50 border-blue-400 dark:bg-blue-900/20';
-                                        if (repair.isPriority && autoStatus !== 'done' && autoStatus !== 'archived') cardColor = 'bg-red-50 border-red-500 dark:bg-red-900/20';
+                                        if (repair?.isPriority && autoStatus !== 'done' && autoStatus !== 'archived') cardColor = 'bg-red-50 border-red-500 dark:bg-red-900/20';
 
                                         return (
                                             <div key={repair.id} 
@@ -2844,6 +2844,7 @@
                                                 onDrop={(e) => handleDrop(e, dateStr, repair.id)}
                                                 className={`p-2 sm:p-3 rounded-md border-l-4 text-sm ${editingRepairId === repair.id ? 'cursor-default' : 'cursor-grab'} border-opacity-50 ${cardColor} relative shadow-sm hover:shadow-md transition-all mb-2`}
                                             >
+                                                {badge}
                                                 {editingRepairId === repair.id ? (
                                                     <div className="flex flex-col space-y-2 text-black dark:text-white">
                                                         <input className="p-1.5 text-sm border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 outline-none" value={editFormData.client || ''} onChange={e => setEditFormData({...editFormData, client: e.target.value})} placeholder="Nom du client" />
