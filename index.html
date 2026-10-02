@@ -1261,10 +1261,11 @@
       const SamFwGuideView = ({ onOpenNav }) => {
         return (
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+            {/* En-tête */}
             <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
               <button
                 onClick={onOpenNav}
-                className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center"
+                className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-600"
               >
                 <svg
                   className="w-5 h-5"
@@ -1280,211 +1281,214 @@
                   ></path>
                 </svg>
               </button>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+              <h1 className="text-xl font-bold flex items-center">
                 <span className="mr-2">🔓</span> Déblocage FRP & Firmware
-                (SamFw)
+                (SamFW)
               </h1>
             </div>
 
+            {/* Contenu du guide */}
             <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-              <div className="max-w-4xl mx-auto space-y-8">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="bg-blue-100 dark:bg-blue-900/50 p-4 border-b border-blue-200 dark:border-blue-800 flex items-center">
-                    <span className="text-2xl mr-3">🔐</span>
-                    <h2 className="font-bold text-lg text-blue-900 dark:text-blue-100">
-                      Contournement Compte Google (FRP)
-                    </h2>
+              <div className="max-w-3xl mx-auto space-y-6">
+                {/* ⚠️ GROS ENCADRÉ D'ALERTE (Le piège de l'onglet MTP) */}
+                <div className="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
+                  <div className="flex items-start">
+                    <span className="text-2xl mr-3">⚠️</span>
+                    <div>
+                      <h3 className="font-bold text-amber-800 dark:text-amber-300 text-base">
+                        Le piège à éviter pour le FRP : Toujours vérifier
+                        l'onglet !
+                      </h3>
+                      <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                        Si le journal de bord indique{" "}
+                        <code className="bg-amber-100 dark:bg-amber-800 px-1.5 py-0.5 rounded font-mono text-xs">
+                          Enabling ADB... FAIL
+                        </code>
+                        , c'est que le logiciel essaie d'agir en mode ADB alors
+                        que le téléphone n'est pas prêt.{" "}
+                        <strong>
+                          Il faut impérativement se placer sur l'onglet MTP
+                        </strong>{" "}
+                        de SamFW Tool avant de lancer la procédure de
+                        contournement.
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-6 space-y-6">
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                </div>
+
+                {/* Section 1 : FRP */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-3">
+                    📋 Procédure FRP (Contournement Google)
+                  </h2>
+
+                  <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-bold text-xs shrink-0 mt-0.5">
                         1
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Lancement du logiciel
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Ouvrez <strong>SamFw FRP Tool</strong> sur
-                          l'ordinateur de l'atelier.
+                        <strong className="text-black dark:text-white">
+                          Connexion initiale :
+                        </strong>
+                        <p className="mt-0.5">
+                          Branche le téléphone allumé sur l'écran d'accueil du
+                          verrouillage Google.
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-bold text-xs shrink-0 mt-0.5">
                         2
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Branchement du téléphone
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Allumez le Samsung bloqué sur l'écran "Compte Google"
-                          et branchez-le en USB à l'ordinateur.
+                        <strong className="text-black dark:text-white">
+                          Sélectionner l'onglet MTP :
+                        </strong>
+                        <p className="mt-0.5">
+                          Dans SamFW Tool, clique bien sur l'onglet{" "}
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            MTP
+                          </span>{" "}
+                          tout en haut (sous les logos)[cite: 5].
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-red-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-bold text-xs shrink-0 mt-0.5">
                         3
-                      </div>
-                      <div className="w-full">
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Menu Secret Samsung (Mode Test)
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1 mb-2">
-                          Sur le téléphone, revenez au tout premier écran de
-                          démarrage. Cliquez sur{" "}
-                          <strong>Appel d'urgence</strong>.
+                      </span>
+                      <div>
+                        <strong className="text-black dark:text-white">
+                          Menu secret du téléphone :
+                        </strong>
+                        <p className="mt-0.5">
+                          Sur le téléphone, va sur <em>Appel d'urgence</em> et
+                          tape{" "}
+                          <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded font-mono text-xs font-bold">
+                            *#0*# OU *#*#88#*#*
+                          </code>{" "}
+                          pour afficher le menu blanc de test.
                         </p>
-                        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-                          <p className="text-sm uppercase font-bold text-gray-500 mb-1">
-                            Tapez ce code sur le clavier :
-                          </p>
-                          <p className="text-4xl tracking-widest font-black text-red-600 dark:text-red-400">
-                            *#0*#
-                          </p>
-                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-bold text-xs shrink-0 mt-0.5">
                         4
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Lancer le déblocage sur PC
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Dans le logiciel SamFw, cliquez sur : 👉{" "}
-                          <strong>Remove FRP</strong>.
+                        <strong className="text-black dark:text-white">
+                          Lancer le "Remove FRP" :
+                        </strong>
+                        <p className="mt-0.5">
+                          Clique sur{" "}
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            Remove FRP
+                          </span>{" "}
+                          dans le logiciel et valide l'autorisation sur l'écran
+                          du mobile.
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-green-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-bold text-xs shrink-0 mt-0.5">
                         5
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Autoriser le Débogage USB
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Une popup va apparaître sur le téléphone. Cochez
-                          "Toujours autoriser" et appuyez sur OK.
+                        <strong className="text-black dark:text-white">
+                          Validation finale :
+                        </strong>
+                        <p className="mt-0.5">
+                          Le téléphone va clignoter, autoriser le saut des menus
+                          de configuration Google automatiquement puis
+                          redémarrer et il sera débloqué !
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="bg-green-100 dark:bg-green-900/50 p-4 border-b border-green-200 dark:border-green-800 flex items-center">
-                    <span className="text-2xl mr-3">⚡</span>
-                    <h2 className="font-bold text-lg text-green-900 dark:text-green-100">
-                      Flasher / Changer le Firmware Samsung
-                    </h2>
-                  </div>
-                  <div className="p-6 space-y-6">
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                {/* Section 2 : Firmware / Flash */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-3">
+                    📦 Procédure Flash / Changement de Firmware (Samsung)
+                  </h2>
+
+                  <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 font-bold text-xs shrink-0 mt-0.5">
                         1
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Télécharger le firmware
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Allez sur le site{" "}
-                          <a
-                            href="https://samfw.com"
-                            target="_blank"
-                            className="text-blue-500 font-bold hover:underline"
-                          >
-                            SamFw.com
-                          </a>
-                          . Entrez le modèle exact et choisissez le code région
-                          (ex: XEF).
+                        <strong className="text-black dark:text-white">
+                          Récupérer la bonne ROM :
+                        </strong>
+                        <p className="mt-0.5">
+                          Utilise l'onglet <em>Samsung firmware</em> de SamFW
+                          (ou samfw.com) pour télécharger la ROM officielle
+                          correspondant exactement au modèle exact et au code
+                          CSC de l'appareil (ex: BOG, XEF...).
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 font-bold text-xs shrink-0 mt-0.5">
                         2
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Préparer les fichiers
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Extrayez le fichier ZIP téléchargé. Vous obtiendrez 5
-                          fichiers : AP, BL, CP, CSC, HOME_CSC.
+                        <strong className="text-black dark:text-white">
+                          Mode Download :
+                        </strong>
+                        <p className="mt-0.5">
+                          Éteins complètement le téléphone. Maintiens les
+                          boutons <em>Volume Haut + Volume Bas</em> branché en
+                          USB à l'ordinateur pour basculer en mode Download
+                          (fond vert/turquoise).
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-orange-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 font-bold text-xs shrink-0 mt-0.5">
                         3
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Mode Download (Odin Mode)
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Éteignez le téléphone. Maintenez{" "}
-                          <strong>Volume Haut + Volume Bas</strong> et branchez
-                          le câble USB.
+                        <strong className="text-black dark:text-white">
+                          Préparation Odin / SamFW :
+                        </strong>
+                        <p className="mt-0.5">
+                          Assigne les fichiers décompressés dans les cases
+                          correspondantes :
+                          <br />• <b>BL</b> dans BL
+                          <br />• <b>AP</b> dans AP (attention, le chargement
+                          peut figer un instant le logiciel)
+                          <br />• <b>CP</b> dans CP
+                          <br />• <b>CSC</b> dans CSC (attention :{" "}
+                          <em>ne mets pas</em> HOME_CSC si tu veux effacer
+                          proprement le téléphone et repartir sur une base
+                          saine).
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+
+                    <div className="flex items-start space-x-3">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 font-bold text-xs shrink-0 mt-0.5">
                         4
-                      </div>
-                      <div className="w-full">
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Charger les fichiers
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1 mb-3">
-                          Dans l'onglet <strong>Odin Flash</strong>, mettez
-                          chaque fichier dans sa case :
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                          <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
-                            <strong>BL</strong> 👉 Fichier BL_...
-                          </div>
-                          <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
-                            <strong>AP</strong> 👉 Fichier AP_...
-                          </div>
-                          <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded border border-gray-200 dark:border-gray-600">
-                            <strong>CP</strong> 👉 Fichier CP_...
-                          </div>
-                          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 col-span-1 sm:col-span-2">
-                            <strong>CSC</strong> 👉 Attention : <br />
-                            <span className="inline-block mt-1">
-                              • <strong>CSC_...</strong> = Efface TOUT (Remise à
-                              zéro)
-                            </span>
-                            <br />
-                            <span className="inline-block mt-1">
-                              • <strong>HOME_CSC_...</strong> = Conserve les
-                              données
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-4 items-start">
-                      <div className="bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0">
-                        5
-                      </div>
+                      </span>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                          Flasher !
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          Cliquez sur <strong>Flash</strong>. Ne débranchez
-                          surtout pas le téléphone avant la fin.
+                        <strong className="text-black dark:text-white">
+                          Lancement du flash :
+                        </strong>
+                        <p className="mt-0.5">
+                          Clique sur <b>Start</b>. Ne touche surtout pas au
+                          câble USB pendant toute la barre de progression, et
+                          attends que le téléphone redémarre tout seul sur
+                          l'écran de configuration initial.
                         </p>
                       </div>
                     </div>
@@ -2162,85 +2166,14 @@
       };
 
       const ErrorCodesView = ({ setView, onOpenNav }) => {
-        const [searchTerm, setSearchTerm] = useState("");
-
-        const errorCodes = [
-          {
-            code: "Erreur 9 / 4014 / 4005",
-            source: "iTunes",
-            type: "NAND / CPU / USB",
-            desc: "Problème de communication avec la puce mémoire (NAND) ou le processeur. Sur iPhone X et supérieur, l'erreur 4014 peut aussi venir d'un court-circuit sur l'écran ou la nappe de proximité (Face ID).",
-          },
-          {
-            code: "Erreur 4013",
-            source: "iTunes",
-            type: "Nappe Face ID / NAND",
-            desc: "Très souvent lié à la nappe de proximité (Face ID) en court-circuit (surtout iPhone X au 13). Débranchez la nappe frontale et réessayez de démarrer ou flasher. Sinon, la puce NAND est à remplacer/reprogrammer en micro-soudure.",
-          },
-          {
-            code: "Erreur -1 / 50 / 47",
-            source: "iTunes",
-            type: "Baseband (Réseau)",
-            desc: "Défaut de la puce réseau (Baseband) ou de l'EEPROM. Carte mère en cause, réparation complexe requise.",
-          },
-          {
-            code: "Erreur 14",
-            source: "iTunes",
-            type: "Stockage saturé / USB",
-            desc: "Le stockage de l'iPhone est complètement plein (le plus courant), ou le câble/port USB est défectueux. Flasher en mode 'Retain User Data' avec 3uTools peut parfois sauver les données, sinon restauration complète obligatoire.",
-          },
-          {
-            code: "Erreur 21 / 1601 / 1611",
-            source: "iTunes",
-            type: "Batterie / Port de charge",
-            desc: "La carte mère ne communique pas avec la batterie. Vérifiez le connecteur de batterie, la nappe de charge (dock) ou remplacez la batterie.",
-          },
-          {
-            code: "Erreur 53",
-            source: "iTunes",
-            type: "Touch ID / Home",
-            desc: "Bouton Home d'origine manquant ou défectueux (Erreur historique, souvent résolue par une simple mise à jour récente).",
-          },
-          {
-            code: "Erreur 4000",
-            source: "iTunes",
-            type: "Verrouillage Passcode",
-            desc: "La mise à jour via iTunes est bloquée car l'iPhone est verrouillé par un code. Désactivez le code ou flashez l'appareil en mode Recovery/DFU.",
-          },
-          {
-            code: "Bloqué à 19% / 20%",
-            source: "3uTools",
-            type: "NAND / Batterie",
-            desc: "Souvent un problème d'écriture sur la mémoire (NAND) ou de lecture d'informations de la batterie. Vérifiez la batterie ou la nappe de charge avant de soupçonner la carte mère.",
-          },
-          {
-            code: "Bloqué à 60% / 80%",
-            source: "3uTools",
-            type: "Baseband / NFC",
-            desc: "60% correspond souvent au flashage du Baseband (Réseau). Si ça bloque ici, la puce réseau est HS. 80% peut concerner une puce secondaire comme le NFC.",
-          },
-          {
-            code: "Erreur 1110",
-            source: "iTunes / 3uTools",
-            type: "Stockage Plein (Bootloop)",
-            desc: "Boucle de redémarrage sur le logo Apple due à un stockage plein à 100%. Tentez l'option 'Fix Flash' sur 3uTools.",
-          },
-        ];
-
-        const filtered = errorCodes.filter(
-          (e) =>
-            e.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            e.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            e.type.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
         return (
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row items-center justify-between shadow-sm sticky top-0 z-10 gap-4">
-              <div className="flex items-center w-full sm:w-auto">
+            {/* En-tête */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+              <div className="flex items-center">
                 <button
                   onClick={onOpenNav}
-                  className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition flex items-center justify-center"
+                  className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   <svg
                     className="w-5 h-5"
@@ -2256,74 +2189,178 @@
                     ></path>
                   </svg>
                 </button>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center whitespace-nowrap">
-                  <span className="mr-2">🚨</span> Erreurs (iTunes/3uTools)
+                <h1 className="text-xl font-bold flex items-center">
+                  <span className="mr-2">🚨</span> Guide des Erreurs de Flash
+                  (iTunes / 3uTools)
                 </h1>
               </div>
-              <div className="flex-1 max-w-md w-full flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus-within:border-blue-500 transition-colors">
-                <span className="text-gray-500">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Recherche (ex: 4013, 20%, baseband)..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent border-none outline-none w-full ml-3 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="text-gray-400 hover:text-red-500 font-bold ml-2"
-                  >
-                    &times;
-                  </button>
-                )}
-              </div>
+
+              <button
+                onClick={() => setView("tech_hub")}
+                className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition font-bold"
+              >
+                ← Retour Espace Tech
+              </button>
             </div>
 
+            {/* Contenu principal */}
             <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
-              <div className="max-w-5xl mx-auto">
-                <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-8 border-l-4 border-red-500">
-                  <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
-                    Entrez un code d'erreur affiché par iTunes ou un pourcentage
-                    de blocage sur 3uTools. Ces erreurs apparaissent souvent
-                    lors d'une restauration et permettent de déduire le
-                    composant matériel défectueux.
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">
+                    📖 Base de données des codes d'erreur
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    Référence complète des pannes de restauration et de flash
+                    pour identifier rapidement l'origine du problème (matériel
+                    ou logiciel).
                   </p>
-                </div>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-6">
+                    ℹ️ Note atelier : Ces codes d'erreur sont{" "}
+                    <strong>identiques</strong> qu'ils proviennent d'iTunes ou
+                    de 3uTools, car les deux logiciels utilisent les mêmes
+                    protocoles sous le capot.
+                  </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filtered.length === 0 && (
-                    <p className="text-gray-500 py-4 col-span-3 text-center font-bold">
-                      Aucun code trouvé pour cette recherche.
-                    </p>
-                  )}
-                  {filtered.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-lg text-red-600 dark:text-red-400">
-                          {item.code}
-                        </h3>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${
-                            item.source === "iTunes"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-                              : "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-                          }`}
-                        >
-                          {item.source}
-                        </span>
+                  <div className="space-y-6">
+                    {/* Catégorie 1 : Connexion / Matériel / USB */}
+                    <div className="border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-900/10 rounded-xl p-4">
+                      <h3 className="font-bold text-red-700 dark:text-red-400 text-base mb-3 flex items-center">
+                        <span className="mr-2">🔌</span> Erreurs de Connexion /
+                        USB & Matériel (40xx, 9, etc.)
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                          <span className="font-bold text-red-600 dark:text-red-400">
+                            Erreur 9 :
+                          </span>{" "}
+                          Perte de communication USB en cours de flash (le
+                          téléphone s'est déconnecté du mode Recovery/DFU).
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Changer de port USB
+                            (privilégier les ports arrière de la carte mère),
+                            changer de câble d'origine, ou nettoyer le port
+                            Lightning/Type-C.
+                          </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                          <span className="font-bold text-red-600 dark:text-red-400">
+                            Erreur 4013 / 4014 :
+                          </span>{" "}
+                          Échec de la restauration, souvent lié à un câble
+                          défectueux ou à un court-circuit matériel (nappe
+                          caméra frontale / capteur de proximité).
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Tester un autre câble/PC,
+                            puis tenter un flash en débranchant la nappe du haut
+                            (écouteur interne).
+                          </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                          <span className="font-bold text-red-600 dark:text-red-400">
+                            Erreur 4005 / 4000 / 4010 :
+                          </span>{" "}
+                          L'outil (iTunes/3uTools) n'arrive pas à initialiser la
+                          restauration avec le processeur.
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Mettre à jour l'outil de
+                            flash et redémarrer complètement le PC.
+                          </p>
+                        </div>
                       </div>
-                      <div className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
-                        Panne : {item.type}
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                        {item.desc}
-                      </p>
                     </div>
-                  ))}
+
+                    {/* Catégorie 2 : Bande de base / Réseau */}
+                    <div className="border border-orange-200 dark:border-orange-900/50 bg-orange-50/50 dark:bg-orange-900/10 rounded-xl p-4">
+                      <h3 className="font-bold text-orange-700 dark:text-orange-400 text-base mb-3 flex items-center">
+                        <span className="mr-2">📡</span> Erreurs de Bande de
+                        Base / Réseau (Modem)
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                          <span className="font-bold text-orange-600 dark:text-orange-400">
+                            Erreur -1 :
+                          </span>{" "}
+                          Problème critique de communication avec le composant
+                          bande de base (Modem). Fréquent après un choc ou une
+                          torsion du châssis.
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Problème matériel pur
+                            (micro-soudure / sandwich board). Nécessite une
+                            intervention en atelier de soudure.
+                          </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                          <span className="font-bold text-orange-600 dark:text-orange-400">
+                            Erreur 1 :
+                          </span>{" "}
+                          Échec de la mise à jour du firmware du modem
+                          (similaire à l'erreur -1, rejet de l'écriture
+                          baseband).
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Catégorie 3 : Fichiers / Logiciel / Serveur */}
+                    <div className="border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4">
+                      <h3 className="font-bold text-blue-700 dark:text-blue-400 text-base mb-3 flex items-center">
+                        <span className="mr-2">💾</span> Erreurs de Fichiers,
+                        Logiciel & Sécurité Apple
+                      </h3>
+                      <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            Erreur 14 :
+                          </span>{" "}
+                          Problème d'écriture ou de lecture du fichier IPSW
+                          (fichier corrompu ou câble défectueux).
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Re-télécharger proprement
+                            l'IPSW et changer de câble.
+                          </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            Erreur 21 :
+                          </span>{" "}
+                          Le mode DFU est bloqué par l'ordinateur.
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Désactiver temporairement
+                            l'antivirus ou le pare-feu Windows.
+                          </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            Erreur 3194 :
+                          </span>{" "}
+                          Le serveur de signature refuse la version d'iOS
+                          (tentative de downgrade vers une version non signée).
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Repasser obligatoirement sur
+                            la dernière version officielle en date signée par
+                            Apple.
+                          </p>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            Erreur 53 :
+                          </span>{" "}
+                          Détection d'un composant non d'origine par la sécurité
+                          (bouton Home Touch ID ou écran non conforme).
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            💡 <em>Solution :</em> Remettre l'ancien composant
+                            d'origine pour valider la restauration.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
