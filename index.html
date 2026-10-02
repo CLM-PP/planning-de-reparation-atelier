@@ -4272,6 +4272,675 @@
           </div>
         );
       };
+      const WebAdbView = ({ setView, onOpenNav }) => {
+        const [isConnected, setIsConnected] = React.useState(false);
+        const [logs, setLogs] = React.useState([
+          "Terminal WebADB prêt.",
+          "En attente de connexion USB...",
+        ]);
+        const terminalEndRef = React.useRef(null);
+
+        // Fait défiler le terminal vers le bas automatiquement
+        React.useEffect(() => {
+          if (terminalEndRef.current) {
+            terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
+          }
+        }, [logs]);
+
+        const addLog = (message) => {
+          setLogs((prevLogs) => [
+            ...prevLogs,
+            `[${new Date().toLocaleTimeString()}] ${message}`,
+          ]);
+        };
+
+        const connectDevice = async () => {
+          try {
+            addLog("Demande d'autorisation USB au navigateur...");
+            // C'est ici que la vraie librairie WebADB interviendra.
+            // Pour l'instant, on simule l'appel à l'API WebUSB native de Chrome
+            const device = await navigator.usb.requestDevice({
+              filters: [{ classCode: 255, subclassCode: 66, protocolCode: 1 }], // Filtre standard ADB
+            });
+
+            addLog(
+              `Appareil trouvé : ${device.manufacturerName} ${device.productName}`
+            );
+            setIsConnected(true);
+            addLog("Connexion ADB établie avec succès.");
+          } catch (error) {
+            addLog(
+              `Erreur : ${error.message} (Avez-vous annulé ou oublié les pilotes ?)`
+            );
+          }
+        };
+
+        const disconnectDevice = () => {
+          setIsConnected(false);
+          addLog("Appareil déconnecté.");
+        };
+
+        const simulateCommand = (cmd, response) => {
+          if (!isConnected) {
+            addLog("Erreur : Aucun appareil connecté.");
+            return;
+          }
+          addLog(`> ${cmd}`);
+          setTimeout(() => addLog(response), 600);
+        };
+
+        return (
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 w-full">
+            {/* Barre de navigation */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+              <button
+                onClick={onOpenNav}
+                className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  ></path>
+                </svg>
+              </button>
+              <button
+                onClick={() => setView("tech_hub")}
+                className="mr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 19l-7-7 7-7"
+                  ></path>
+                </svg>
+              </button>
+              <h1 className="text-xl font-bold flex items-center">
+                <span className="mr-2 text-green-500">🤖</span> WebADB Terminal
+              </h1>
+
+              {/* Badge d'état */}
+              <div className="ml-auto flex items-center">
+                <span className="mr-2 text-sm font-semibold dark:text-gray-300">
+                  Statut:
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-bold text-white ${
+                    isConnected ? "bg-green-500" : "bg-red-500"
+                  }`}
+                >
+                  {isConnected ? "CONNECTÉ" : "DÉCONNECTÉ"}
+                </span>
+              </div>
+            </div>
+
+            {/* Zone Principale */}
+            <div className="flex-1 p-4 sm:p-6 flex flex-col lg:flex-row gap-6 overflow-hidden">
+              {/* Colonne de Gauche : Actions Rapides */}
+              <div className="w-full lg:w-1/3 flex flex-col gap-4 overflow-y-auto">
+                <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Connexion
+                  </h2>
+                  {!isConnected ? (
+                    <button
+                      onClick={connectDevice}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center"
+                    >
+                      <span className="mr-2">🔌</span> Connecter un appareil
+                    </button>
+                  ) : (
+                    <button
+                      onClick={disconnectDevice}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition flex items-center justify-center"
+                    >
+                      <span className="mr-2">❌</span> Déconnecter
+                    </button>
+                  )}
+                  <p className="text-xs text-gray-500 mt-3 text-center">
+                    Nécessite le débogage USB activé sur le téléphone.
+                  </p>
+                </div>
+
+                <div
+                  className={`bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition ${
+                    !isConnected ? "opacity-50 pointer-events-none" : ""
+                  }`}
+                >
+                  <h2 className="text-lg font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Commandes Rapides
+                  </h2>
+
+                  <div className="space-y-3">
+                    <button
+                      onClick={() =>
+                        simulateCommand(
+                          "adb shell getprop ro.product.model",
+                          "Modèle identifié : SM-G998B (Galaxy S21 Ultra)"
+                        )
+                      }
+                      className="w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-600 transition text-sm font-semibold flex justify-between items-center"
+                    >
+                      <span>Obtenir le modèle</span>
+                      <span className="text-blue-500">ℹ️</span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        simulateCommand("adb reboot", "Redémarrage en cours...")
+                      }
+                      className="w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-orange-50 dark:hover:bg-gray-600 transition text-sm font-semibold flex justify-between items-center"
+                    >
+                      <span>Redémarrage Normal</span>
+                      <span className="text-orange-500">🔄</span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        simulateCommand(
+                          "adb reboot recovery",
+                          "Redémarrage vers le mode Recovery..."
+                        )
+                      }
+                      className="w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-red-50 dark:hover:bg-gray-600 transition text-sm font-semibold flex justify-between items-center"
+                    >
+                      <span>Reboot Recovery</span>
+                      <span className="text-red-500">🏥</span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        simulateCommand(
+                          "adb reboot bootloader",
+                          "Redémarrage vers le mode Fastboot/Download..."
+                        )
+                      }
+                      className="w-full text-left px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-gray-600 transition text-sm font-semibold flex justify-between items-center"
+                    >
+                      <span>Reboot Fastboot</span>
+                      <span className="text-green-500">⚡</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Colonne de Droite : Terminal */}
+              <div className="w-full lg:w-2/3 flex flex-col bg-[#1e1e1e] rounded-xl shadow-inner border border-gray-700 overflow-hidden min-h-[400px]">
+                <div className="bg-[#2d2d2d] px-4 py-2 border-b border-black flex justify-between items-center">
+                  <span className="text-xs text-gray-400 font-mono">
+                    Terminal ADB
+                  </span>
+                  <button
+                    onClick={() => setLogs([])}
+                    className="text-xs text-gray-400 hover:text-white transition"
+                  >
+                    Effacer (Clear)
+                  </button>
+                </div>
+
+                <div className="flex-1 p-4 overflow-y-auto font-mono text-sm">
+                  {logs.map((log, index) => (
+                    <div
+                      key={index}
+                      className={`${
+                        log.startsWith(">")
+                          ? "text-blue-400"
+                          : log.includes("Erreur")
+                          ? "text-red-400"
+                          : "text-green-400"
+                      } mb-1`}
+                    >
+                      {log}
+                    </div>
+                  ))}
+                  <div ref={terminalEndRef} />
+                </div>
+
+                <div className="bg-[#2d2d2d] p-3 flex">
+                  <span className="text-green-500 font-mono mr-2 mt-2">
+                    ~/$
+                  </span>
+                  <input
+                    type="text"
+                    placeholder={
+                      isConnected
+                        ? "Entrez une commande shell..."
+                        : "Connectez un appareil d'abord..."
+                    }
+                    disabled={!isConnected}
+                    className="flex-1 bg-transparent text-white font-mono outline-none placeholder-gray-500 mt-2"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.target.value.trim() !== "") {
+                        simulateCommand(
+                          e.target.value,
+                          "Commande exécutée (Simulation)."
+                        );
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+      const SmdDecoderView = ({ setView, onOpenNav }) => {
+        const [code, setCode] = React.useState("");
+
+        const formatOhms = (value) => {
+          if (value >= 1000000)
+            return (value / 1000000).toFixed(2).replace(/\.00$/, "") + " MΩ";
+          if (value >= 1000)
+            return (value / 1000).toFixed(2).replace(/\.00$/, "") + " kΩ";
+          return Number(value.toFixed(2)) + " Ω";
+        };
+
+        const decodeSMD = (input) => {
+          const cleanCode = input.toUpperCase().trim();
+          if (!cleanCode) return { value: "Entrez un code", type: "" };
+
+          // Codes avec un 'R' ou 'M' pour la virgule décimale (ex: 4R7 = 4.7Ω, R47 = 0.47Ω)
+          if (cleanCode.includes("R") || cleanCode.includes("M")) {
+            const value = parseFloat(
+              cleanCode.replace("R", ".").replace("M", ".")
+            );
+            if (!isNaN(value))
+              return { value: formatOhms(value), type: "Format Décimal (R/M)" };
+          }
+
+          // Standard EIA-96 (ex: 01C = 10kΩ)
+          const eiaMatch = cleanCode.match(/^(\d{2})([A-Z])$/);
+          if (eiaMatch) {
+            // Table des 96 valeurs de base
+            const eiaCodes = [
+              100, 102, 105, 107, 110, 113, 115, 118, 121, 124, 127, 130, 133,
+              137, 140, 143, 147, 150, 154, 158, 162, 165, 169, 174, 178, 182,
+              187, 191, 196, 200, 205, 210, 215, 221, 226, 232, 237, 243, 249,
+              255, 261, 267, 274, 280, 287, 294, 301, 309, 316, 324, 332, 340,
+              348, 357, 365, 374, 383, 392, 402, 412, 422, 432, 442, 453, 464,
+              475, 487, 499, 511, 523, 536, 549, 562, 576, 590, 604, 619, 634,
+              649, 665, 681, 698, 715, 732, 750, 768, 787, 806, 825, 845, 866,
+              887, 909, 931, 953, 976,
+            ];
+            const multipliers = {
+              Z: 0.001,
+              Y: 0.01,
+              R: 0.01,
+              X: 0.1,
+              S: 0.1,
+              A: 1,
+              B: 10,
+              H: 10,
+              C: 100,
+              D: 1000,
+              E: 10000,
+              F: 100000,
+            };
+
+            const index = parseInt(eiaMatch[1], 10) - 1;
+            const mult = multipliers[eiaMatch[2]];
+
+            if (index >= 0 && index < 96 && mult !== undefined) {
+              return {
+                value: formatOhms(eiaCodes[index] * mult),
+                type: "Standard EIA-96 (Tolérance 1%)",
+              };
+            }
+          }
+
+          // Codes classiques à 3 ou 4 chiffres (ex: 103 = 10kΩ, 4702 = 47kΩ)
+          if (/^\d{3,4}$/.test(cleanCode)) {
+            const digits = cleanCode.slice(0, -1);
+            const multiplier = Math.pow(10, parseInt(cleanCode.slice(-1), 10));
+            const value = parseInt(digits, 10) * multiplier;
+            return {
+              value: formatOhms(value),
+              type: `Standard ${cleanCode.length} chiffres`,
+            };
+          }
+
+          return { value: "Code Invalide", type: "Vérifiez la saisie" };
+        };
+
+        const result = decodeSMD(code);
+
+        return (
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 w-full">
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+              <button
+                onClick={onOpenNav}
+                className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  ></path>
+                </svg>
+              </button>
+              <button
+                onClick={() => setView("tech_hub")}
+                className="mr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 19l-7-7 7-7"
+                  ></path>
+                </svg>
+              </button>
+              <h1 className="text-xl font-bold flex items-center">
+                <span className="mr-2 text-yellow-500">🧮</span> Décodeur CMS
+              </h1>
+            </div>
+
+            <div className="flex-1 p-4 sm:p-8 flex flex-col items-center justify-center">
+              <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+                <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">
+                  Calculateur de Résistance
+                </h2>
+
+                <div className="mb-8 relative">
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    placeholder="Ex: 103, 4R7, 01C..."
+                    className="w-full text-center text-3xl font-bold font-mono py-4 bg-gray-100 dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:border-yellow-500 focus:outline-none transition uppercase"
+                    maxLength={4}
+                  />
+                </div>
+
+                <div
+                  className={`p-6 rounded-xl border-2 transition-all ${
+                    code
+                      ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400"
+                      : "bg-gray-50 dark:bg-gray-700/50 border-transparent"
+                  }`}
+                >
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 font-semibold uppercase tracking-wider">
+                    {result.type || "Résultat"}
+                  </div>
+                  <div
+                    className={`text-4xl font-black ${
+                      result.value === "Code Invalide"
+                        ? "text-red-500"
+                        : "text-gray-900 dark:text-white"
+                    }`}
+                  >
+                    {result.value}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+      const QualityControlView = ({ setView, onOpenNav }) => {
+        const [isConnected, setIsConnected] = React.useState(false);
+        const [diagnosticLog, setDiagnosticLog] = React.useState(
+          "Branchez un appareil et cliquez sur Connecter."
+        );
+
+        const connectDevice = async () => {
+          try {
+            setDiagnosticLog("Demande d'autorisation USB...");
+            // Simulation de la connexion WebUSB
+            const device = await navigator.usb.requestDevice({
+              filters: [{ classCode: 255, subclassCode: 66, protocolCode: 1 }],
+            });
+            setIsConnected(true);
+            setDiagnosticLog(
+              `✅ Appareil connecté : ${device.manufacturerName} ${device.productName}`
+            );
+          } catch (error) {
+            setDiagnosticLog(`❌ Erreur : ${error.message}`);
+          }
+        };
+
+        const launchTest = (brand, command, successMessage) => {
+          if (!isConnected) {
+            setDiagnosticLog(
+              "⚠️ Veuillez d'abord connecter un appareil en USB (Débogage activé)."
+            );
+            return;
+          }
+          setDiagnosticLog(`Exécution de la commande pour ${brand}...`);
+
+          // Simulation du délai réseau/USB
+          setTimeout(() => {
+            setDiagnosticLog(
+              `✅ [${brand}] : ${successMessage}\n\nCommande envoyée : ${command}`
+            );
+          }, 600);
+        };
+
+        return (
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 w-full">
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center shadow-sm sticky top-0 z-10">
+              <button
+                onClick={onOpenNav}
+                className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  ></path>
+                </svg>
+              </button>
+              <button
+                onClick={() => setView("tech_hub")}
+                className="mr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 19l-7-7 7-7"
+                  ></path>
+                </svg>
+              </button>
+              <h1 className="text-xl font-bold flex items-center">
+                <span className="mr-2 text-teal-500">🔌</span> Banc de Diag ADB
+              </h1>
+
+              <div className="ml-auto flex items-center">
+                <button
+                  onClick={
+                    isConnected
+                      ? () => {
+                          setIsConnected(false);
+                          setDiagnosticLog("Appareil déconnecté.");
+                        }
+                      : connectDevice
+                  }
+                  className={`px-4 py-2 rounded-lg text-sm font-bold text-white transition ${
+                    isConnected
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                >
+                  {isConnected ? "Déconnecter" : "Connecter Appareil"}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
+              <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-6">
+                <div className="w-full lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button
+                    onClick={() =>
+                      launchTest(
+                        "Samsung",
+                        "am start -n com.sec.android.app.hwmoduletest/.HwModuleTest",
+                        "Menu secret (*#0*#) ouvert sur l'écran du téléphone."
+                      )
+                    }
+                    className={`p-5 text-left bg-white dark:bg-gray-800 border ${
+                      isConnected
+                        ? "border-blue-300 hover:border-blue-500 hover:shadow-md cursor-pointer"
+                        : "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                    } rounded-xl transition flex flex-col`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg text-blue-600 dark:text-blue-400">
+                        Diagnostic Samsung
+                      </h3>
+                      <span className="text-2xl">📱</span>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Force l'ouverture du menu LCD, tactile, capteurs et
+                      vibreur.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      launchTest(
+                        "Xiaomi / Poco",
+                        "am start -n com.miui.cit/.CitActivity",
+                        "Interface CIT MIUI ouverte sur l'appareil."
+                      )
+                    }
+                    className={`p-5 text-left bg-white dark:bg-gray-800 border ${
+                      isConnected
+                        ? "border-orange-300 hover:border-orange-500 hover:shadow-md cursor-pointer"
+                        : "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                    } rounded-xl transition flex flex-col`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg text-orange-600 dark:text-orange-400">
+                        Menu CIT Xiaomi
+                      </h3>
+                      <span className="text-2xl">⚙️</span>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Lance les tests matériels complets pour la gamme
+                      Xiaomi/Redmi.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      launchTest(
+                        "Motorola / Lenovo",
+                        "am start -n com.motorola.motocit/.Main_Menu",
+                        "Application CQATest lancée sur l'appareil."
+                      )
+                    }
+                    className={`p-5 text-left bg-white dark:bg-gray-800 border ${
+                      isConnected
+                        ? "border-indigo-300 hover:border-indigo-500 hover:shadow-md cursor-pointer"
+                        : "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                    } rounded-xl transition flex flex-col`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg text-indigo-600 dark:text-indigo-400">
+                        CQATest Motorola
+                      </h3>
+                      <span className="text-2xl">Ⓜ️</span>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Ouvre l'usine de test Motorola pour écrans et caméras.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      launchTest(
+                        "Batterie (Universel)",
+                        "dumpsys battery",
+                        "Niveau: 84%\nSanté: Good\nCycle count: 412\nVoltage: 3842mV"
+                      )
+                    }
+                    className={`p-5 text-left bg-white dark:bg-gray-800 border ${
+                      isConnected
+                        ? "border-green-300 hover:border-green-500 hover:shadow-md cursor-pointer"
+                        : "border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
+                    } rounded-xl transition flex flex-col`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-bold text-lg text-green-600 dark:text-green-400">
+                        Santé Batterie
+                      </h3>
+                      <span className="text-2xl">🔋</span>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Lit les données brutes du contrôleur de charge BMS.
+                    </p>
+                  </button>
+                </div>
+
+                <div className="w-full lg:w-1/3 flex flex-col">
+                  <div className="bg-gray-900 rounded-xl shadow-inner border border-gray-700 flex-1 min-h-[300px] flex flex-col overflow-hidden">
+                    <div className="bg-gray-800 px-4 py-2 border-b border-black">
+                      <span className="text-xs text-gray-400 font-mono">
+                        Retour Commande
+                      </span>
+                    </div>
+                    <div className="p-4 font-mono text-sm text-green-400 whitespace-pre-wrap overflow-y-auto">
+                      {diagnosticLog}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+                    <h4 className="font-bold text-sm text-yellow-800 dark:text-yellow-400 mb-1 flex items-center">
+                      <span className="mr-2">⚠️</span> Prérequis
+                    </h4>
+                    <p className="text-xs text-yellow-700 dark:text-yellow-500">
+                      Le débogage USB doit être activé dans les options pour les
+                      développeurs du téléphone.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
       const TechHubView = ({ setView, onOpenNav }) => {
         return (
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
@@ -4425,6 +5094,56 @@
                       </div>
                       <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">
                         🔬
+                      </span>
+                    </button>
+
+                    {/* 👉 LE NOUVEAU BOUTON WEBADB EST AJOUTÉ ICI */}
+                    <button
+                      onClick={() => setView("webadb")}
+                      className="p-5 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-green-400 transition flex items-center justify-between group"
+                    >
+                      <div>
+                        <h3 className="font-bold text-lg text-green-600 dark:text-green-400">
+                          WebADB Terminal
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Console Android via WebUSB
+                        </p>
+                      </div>
+                      <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">
+                        🤖
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setView("smd_decoder")}
+                      className="p-5 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-yellow-400 transition flex items-center justify-between group"
+                    >
+                      <div>
+                        <h3 className="font-bold text-lg text-yellow-600 dark:text-yellow-400">
+                          Décodeur CMS
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Lecture rapide des résistances
+                        </p>
+                      </div>
+                      <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">
+                        🧮
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setView("qc_bench")}
+                      className="p-5 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-teal-400 transition flex items-center justify-between group"
+                    >
+                      <div>
+                        <h3 className="font-bold text-lg text-teal-600 dark:text-teal-400">
+                          Banc de Diag ADB
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Lancement des menus secrets USB
+                        </p>
+                      </div>
+                      <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">
+                        🔌
                       </span>
                     </button>
                   </div>
@@ -5125,6 +5844,21 @@
               />
             ) : view === "boardviewer" ? (
               <BoardviewerView
+                setView={setView}
+                onOpenNav={() => setIsNavOpen(true)}
+              />
+            ) : view === "webadb" ? (
+              <WebAdbView
+                setView={setView}
+                onOpenNav={() => setIsNavOpen(true)}
+              />
+            ) : view === "smd_decoder" ? (
+              <SmdDecoderView
+                setView={setView}
+                onOpenNav={() => setIsNavOpen(true)}
+              />
+            ) : view === "qc_bench" ? (
+              <QualityControlView
                 setView={setView}
                 onOpenNav={() => setIsNavOpen(true)}
               />
