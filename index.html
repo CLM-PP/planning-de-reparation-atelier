@@ -928,9 +928,36 @@
         const [messages, setMessages] = useState([]);
         const [text, setText] = useState("");
         const [author, setAuthor] = useState("");
-        const [recipient, setRecipient] = useState("Tout le monde");
+        const [selectedRecipients, setSelectedRecipients] = useState([
+          "Tout le monde",
+        ]);
         const [activeTab, setActiveTab] = useState("actifs");
         const [searchTerm, setSearchTerm] = useState("");
+
+        const teamMembers = ["Clément", "Bérénys", "Gérard"];
+
+        const handleRecipientToggle = (member) => {
+          if (member === "Tout le monde") {
+            setSelectedRecipients(["Tout le monde"]);
+            return;
+          }
+
+          // Si "Tout le monde" était sélectionné, on l'enlève et on met le membre
+          let updated = selectedRecipients.filter((r) => r !== "Tout le monde");
+
+          if (updated.includes(member)) {
+            updated = updated.filter((r) => r !== member);
+          } else {
+            updated.push(member);
+          }
+
+          // Si plus rien n'est coché, on remet "Tout le monde" par défaut
+          if (updated.length === 0) {
+            updated = ["Tout le monde"];
+          }
+
+          setSelectedRecipients(updated);
+        };
 
         useEffect(() => {
           const { collection, onSnapshot } = window.FB_SDK;
@@ -953,15 +980,17 @@
           e.preventDefault();
           if (!author || !text) return;
           const { collection, addDoc } = window.FB_SDK;
+
+          // On sauvegarde la liste des destinataires (ou "Tout le monde")
           await addDoc(collection(window.db, "team_notes"), {
             author,
-            recipient,
+            recipients: selectedRecipients,
             text,
             createdAt: Date.now(),
             status: "active",
           });
           setText("");
-          setRecipient("Tout le monde");
+          setSelectedRecipients(["Tout le monde"]);
         };
 
         const markAsSeen = async (id) => {
@@ -999,9 +1028,13 @@
           const term = searchTerm.toLowerCase();
           archivedMessages = archivedMessages.filter((m) => {
             const authorMatch = (m.author || "").toLowerCase().includes(term);
-            const recipientMatch = (m.recipient || "")
-              .toLowerCase()
-              .includes(term);
+
+            // Gestion de la recherche multi-destinataires ou ancien format (recipient)
+            const recs = m.recipients || [m.recipient || "Tout le monde"];
+            const recipientMatch = recs.some((r) =>
+              r.toLowerCase().includes(term)
+            );
+
             const dateStr = new Date(m.createdAt).toLocaleDateString("fr-FR");
             const dateMatch = dateStr.includes(term);
             const textMatch = (m.text || "").toLowerCase().includes(term);
@@ -1095,21 +1128,44 @@
                           <option value="Gérard">Gérard</option>
                         </select>
                       </div>
+
+                      {/* Sélection multiple des destinataires */}
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Pour qui ?
+                          Pour qui ? (Sélection multiple possible)
                         </label>
-                        <select
-                          required
-                          value={recipient}
-                          onChange={(e) => setRecipient(e.target.value)}
-                          className="w-full border rounded-md p-2 bg-white dark:bg-gray-700 text-black dark:text-white outline-none border-gray-300 dark:border-gray-600 focus:border-blue-500"
-                        >
-                          <option value="Tout le monde">Tout le monde</option>
-                          <option value="Clément">Clément</option>
-                          <option value="Bérénys">Bérénys</option>
-                          <option value="Gérard">Gérard</option>
-                        </select>
+                        <div className="border rounded-md p-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 flex flex-wrap gap-3 items-center">
+                          <label className="flex items-center space-x-1.5 cursor-pointer text-xs font-bold text-blue-600 dark:text-blue-400">
+                            <input
+                              type="checkbox"
+                              checked={selectedRecipients.includes(
+                                "Tout le monde"
+                              )}
+                              onChange={() =>
+                                handleRecipientToggle("Tout le monde")
+                              }
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>📢 Tout le monde</span>
+                          </label>
+
+                          <div className="h-4 w-[1px] bg-gray-300 dark:bg-gray-600"></div>
+
+                          {teamMembers.map((member) => (
+                            <label
+                              key={member}
+                              className="flex items-center space-x-1.5 cursor-pointer text-xs"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedRecipients.includes(member)}
+                                onChange={() => handleRecipientToggle(member)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span>{member}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -1159,88 +1215,103 @@
                   {(activeTab === "actifs"
                     ? activeMessages
                     : archivedMessages
-                  ).map((m) => (
-                    <div
-                      key={m.id}
-                      className={`p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center ${
-                        activeTab === "actifs"
-                          ? "bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700"
-                          : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-80"
-                      }`}
-                    >
-                      <div className="w-full">
-                        <div className="font-bold text-gray-900 dark:text-white mb-2 flex items-center flex-wrap gap-2">
-                          <span className="flex items-center">
-                            <span className="text-xl mr-2">📌</span> {m.author}
-                          </span>
-                          <span className="text-gray-400 mx-1">👉</span>
-                          <span
-                            className={`text-xs px-2.5 py-1 rounded-md shadow-sm ${
-                              !m.recipient || m.recipient === "Tout le monde"
-                                ? "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                                : "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
-                            }`}
-                          >
-                            À : {m.recipient || "Tout le monde"}
-                          </span>
-                          <span className="text-xs font-normal text-gray-500 ml-auto sm:ml-3">
-                            Le{" "}
-                            {new Date(m.createdAt).toLocaleDateString("fr-FR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                        <p className="text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap mt-2">
-                          {m.text}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                        {activeTab === "actifs" ? (
-                          <div className="flex gap-2 w-full sm:w-auto">
-                            <button
-                              onClick={() => markAsSeen(m.id)}
-                              className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition flex items-center justify-center shadow-sm whitespace-nowrap"
-                            >
-                              ✅ C'est vu !
-                            </button>
-                            <button
-                              onClick={() => deleteMessage(m.id)}
-                              className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-2 rounded-lg transition flex items-center justify-center"
-                              title="Supprimer définitivement"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full">
-                            <span className="text-xs font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-full whitespace-nowrap">
-                              Vu le{" "}
-                              {new Date(m.seenAt).toLocaleDateString("fr-FR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                  ).map((m) => {
+                    // Récupération sécurisée des destinataires (gère aussi les anciens messages au format unique)
+                    const recs = m.recipients || [
+                      m.recipient || "Tout le monde",
+                    ];
+                    const recipientsDisplay = recs.join(", ");
+
+                    return (
+                      <div
+                        key={m.id}
+                        className={`p-5 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center ${
+                          activeTab === "actifs"
+                            ? "bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-700"
+                            : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-80"
+                        }`}
+                      >
+                        <div className="w-full">
+                          <div className="font-bold text-gray-900 dark:text-white mb-2 flex items-center flex-wrap gap-2">
+                            <span className="flex items-center">
+                              <span className="text-xl mr-2">📌</span>{" "}
+                              {m.author}
                             </span>
-                            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                            <span className="text-gray-400 mx-1">👉</span>
+                            <span
+                              className={`text-xs px-2.5 py-1 rounded-md shadow-sm ${
+                                recs.includes("Tout le monde")
+                                  ? "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                                  : "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+                              }`}
+                            >
+                              À : {recipientsDisplay}
+                            </span>
+                            <span className="text-xs font-normal text-gray-500 ml-auto sm:ml-3">
+                              Le{" "}
+                              {new Date(m.createdAt).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 dark:text-gray-200 font-medium whitespace-pre-wrap mt-2">
+                            {m.text}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                          {activeTab === "actifs" ? (
+                            <div className="flex gap-2 w-full sm:w-auto">
                               <button
-                                onClick={() => unarchiveMessage(m.id)}
-                                className="flex-1 sm:flex-none bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-3 py-1.5 rounded-lg transition text-xs font-bold border border-orange-200 dark:border-orange-800 flex items-center justify-center whitespace-nowrap"
+                                onClick={() => markAsSeen(m.id)}
+                                className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition flex items-center justify-center shadow-sm whitespace-nowrap"
                               >
-                                ↩ Remettre
+                                ✅ C'est vu !
                               </button>
                               <button
                                 onClick={() => deleteMessage(m.id)}
-                                className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded-lg transition flex items-center justify-center"
+                                className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-2 rounded-lg transition flex items-center justify-center"
                                 title="Supprimer définitivement"
                               >
                                 🗑️
                               </button>
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 w-full">
+                              <span className="text-xs font-bold text-gray-500 bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-full whitespace-nowrap">
+                                Vu le{" "}
+                                {new Date(m.seenAt).toLocaleDateString(
+                                  "fr-FR",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </span>
+                              <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                                <button
+                                  onClick={() => unarchiveMessage(m.id)}
+                                  className="flex-1 sm:flex-none bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-3 py-1.5 rounded-lg transition text-xs font-bold border border-orange-200 dark:border-orange-800 flex items-center justify-center whitespace-nowrap"
+                                >
+                                  ↩ Remettre
+                                </button>
+                                <button
+                                  onClick={() => deleteMessage(m.id)}
+                                  className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded-lg transition flex items-center justify-center"
+                                  title="Supprimer définitivement"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {(activeTab === "actifs" ? activeMessages : archivedMessages)
                     .length === 0 && (
                     <div className="text-center text-gray-500 dark:text-gray-400 py-10 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 font-bold">
