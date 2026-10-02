@@ -3366,6 +3366,66 @@
         );
       };
 
+      const DualShockView = ({ setView, onOpenNav }) => {
+        return (
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col text-black dark:text-white transition-colors duration-200 flex-1 w-full">
+            {/* En-tête */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+              <div className="flex items-center">
+                <button
+                  onClick={onOpenNav}
+                  className="mr-4 p-2 bg-gray-100 dark:bg-gray-700 rounded-md transition hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    ></path>
+                  </svg>
+                </button>
+                <h1 className="text-xl font-bold flex items-center">
+                  <span className="mr-2">🎮</span> DualShock Tools
+                </h1>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://dualshock-tools.github.io/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition font-medium"
+                >
+                  Ouvrir en grand ↗
+                </a>
+                <button
+                  onClick={() => setView("tech_hub")}
+                  className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition font-bold"
+                >
+                  ← Retour Espace Tech
+                </button>
+              </div>
+            </div>
+
+            {/* Fenêtre Iframe intégrée avec les permissions USB/Gamepad */}
+            <div className="flex-1 p-4 flex flex-col">
+              <iframe
+                src="https://dualshock-tools.github.io/"
+                title="DualShock Tools"
+                className="w-full flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white shadow-sm"
+                allow="gamepad; usb; hid"
+              ></iframe>
+            </div>
+          </div>
+        );
+      };
+
       const EndemicFailuresView = ({ setView, onOpenNav }) => {
         const [searchTerm, setSearchTerm] = useState("");
 
@@ -4009,6 +4069,23 @@
                       </div>
                       <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">
                         🔓
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setView("dualshock")}
+                      className="p-5 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-400 transition flex items-center justify-between group"
+                    >
+                      <div>
+                        <h3 className="font-bold text-lg text-indigo-600 dark:text-indigo-400">
+                          DualShock Tools
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Diagnostic et test de manettes
+                        </p>
+                      </div>
+                      <span className="opacity-50 group-hover:opacity-100 transition-opacity text-2xl">
+                        🎮
                       </span>
                     </button>
 
@@ -4728,6 +4805,11 @@
               <SamFwGuideView onOpenNav={() => setIsNavOpen(true)} />
             ) : view === "imei_checker" ? (
               <ImeiCheckerView onOpenNav={() => setIsNavOpen(true)} />
+            ) : view === "dualshock" ? (
+              <DualShockView
+                setView={setView}
+                onOpenNav={() => setIsNavOpen(true)}
+              />
             ) : view === "team_notes" ? (
               <TeamMessagesView
                 setView={setView}
