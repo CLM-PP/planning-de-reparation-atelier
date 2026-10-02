@@ -4313,6 +4313,30 @@
           return days;
         })();
 
+        // NOUVEAU : Déplacement automatique des réparations du passé vers aujourd'hui
+        React.useEffect(() => {
+          if (!repairs || repairs.length === 0) return;
+
+          const now = new Date();
+          const todayStr = `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+          ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+          repairs.forEach((repair) => {
+            // Si la date est passée ET que la fiche n'est PAS archivée (donc pas encore appelée/clôturée)
+            if (repair.date < todayStr && repair.status !== "archived") {
+              if (window.FB_SDK && window.db) {
+                window.FB_SDK.updateDoc(
+                  window.FB_SDK.doc(window.db, "repairs", repair.id),
+                  {
+                    date: todayStr,
+                  }
+                ).catch(console.error);
+              }
+            }
+          });
+        }, [repairs]);
+
         const handleSubmit = (e) => {
           e.preventDefault();
           if (!formData.client || !formData.phone || !formData.repair) return;
