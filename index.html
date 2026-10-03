@@ -771,16 +771,6 @@
             </div>
           </div>
           <div>
-            <div className="border-t border-l border-black mb-4 flex flex-col">
-              <div className="bg-blue-300 font-bold text-center border-r border-b border-black p-1 text-xs text-black">
-                COMMENTAIRE
-              </div>
-              <textarea
-                className="w-full h-12 p-2 text-xs border-r border-b border-black outline-none resize-none bg-white text-black"
-                value={formSync.commentaire || ""}
-                onChange={(e) => updateSync("commentaire", e.target.value)}
-              />
-            </div>
             <div className="border border-black h-20 relative bg-white">
               <div className="bg-blue-200 font-bold text-center border-b border-black p-1 text-xs text-black">
                 SIGNATURE (Accord Réparation & Données)
@@ -802,7 +792,6 @@
             vendeur: activeIntake.vendeur || "",
             prix: activeIntake.prix || "",
             accessoire: "",
-            commentaire: "",
             codeDev: "",
             codeType: "text",
             pattern: [],
