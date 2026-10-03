@@ -5718,6 +5718,16 @@
           () => localStorage.getItem("theme") === "dark"
         );
 
+        // Ce bouton demandera l'autorisation sur iPhone la première fois
+        const requestNotificationPermission = async () => {
+          if ("Notification" in window) {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+              console.log("Pastilles autorisées sur iPhone !");
+            }
+          }
+        };
+
         // 👉 COLLE L'EFFET DE NOTIFICATION JUSTE ICI :
         useEffect(() => {
           // Mise à jour de l'onglet du navigateur
