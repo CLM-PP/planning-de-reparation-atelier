@@ -5718,6 +5718,27 @@
           () => localStorage.getItem("theme") === "dark"
         );
 
+        // 👉 COLLE L'EFFET DE NOTIFICATION JUSTE ICI :
+        useEffect(() => {
+          // Mise à jour de l'onglet du navigateur
+          if (activeNotesCount > 0) {
+            document.title = `(${activeNotesCount}) Espace Tech`;
+          } else {
+            document.title = "Espace Tech";
+          }
+
+          // Mise à jour de l'icône (Pastille rouge PWA)
+          if ("setAppBadge" in navigator) {
+            if (activeNotesCount > 0) {
+              navigator.setAppBadge(activeNotesCount).catch(console.error);
+            } else {
+              navigator.clearAppBadge().catch(console.error);
+            }
+          }
+        }, [activeNotesCount]);
+        // 👈 FIN DU CODE À COLLER
+
+        // Et ici on retrouve la suite de ton code existant :
         useEffect(() => {
           const today = new Date();
           let targetDate = new Date(today);
